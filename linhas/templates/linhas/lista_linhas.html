@@ -1,0 +1,207 @@
+{% extends 'base.html' %}
+
+{% block title %}Lista de Linhas - Gestor de Linhas de Telefonia{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-mobile-alt"></i> Lista de Linhas de Telefonia</h1>
+    <a href="{% url 'linhas:novalinha' %}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Nova Linha
+    </a>
+</div>
+
+<!-- Estatísticas -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card card-stats">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title text-muted">Total de Linhas</h5>
+                        <h3 class="text-primary">{{ total_linhas }}</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-mobile-alt fa-2x text-primary"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card card-stats">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title text-muted">Linhas Ativas</h5>
+                        <h3 class="text-success">{{ linhas_ativas }}</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-check-circle fa-2x text-success"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card card-stats">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title text-muted">Linhas Inativas</h5>
+                        <h3 class="text-danger">{{ linhas_inativas }}</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-times-circle fa-2x text-danger"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filtros de Busca -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                {{ form_busca.busca.label_tag }}
+                {{ form_busca.busca }}
+            </div>
+            <div class="col-md-2">
+                {{ form_busca.tipo_plano.label_tag }}
+                {{ form_busca.tipo_plano }}
+            </div>
+            <div class="col-md-2">
+                {{ form_busca.ativa.label_tag }}
+                {{ form_busca.ativa }}
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-outline-primary me-2">
+                    <i class="fas fa-search"></i> Buscar
+                </button>
+                <a href="{% url 'linhas:listalinhas' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-times"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Lista de Linhas -->
+{% if page_obj %}
+<div class="container-fluid px-0">
+    <div class="card" style="width:100%; max-width:100%;">
+        <div class="card-body" style="padding:2rem;">
+            <div class="table-responsive">
+                <form method="post" id="form-linhas-multiplas">
+                    {% csrf_token %}
+                    <table class="table table-hover table-bordered" style="width:100%; font-size:1.1rem;">
+                        <thead class="table-light">
+                            <tr>
+                                <th><input type="checkbox" id="select-all"></th>
+                                <th>Linha</th>
+                                <th>Cliente</th>
+                                <th>CNPJ</th>
+                                <th>RP</th>
+                                <th>Origem</th>
+                                <th>Plano</th>
+                                <th>Valor Plano</th>
+                                <th>Taxa de Manutenção</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for linha in page_obj %}
+                            <tr>
+                                <td><input type="checkbox" name="linhas_selecionadas" value="{{ linha.pk }}"></td>
+                                <td><strong>{{ linha.numero }}</strong></td>
+                                <td>{{ linha.empresa }}</td>
+                                <td>{{ linha.cnpj }}</td>
+                                <td>{{ linha.RP }}</td>
+                                <td>{{ linha.origem }}</td>
+                                <td>{{ linha.get_tipo_plano_display }}</td>
+                                <td>R$ {{ linha.valor_plano }}</td>
+                                <td>R$ {{ linha.taxa_manutencao }}</td>
+                                <td>
+                                    {% if linha.ativa %}
+                                        <i class="fas fa-check-circle status-ativo"></i> Ativa
+                                    {% else %}
+                                        <i class="fas fa-times-circle status-inativo"></i> Inativa
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a href="{% url 'linhas:detalheslinha' linha.pk %}" class="btn btn-outline-info" title="Ver detalhes">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'linhas:editarlinha' linha.pk %}" class="btn btn-outline-warning" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'linhas:excluirlinha' linha.pk %}" class="btn btn-outline-danger" title="Excluir">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <div class="mt-2">
+                        <button type="submit" class="btn btn-success">Executar ação em selecionadas</button>
+                    </div>
+                </form>
+                <script>
+                // Selecionar todos
+                document.addEventListener('DOMContentLoaded', function() {
+                    var selectAll = document.getElementById('select-all');
+                    if (selectAll) {
+                        selectAll.addEventListener('change', function() {
+                            var checkboxes = document.querySelectorAll('input[name="linhas_selecionadas"]');
+                            for (var i = 0; i < checkboxes.length; i++) {
+                                checkboxes[i].checked = selectAll.checked;
+                            }
+                        });
+                    }
+                });
+                </script>
+        </div>
+
+        <!-- Paginação -->
+        {% if page_obj.has_other_pages %}
+        <nav aria-label="Paginação">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if request.GET.busca %}&busca={{ request.GET.busca }}{% endif %}{% if request.GET.operadora %}&operadora={{ request.GET.operadora }}{% endif %}{% if request.GET.tipo_plano %}&tipo_plano={{ request.GET.tipo_plano }}{% endif %}{% if request.GET.ativa %}&ativa={{ request.GET.ativa }}{% endif %}">Primeira</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.busca %}&busca={{ request.GET.busca }}{% endif %}{% if request.GET.operadora %}&operadora={{ request.GET.operadora }}{% endif %}{% if request.GET.tipo_plano %}&tipo_plano={{ request.GET.tipo_plano }}{% endif %}{% if request.GET.ativa %}&ativa={{ request.GET.ativa }}{% endif %}">Anterior</a>
+                    </li>
+                {% endif %}
+
+                <li class="page-item active">
+                    <span class="page-link">{{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+                </li>
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.busca %}&busca={{ request.GET.busca }}{% endif %}{% if request.GET.operadora %}&operadora={{ request.GET.operadora }}{% endif %}{% if request.GET.tipo_plano %}&tipo_plano={{ request.GET.tipo_plano }}{% endif %}{% if request.GET.ativa %}&ativa={{ request.GET.ativa }}{% endif %}">Próxima</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.busca %}&busca={{ request.GET.busca }}{% endif %}{% if request.GET.operadora %}&operadora={{ request.GET.operadora }}{% endif %}{% if request.GET.tipo_plano %}&tipo_plano={{ request.GET.tipo_plano }}{% endif %}{% if request.GET.ativa %}&ativa={{ request.GET.ativa }}{% endif %}">Última</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% else %}
+<div class="alert alert-warning text-center">
+    <i class="fas fa-exclamation-triangle"></i>
+    SEM RESULTADOS PARA A BUSCA
+</div>
+{% endif %}
+{% endblock %}
+
