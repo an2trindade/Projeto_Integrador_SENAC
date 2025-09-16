@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar Linha - Gestor de Linhas{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="fas fa-edit"></i> Editar Linha: {{ linha.numero }}</h1>
+    <a href="{% url 'linhas:listalinhas' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Voltar
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="{{ form.nome.id_for_label }}" class="form-label">
+                            <i class="fas fa-tag"></i> Nome da Linha *
+                        </label>
+                        {{ form.nome }}
+                        {% if form.nome.errors %}
+                            <div class="text-danger">
+                                {% for error in form.nome.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="{{ form.numero.id_for_label }}" class="form-label">
+                            <i class="fas fa-hashtag"></i> Número da Linha *
+                        </label>
+                        {{ form.numero }}
+                        {% if form.numero.errors %}
+                            <div class="text-danger">
+                                {% for error in form.numero.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="{{ form.origem.id_for_label }}" class="form-label">
+                            <i class="fas fa-map-marker-alt"></i> Origem *
+                        </label>
+                        {{ form.origem }}
+                        {% if form.origem.errors %}
+                            <div class="text-danger">
+                                {% for error in form.origem.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="{{ form.destino.id_for_label }}" class="form-label">
+                            <i class="fas fa-flag-checkered"></i> Destino *
+                        </label>
+                        {{ form.destino }}
+                        {% if form.destino.errors %}
+                            <div class="text-danger">
+                                {% for error in form.destino.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="{{ form.horario_inicio.id_for_label }}" class="form-label">
+                            <i class="fas fa-clock"></i> Horário de Início *
+                        </label>
+                        {{ form.horario_inicio }}
+                        {% if form.horario_inicio.errors %}
+                            <div class="text-danger">
+                                {% for error in form.horario_inicio.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="{{ form.horario_fim.id_for_label }}" class="form-label">
+                            <i class="fas fa-clock"></i> Horário de Fim *
+                        </label>
+                        {{ form.horario_fim }}
+                        {% if form.horario_fim.errors %}
+                            <div class="text-danger">
+                                {% for error in form.horario_fim.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <div class="form-check">
+                    {{ form.ativa }}
+                    <label class="form-check-label" for="{{ form.ativa.id_for_label }}">
+                        <i class="fas fa-check-circle"></i> Linha ativa
+                    </label>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Salvar Alterações
+                </button>
+                <a href="{% url 'linhas:listalinhas' %}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancelar
+                </a>
+                <a href="{% url 'linhas:detalheslinha' linha.pk %}" class="btn btn-info">
+                    <i class="fas fa-eye"></i> Ver Detalhes
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+

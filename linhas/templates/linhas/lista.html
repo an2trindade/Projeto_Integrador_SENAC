@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Linhas de Telefonia</title>
+</head>
+<body>
+    <h2>Linhas de Telefonia</h2>
+    <a href="{% url 'linhas:novalinha' %}">Cadastrar Nova Linha</a>
+    <ul>
+        {% for linha in linhas %}
+            <li>
+                {{ linha.numero }} - {{ linha.operadora }} - {{ linha.plano }} - 
+                {% if linha.usuario %}{{ linha.usuario.username }}{% else %}Sem usuário{% endif %} - 
+                {% if linha.ativa %}Ativa{% else %}Inativa{% endif %}
+            </li>
+        {% empty %}
+            <li>Nenhuma linha cadastrada</li>
+        {% endfor %}
+    </ul>
+    <form id="logout-form" action="{% url 'logout' %}" method="post" style="display: inline;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-link" style="padding: 0;">Sair</button>
+    </form>
+</body>
+</html>
