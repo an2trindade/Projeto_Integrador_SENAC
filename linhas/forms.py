@@ -56,7 +56,8 @@ class LinhaForm(forms.ModelForm):
             }),
             'iccid': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'ICCID do chip'
+                'placeholder': 'ICCID do chip',
+                'required': False
             }),
             'acao': forms.Select(attrs={
                 'class': 'form-select'

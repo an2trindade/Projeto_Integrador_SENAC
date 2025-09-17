@@ -91,11 +91,24 @@ def lista_linhas(request):
 @login_required
 def nova_linha(request):
     if request.method == 'POST':
-        form = LinhaForm(request.POST)
+        form = LinhaForm(request.POST, request.FILES)
+        observacoes_lateral = request.POST.get('observacoes_lateral', '')
+        anexos = request.FILES.getlist('anexos')
         if form.is_valid():
             linha = form.save(commit=False)
             linha.criado_por = request.user
+            # Adiciona observações da lateral se ação for TT ou PORTABILIDADE
+            if linha.acao in ['TT', 'PORTABILIDADE'] and observacoes_lateral:
+                if linha.observacoes:
+                    linha.observacoes += '\n' + observacoes_lateral
+                else:
+                    linha.observacoes = observacoes_lateral
             linha.save()
+            # Salvar anexos (exemplo: salvar em pasta e registrar caminho, adaptar conforme modelo)
+            for arquivo in anexos:
+                with open(f'media/anexos/{arquivo.name}', 'wb+') as dest:
+                    for chunk in arquivo.chunks():
+                        dest.write(chunk)
             messages.success(request, f'Linha {linha.numero} cadastrada com sucesso!')
             return redirect('linhas:listalinhas')
     else:
