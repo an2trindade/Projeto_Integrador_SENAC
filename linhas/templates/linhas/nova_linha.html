@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1><i class="fas fa-plus"></i> Nova Linha de Telefonia</h1>
+    <h1><i class="fas fa-plus"></i> Nova Linha </h1>
     <a href="{% url 'linhas:listalinhas' %}" class="btn btn-secondary">
         <i class="fas fa-arrow-left"></i> Voltar
     </a>
@@ -14,7 +14,7 @@
     <div class="col-md-8">
         <div class="card">
             <div class="card-body">
-                <form method="post">
+                <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
                     
 
@@ -27,6 +27,7 @@
                                 <i class="fas fa-building"></i> {{ form.empresa.label }} *
                             </label>
                             {{ form.empresa }}
+                            <div id="empresa-suggestions" class="list-group" style="position:absolute; z-index:1000;"></div>
                             {% if form.empresa.errors %}
                                 <div class="text-danger small">{{ form.empresa.errors.0 }}</div>
                             {% endif %}
@@ -70,64 +71,188 @@
                         </div>
                     </div>
 
-                    <!-- LINHA -->
-                    <h5 class="mt-4 mb-2"><i class="fas fa-mobile-alt"></i> Linha</h5>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.numero.id_for_label }}" class="form-label">
-                                <i class="fas fa-mobile-alt"></i> {{ form.numero.label }} *
-                            </label>
-                            {{ form.numero }}
-                            {% if form.numero.errors %}
-                                <div class="text-danger small">{{ form.numero.errors.0 }}</div>
-                            {% endif %}
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.tipo_plano.id_for_label }}" class="form-label">
-                                <i class="fas fa-tags"></i> {{ form.tipo_plano.label }} *
-                            </label>
-                            {{ form.tipo_plano }}
-                            {% if form.tipo_plano.errors %}
-                                <div class="text-danger small">{{ form.tipo_plano.errors.0 }}</div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.valor_plano.id_for_label }}" class="form-label">
-                                <i class="fas fa-dollar-sign"></i> {{ form.valor_plano.label }} *
-                            </label>
-                            <div class="input-group">
-                                <span class="input-group-text">R$</span>
-                                <input type="text" class="form-control" id="{{ form.valor_plano.id_for_label }}" name="{{ form.valor_plano.html_name }}" value="{{ form.valor_plano.value }}" readonly>
+                    <!-- LINHAS DINÂMICAS -->
+                    <h5 class="mt-4 mb-2"><i class="fas fa-mobile-alt"></i> Linhas</h5>
+                    <div id="linhas-dinamicas"></div>
+                    <button type="button" class="btn btn-outline-success mb-3" id="adicionar-linha">
+                        <i class="fas fa-plus"></i> Adicionar Linha
+                    </button>
+                    <template id="linha-template">
+                        <div class="linha-grupo mb-4 border rounded p-3 position-relative">
+                            <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 remover-linha" title="Remover" style="z-index:2;"><i class="fas fa-trash"></i></button>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label"><i class="fas fa-mobile-alt"></i> Número da Linha *</label>
+                                    <input type="text" name="numero[]" class="form-control numero-linha" placeholder="(11) 99999-9999" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label"><i class="fas fa-tags"></i> Tipo de Plano *</label>
+                                    <select name="tipo_plano[]" class="form-select tipo-plano-linha" required>
+                                        <option value="">----------</option>
+                                        <option value="BLACK_VOZ_GW_800SMS">BLACK VOZ + GW + 800SMS</option>
+                                        <option value="BLACK_1GB_GW_800SMS">BLACK 1GB + GW + 800SMS</option>
+                                        <option value="BLACK_5GB_GW_800SMS">BLACK 5GB + GW + 800SMS</option>
+                                        <option value="BLACK_10GB_GW_800SMS">BLACK 10GB + GW + 800SMS</option>
+                                        <option value="BLACK_20GB_GW_800SMS">BLACK 20GB + GW + 800SMS</option>
+                                        <option value="BLACK_50GB_GW_800SMS">BLACK 50GB + GW + 800SMS</option>
+                                        <option value="BLACK_ILIMITADO_GB_GW_800SMS">BLACK ILIMITADO GB + GW + 800SMS</option>
+                                    </select>
+                                </div>
                             </div>
-                            <small class="text-muted">O valor será definido automaticamente pelo tipo de plano.</small>
-                            {% if form.valor_plano.errors %}
-                                <div class="text-danger small">{{ form.valor_plano.errors.0 }}</div>
-                            {% endif %}
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label"><i class="fas fa-dollar-sign"></i> Valor do Plano (R$) *</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">R$</span>
+                                        <input type="text" name="valor_plano[]" class="form-control valor-plano-linha" readonly required>
+                                    </div>
+                                    <small class="text-muted">O valor será definido automaticamente pelo tipo de plano.</small>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label"><i class="fas fa-sim-card"></i> ICCID</label>
+                                    <input type="text" name="iccid[]" class="form-control iccid-linha" placeholder="ICCID do chip">
+                                </div>
+                            </div>
+                            <div class="row linha-portabilidade-row" style="display:none;">
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label"><i class="fas fa-exchange-alt"></i> Linha a ser portada</label>
+                                    <input type="text" name="linha_portada[]" class="form-control linha-portada" placeholder="Digite o número da linha a ser portada">
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.iccid.id_for_label }}" class="form-label">
-                                <i class="fas fa-sim-card"></i> {{ form.iccid.label }} *
-                            </label>
-                            {{ form.iccid }}
-                            {% if form.iccid.errors %}
-                                <div class="text-danger small">{{ form.iccid.errors.0 }}</div>
-                            {% endif %}
-                        </div>
-                    </div>
+                    </template>
+                    <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        var linhasDinamicas = document.getElementById('linhas-dinamicas');
+                        var adicionarLinhaBtn = document.getElementById('adicionar-linha');
+                        var linhaTemplate = document.getElementById('linha-template').content;
+                        var valoresPlano = {
+                            'BLACK_VOZ_GW_800SMS': '14.00',
+                            'BLACK_1GB_GW_800SMS': '15.90',
+                            'BLACK_5GB_GW_800SMS': '25.90',
+                            'BLACK_10GB_GW_800SMS': '29.90',
+                            'BLACK_20GB_GW_800SMS': '39.90',
+                            'BLACK_50GB_GW_800SMS': '69.90',
+                            'BLACK_ILIMITADO_GB_GW_800SMS': '164.00'
+                        };
+                        function addLinha() {
+                            var clone = document.importNode(linhaTemplate, true);
+                            linhasDinamicas.appendChild(clone);
+                            atualizarEventos();
+                        }
+                        function atualizarEventos() {
+                            var grupos = linhasDinamicas.querySelectorAll('.linha-grupo');
+                            grupos.forEach(function(grupo) {
+                                var tipoPlano = grupo.querySelector('.tipo-plano-linha');
+                                var valorPlano = grupo.querySelector('.valor-plano-linha');
+                                tipoPlano.addEventListener('change', function() {
+                                    var tipo = tipoPlano.value;
+                                    valorPlano.value = valoresPlano[tipo] || '';
+                                });
+                                var removerBtn = grupo.querySelector('.remover-linha');
+                                removerBtn.addEventListener('click', function() {
+                                    grupo.remove();
+                                });
+
+                                // Mostrar/ocultar campo Linha a ser portada conforme ação principal
+                                var linhaPortRow = grupo.querySelector('.linha-portabilidade-row');
+                                var acaoPrincipal = document.getElementById('{{ form.acao.id_for_label }}');
+                                function atualizarPortabilidade() {
+                                    if (acaoPrincipal && acaoPrincipal.value === 'PORTABILIDADE') {
+                                        linhaPortRow.style.display = '';
+                                    } else {
+                                        linhaPortRow.style.display = 'none';
+                                    }
+                                }
+                                if (acaoPrincipal) {
+                                    acaoPrincipal.addEventListener('change', atualizarPortabilidade);
+                                    atualizarPortabilidade();
+                                }
+                            });
+                        }
+                        adicionarLinhaBtn.addEventListener('click', addLinha);
+                        // Adiciona um grupo inicial
+                        addLinha();
+
+                        // Autocomplete para empresa/cliente
+                        var empresaInput = document.getElementById('{{ form.empresa.id_for_label }}');
+                        var empresaSuggestions = document.getElementById('empresa-suggestions');
+                        var cnpjInput = document.getElementById('{{ form.cnpj.id_for_label }}');
+                        var taxaInput = document.getElementById('{{ form.taxa_manutencao.id_for_label }}');
+                        var rpSelect = document.getElementById('rp-select');
+
+                        empresaInput.addEventListener('input', function() {
+                            var query = empresaInput.value.trim();
+                            if (query.length >= 2) {
+                                fetch('/linhas/autocomplete-cliente/?q=' + encodeURIComponent(query))
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        empresaSuggestions.innerHTML = '';
+                                        if (data.length > 0) {
+                                            data.forEach(function(item) {
+                                                var el = document.createElement('a');
+                                                el.className = 'list-group-item list-group-item-action';
+                                                el.textContent = item.nome + (item.cnpj ? ' - ' + item.cnpj : '');
+                                                el.onclick = function() {
+                                                    empresaInput.value = item.nome;
+                                                    if (item.cnpj) cnpjInput.value = item.cnpj;
+                                                    if (item.taxa_manutencao) taxaInput.value = item.taxa_manutencao;
+                                                    if (item.rp) {
+                                                        rpSelect.innerHTML = '<option value="">Selecione um RP</option><option value="novo">Novo RP</option>';
+                                                        var elrp = document.createElement('option');
+                                                        elrp.value = item.rp;
+                                                        elrp.textContent = item.rp;
+                                                        rpSelect.appendChild(elrp);
+                                                        rpSelect.value = item.rp;
+                                                    }
+                                                    empresaSuggestions.style.display = 'none';
+                                                };
+                                                empresaSuggestions.appendChild(el);
+                                            });
+                                            empresaSuggestions.style.display = '';
+                                        } else {
+                                            empresaSuggestions.style.display = 'none';
+                                        }
+                                    });
+                            } else {
+                                empresaSuggestions.style.display = 'none';
+                            }
+                        });
+                        document.addEventListener('click', function(e) {
+                            if (!empresaInput.contains(e.target)) {
+                                empresaSuggestions.style.display = 'none';
+                            }
+                        });
+                    });
+                    </script>
 
                     <!-- AÇÃO -->
                     <h5 class="mt-4 mb-2"><i class="fas fa-map-marker-alt"></i> Ação</h5>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="{{ form.acao.id_for_label }}" class="form-label">
-                                <i class="fas fa-map-marker-alt"></i> {{ form.acao.label }} *
-                            </label>
-                            {{ form.acao }}
+                            <label for="{{ form.acao.id_for_label }}" class="form-label"></label>
+                            <div class="d-flex align-items-center gap-2">
+                                {{ form.acao }}
+                                <!-- Botão removido, será exibido apenas na linha dos botões de ação -->
+                            </div>
                             {% if form.acao.errors %}
                                 <div class="text-danger small">{{ form.acao.errors.0 }}</div>
                             {% endif %}
+                            <script>
+                                document.addEventListener('DOMContentLoaded', function() {
+                                    var acaoSelect = document.getElementById('{{ form.acao.id_for_label }}');
+                                    var btnGerarTT = document.getElementById('btn-gerar-tt');
+                                    function toggleGerarTT() {
+                                        if (acaoSelect.value === 'TT') {
+                                            btnGerarTT.style.display = '';
+                                        } else {
+                                            btnGerarTT.style.display = 'none';
+                                        }
+                                    }
+                                    acaoSelect.addEventListener('change', toggleGerarTT);
+                                    toggleGerarTT();
+                                });
+                            </script>
                         </div>
                         <div class="col-md-6 mb-3" id="linha-provisoria-group" style="display:none;">
                             <label for="linha-provisoria" class="form-label">
@@ -146,15 +271,62 @@
                             <div class="text-danger small">{{ form.observacoes.errors.0 }}</div>
                         {% endif %}
                     </div>
+                        <!-- Campo de observações removido conforme solicitado -->
+                    
+                    
 
-                    <div class="d-flex justify-content-end gap-2">
+                    <div class="d-flex justify-content-end gap-2 align-items-center">
                         <a href="{% url 'linhas:listalinhas' %}" class="btn btn-secondary">
                             <i class="fas fa-times"></i> Cancelar
                         </a>
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-save"></i> Salvar
                         </button>
+                        <button type="button" id="btn-gerar-tt" class="btn btn-outline-primary" style="display:none;">Gerar TT</button>
+                        <button type="button" id="btn-gerar-termo" class="btn btn-outline-info" style="display:none;">Gerar Termo</button>
+                        <button type="button" id="btn-gerar-tabela" class="btn btn-outline-warning" style="display:none;">Gerar Tabela</button>
+                        <button type="button" id="btn-enviar-pedido" class="btn btn-success">Enviar Pedido</button>
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            var acaoSelect = document.getElementById('{{ form.acao.id_for_label }}');
+                            var btnGerarTT = document.getElementById('btn-gerar-tt');
+                            var btnGerarTermo = document.getElementById('btn-gerar-termo');
+                            var btnGerarTabela = document.getElementById('btn-gerar-tabela');
+                            function toggleBotoes() {
+                                if (acaoSelect.value === 'TT') {
+                                    btnGerarTT.style.display = '';
+                                    btnGerarTermo.style.display = 'none';
+                                    btnGerarTabela.style.display = 'none';
+                                } else if (acaoSelect.value === 'PORTABILIDADE') {
+                                    btnGerarTT.style.display = 'none';
+                                    btnGerarTermo.style.display = '';
+                                    btnGerarTabela.style.display = '';
+                                } else {
+                                    btnGerarTT.style.display = 'none';
+                                    btnGerarTermo.style.display = 'none';
+                                    btnGerarTabela.style.display = 'none';
+                                }
+                            }
+                            acaoSelect.addEventListener('change', toggleBotoes);
+                            toggleBotoes();
+                        });
+                    </script>
                     </div>
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            var acaoSelect = document.getElementById('{{ form.acao.id_for_label }}');
+                            var btnGerarTT = document.getElementById('btn-gerar-tt');
+                            function toggleGerarTT() {
+                                if (acaoSelect.value === 'TT') {
+                                    btnGerarTT.style.display = '';
+                                } else {
+                                    btnGerarTT.style.display = 'none';
+                                }
+                            }
+                            acaoSelect.addEventListener('change', toggleGerarTT);
+                            toggleGerarTT();
+                        });
+                    </script>
                     <script>
                         document.addEventListener('DOMContentLoaded', function() {
                             var origemSelect = document.getElementById('{{ form.acao.id_for_label }}');
@@ -319,7 +491,74 @@
             </div>
         </div>
     </div>
-    
+
+    <div class="col-md-4 d-flex align-items-start">
+        <div class="card w-100">
+            <div class="card-body">
+                <div id="acao-observacao-area" style="display:none;">
+                    <div class="mb-3" id="texto-observacao"></div>
+                    <div id="anexo-area" style="display:none;">
+                        <h5><i class="fas fa-paperclip"></i> Anexar Arquivos</h5>
+                        <input type="file" name="anexos" class="form-control" multiple><br><br>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var acaoPrincipal = document.getElementById('{{ form.acao.id_for_label }}');
+        var obsArea = document.getElementById('acao-observacao-area');
+        var textoObs = document.getElementById('texto-observacao');
+        var anexoArea = document.getElementById('anexo-area');
+        function atualizarObsArea() {
+            if (acaoPrincipal) {
+                if (acaoPrincipal.value === 'TT') {
+                    obsArea.style.display = '';
+                    textoObs.innerHTML = '<i class="fas fa-info-circle"></i> Insira o documento pessoal do titular da linha a ser transferida e o documento de Transferência de Titularidade - TT assinada.';
+                    anexoArea.style.display = '';
+                    // Adiciona segunda observação e botão abaixo
+                    if (!document.getElementById('cliente-cadastro-area')) {
+                        var clienteDiv = document.createElement('div');
+                        clienteDiv.id = 'cliente-cadastro-area';
+                        clienteDiv.innerHTML = '<span class="text-secondary">Caso o cliente não possua fatura ainda, primeiro cadastre o cliente e depois de andamento com a movimentação da linha.</span><br><a href="/clientes/novo/" class="btn btn-outline-primary mt-2"><i class="fas fa-user-plus"></i> Novo cadastro de cliente</a>';
+                        obsArea.appendChild(clienteDiv);
+                    }
+                } else if (acaoPrincipal.value === 'PORTABILIDADE') {
+                    obsArea.style.display = '';
+                    textoObs.innerHTML = '<i class="fas fa-info-circle"></i> Insira o documento do titular da linha a ser portada, o termo de portabilidade e a tabela excel da portabilidade.';
+                    anexoArea.style.display = '';
+                    if (!document.getElementById('cliente-cadastro-area')) {
+                        var clienteDiv = document.createElement('div');
+                        clienteDiv.id = 'cliente-cadastro-area';
+                        clienteDiv.innerHTML = '<span class="text-secondary">Caso o cliente não possua fatura ainda, primeiro cadastre o cliente e depois de andamento com a movimentação da linha.</span><br><a href="/clientes/novo/" class="btn btn-outline-primary mt-2"><i class="fas fa-user-plus"></i> Novo cadastro de cliente</a>';
+                        obsArea.appendChild(clienteDiv);
+                    }
+                } else if (acaoPrincipal.value === 'ESTOQUE') {
+                    obsArea.style.display = '';
+                    textoObs.innerHTML = '';
+                    anexoArea.style.display = 'none';
+                    if (!document.getElementById('cliente-cadastro-area')) {
+                        var clienteDiv = document.createElement('div');
+                        clienteDiv.id = 'cliente-cadastro-area';
+                        clienteDiv.innerHTML = '<i class="fas fa-info-circle"></i> Caso o cliente não possua fatura ainda, primeiro cadastre o cliente e depois de andamento com a movimentação da linha.<br><a href="/clientes/novo/" class="btn btn-outline-primary mt-2"><i class="fas fa-user-plus"></i> Novo cadastro de cliente</a>';
+                        obsArea.appendChild(clienteDiv);
+                    }
+                } else {
+                    obsArea.style.display = 'none';
+                    textoObs.innerHTML = '';
+                    anexoArea.style.display = 'none';
+                    var clienteDiv = document.getElementById('cliente-cadastro-area');
+                    if (clienteDiv) clienteDiv.remove();
+                }
+            }
+        }
+        if (acaoPrincipal) {
+            acaoPrincipal.addEventListener('change', atualizarObsArea);
+            atualizarObsArea();
+        }
+    });
+    </script>
 </div>
 {% endblock %}
 
