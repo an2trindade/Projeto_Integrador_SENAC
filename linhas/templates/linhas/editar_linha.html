@@ -12,26 +12,15 @@
 
 <div class="card">
     <div class="card-body">
-        <form method="post">
+        <form method="post" action="".>
             {% csrf_token %}
+            {% if form.non_field_errors %}
+                <div class="text-danger mb-3">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
             
             <div class="row">
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label for="{{ form.nome.id_for_label }}" class="form-label">
-                            <i class="fas fa-tag"></i> Nome da Linha *
-                        </label>
-                        {{ form.nome }}
-                        {% if form.nome.errors %}
-                            <div class="text-danger">
-                                {% for error in form.nome.errors %}
-                                    <small>{{ error }}</small>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                    </div>
-                </div>
-                
                 <div class="col-md-6">
                     <div class="mb-3">
                         <label for="{{ form.numero.id_for_label }}" class="form-label">
@@ -47,68 +36,109 @@
                         {% endif %}
                     </div>
                 </div>
-            </div>
-
-            <div class="row">
                 <div class="col-md-6">
                     <div class="mb-3">
-                        <label for="{{ form.origem.id_for_label }}" class="form-label">
-                            <i class="fas fa-map-marker-alt"></i> Origem *
+                        <label class="form-label">
+                            <i class="fas fa-user"></i> Nome do Cliente
                         </label>
-                        {{ form.origem }}
-                        {% if form.origem.errors %}
-                            <div class="text-danger">
-                                {% for error in form.origem.errors %}
-                                    <small>{{ error }}</small>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
+                        <input type="text" class="form-control" value="{{ linha.empresa }}" readonly>
+                        {{ form.empresa.as_hidden }}
                     </div>
-                </div>
-                
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label for="{{ form.destino.id_for_label }}" class="form-label">
-                            <i class="fas fa-flag-checkered"></i> Destino *
-                        </label>
-                        {{ form.destino }}
-                        {% if form.destino.errors %}
-                            <div class="text-danger">
-                                {% for error in form.destino.errors %}
-                                    <small>{{ error }}</small>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                    </div>
+                    <!-- Campo Cliente removido -->
                 </div>
             </div>
 
             <div class="row">
                 <div class="col-md-6">
                     <div class="mb-3">
-                        <label for="{{ form.horario_inicio.id_for_label }}" class="form-label">
-                            <i class="fas fa-clock"></i> Horário de Início *
+                        <label for="{{ form.cnpj.id_for_label }}" class="form-label">
+                            <i class="fas fa-id-card"></i> CNPJ *
                         </label>
-                        {{ form.horario_inicio }}
-                        {% if form.horario_inicio.errors %}
+                        {{ form.cnpj }}
+                        {% if form.cnpj.errors %}
                             <div class="text-danger">
-                                {% for error in form.horario_inicio.errors %}
+                                {% for error in form.cnpj.errors %}
                                     <small>{{ error }}</small>
                                 {% endfor %}
                             </div>
                         {% endif %}
                     </div>
                 </div>
-                
                 <div class="col-md-6">
                     <div class="mb-3">
-                        <label for="{{ form.horario_fim.id_for_label }}" class="form-label">
-                            <i class="fas fa-clock"></i> Horário de Fim *
+                        <label for="{{ form.taxa_manutencao.id_for_label }}" class="form-label">
+                            <i class="fas fa-coins"></i> Taxa de Manutenção (R$) *
                         </label>
-                        {{ form.horario_fim }}
-                        {% if form.horario_fim.errors %}
+                        {{ form.taxa_manutencao }}
+                        {% if form.taxa_manutencao.errors %}
                             <div class="text-danger">
-                                {% for error in form.horario_fim.errors %}
+                                {% for error in form.taxa_manutencao.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="{{ form.rp.id_for_label }}" class="form-label">
+                            <i class="fas fa-user-tie"></i> RP *
+                        </label>
+                        {{ form.rp }}
+                        {% if form.rp.errors %}
+                            <div class="text-danger">
+                                {% for error in form.rp.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="{{ form.tipo_plano.id_for_label }}" class="form-label">
+                            <i class="fas fa-mobile-alt"></i> Tipo de Plano *
+                        </label>
+                        {{ form.tipo_plano }}
+                        {% if form.tipo_plano.errors %}
+                            <div class="text-danger">
+                                {% for error in form.tipo_plano.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="{{ form.valor_plano.id_for_label }}" class="form-label">
+                            <i class="fas fa-money-bill-wave"></i> Valor do Plano (R$) *
+                        </label>
+                        {{ form.valor_plano }}
+                        {% if form.valor_plano.errors %}
+                            <div class="text-danger">
+                                {% for error in form.valor_plano.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="{{ form.iccid.id_for_label }}" class="form-label">
+                            <i class="fas fa-sim-card"></i> ICCID *
+                        </label>
+                        {{ form.iccid }}
+                        {% if form.iccid.errors %}
+                            <div class="text-danger">
+                                {% for error in form.iccid.errors %}
                                     <small>{{ error }}</small>
                                 {% endfor %}
                             </div>
@@ -127,9 +157,7 @@
             </div>
 
             <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-save"></i> Salvar Alterações
-                </button>
+                <input type="submit" class="btn btn-primary" value="Salvar Alterações">
                 <a href="{% url 'linhas:listalinhas' %}" class="btn btn-secondary">
                     <i class="fas fa-times"></i> Cancelar
                 </a>

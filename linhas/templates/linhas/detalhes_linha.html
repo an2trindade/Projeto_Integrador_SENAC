@@ -6,13 +6,7 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1><i class="fas fa-eye"></i> Detalhes da Linha</h1>
     <div class="btn-group">
-    <a href="{% url 'linhas:editarlinha' linha.pk %}" class="btn btn-warning">
-            <i class="fas fa-edit"></i> Editar
-        </a>
-    <a href="{% url 'linhas:excluirlinha' linha.pk %}" class="btn btn-danger">
-            <i class="fas fa-trash"></i> Excluir
-        </a>
-    <a href="{% url 'linhas:listalinhas' %}" class="btn btn-secondary">
+        <a href="{% url 'linhas:listalinhas' %}" class="btn btn-secondary">
             <i class="fas fa-arrow-left"></i> Voltar
         </a>
     </div>
@@ -27,49 +21,56 @@
                 </h5>
             </div>
             <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <p><strong><i class="fas fa-hashtag"></i> Número:</strong></p>
-                        <p class="text-muted">{{ linha.numero }}</p>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong><i class="fas fa-hashtag"></i> Número da Linha:</strong></p>
+                            <p class="text-dark">{{ linha.numero }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong><i class="fas fa-building"></i> Cliente:</strong></p>
+                            <p class="text-dark">{{ linha.empresa }}</p>
+                        </div>
                     </div>
-                    <div class="col-md-6">
-                        <p><strong><i class="fas fa-tag"></i> Nome:</strong></p>
-                        <p class="text-muted">{{ linha.nome }}</p>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong><i class="fas fa-id-card"></i> CNPJ:</strong></p>
+                            <p class="text-dark">{{ linha.cnpj }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong><i class="fas fa-coins"></i> Taxa de Manutenção (R$):</strong></p>
+                            <p class="text-dark">{{ linha.taxa_manutencao }}</p>
+                        </div>
                     </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-6">
-                        <p><strong><i class="fas fa-map-marker-alt"></i> Origem:</strong></p>
-                        <p class="text-muted">{{ linha.origem }}</p>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong><i class="fas fa-user-tie"></i> RP:</strong></p>
+                            <p class="text-dark">{{ linha.rp }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong><i class="fas fa-mobile-alt"></i> Tipo de Plano:</strong></p>
+                            <p class="text-dark">{{ linha.tipo_plano }}</p>
+                        </div>
                     </div>
-                    <div class="col-md-6">
-                        <p><strong><i class="fas fa-flag-checkered"></i> Destino:</strong></p>
-                        <p class="text-muted">{{ linha.destino }}</p>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong><i class="fas fa-money-bill-wave"></i> Valor do Plano (R$):</strong></p>
+                            <p class="text-dark">{{ linha.valor_plano }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong><i class="fas fa-sim-card"></i> ICCID:</strong></p>
+                            <p class="text-dark">{{ linha.iccid }}</p>
+                        </div>
                     </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-6">
-                        <p><strong><i class="fas fa-clock"></i> Horário de Início:</strong></p>
-                        <p class="text-muted">{{ linha.horario_inicio }}</p>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong><i class="fas fa-check-circle"></i> Status:</strong></p>
+                            {% if linha.ativa %}
+                                <span class="badge bg-success fs-6">Ativa</span>
+                            {% else %}
+                                <span class="badge bg-danger fs-6">Inativa</span>
+                            {% endif %}
+                        </div>
                     </div>
-                    <div class="col-md-6">
-                        <p><strong><i class="fas fa-clock"></i> Horário de Fim:</strong></p>
-                        <p class="text-muted">{{ linha.horario_fim }}</p>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-6">
-                        <p><strong><i class="fas fa-check-circle"></i> Status:</strong></p>
-                        {% if linha.ativa %}
-                            <span class="badge bg-success fs-6">Ativa</span>
-                        {% else %}
-                            <span class="badge bg-danger fs-6">Inativa</span>
-                        {% endif %}
-                    </div>
-                </div>
             </div>
         </div>
     </div>
