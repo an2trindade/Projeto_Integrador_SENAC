@@ -91,10 +91,6 @@ def lista_linhas(request):
 @login_required
 def nova_linha(request):
     if request.method == 'POST':
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> b28c47698696763dfd11c9ff75722be62fbc96bf
         form = LinhaForm(request.POST, request.FILES)
         observacoes_lateral = request.POST.get('observacoes_lateral', '')
         anexos = request.FILES.getlist('anexos')
@@ -113,19 +109,12 @@ def nova_linha(request):
                 with open(f'media/anexos/{arquivo.name}', 'wb+') as dest:
                     for chunk in arquivo.chunks():
                         dest.write(chunk)
-<<<<<<< HEAD
-=======
-=======
-        form = LinhaForm(request.POST)
-        if form.is_valid():
-            linha = form.save(commit=False)
-            linha.criado_por = request.user
-            linha.save()
->>>>>>> josias.parisotto
->>>>>>> b28c47698696763dfd11c9ff75722be62fbc96bf
             messages.success(request, f'Linha {linha.numero} cadastrada com sucesso!')
             return redirect('linhas:listalinhas')
     else:
+        form = LinhaForm()
+    
+    return render(request, 'linhas/nova_linha.html', {'form': form})
         form = LinhaForm()
     
     return render(request, 'linhas/nova_linha.html', {'form': form})
