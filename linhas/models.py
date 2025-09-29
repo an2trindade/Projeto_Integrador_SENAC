@@ -26,7 +26,6 @@ class Linha(models.Model):
         ('PORTABILIDADE', 'PORTABILIDADE'),
         ('ESTOQUE', 'ESTOQUE'),
     ]
-    acao = models.CharField(max_length=20, choices=ACAO_CHOICES, verbose_name="Ação", default="TT")
     iccid = models.CharField(max_length=25, verbose_name="ICCID", default="", blank=True, null=True)
     cnpj = models.CharField(max_length=18, verbose_name="CNPJ", default="")
     empresa = models.CharField(max_length=100, verbose_name="Cliente", default="")

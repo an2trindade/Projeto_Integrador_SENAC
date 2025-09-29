@@ -56,8 +56,17 @@ class LinhaForm(forms.ModelForm):
             }),
             'iccid': forms.TextInput(attrs={
                 'class': 'form-control',
+<<<<<<< HEAD
                 'placeholder': 'ICCID do chip',
                 'required': False
+=======
+<<<<<<< HEAD
+                'placeholder': 'ICCID do chip',
+                'required': False
+=======
+                'placeholder': 'ICCID do chip'
+>>>>>>> josias.parisotto
+>>>>>>> b28c47698696763dfd11c9ff75722be62fbc96bf
             }),
             'acao': forms.Select(attrs={
                 'class': 'form-select'
