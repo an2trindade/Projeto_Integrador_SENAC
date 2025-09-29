@@ -56,12 +56,8 @@ class LinhaForm(forms.ModelForm):
             }),
             'iccid': forms.TextInput(attrs={
                 'class': 'form-control',
-<<<<<<<<< Temporary merge branch 1
-                'placeholder': 'ICCID do chip'
-=========
                 'placeholder': 'ICCID do chip',
                 'required': False
->>>>>>>>> Temporary merge branch 2
             }),
             'acao': forms.Select(attrs={
                 'class': 'form-select'
