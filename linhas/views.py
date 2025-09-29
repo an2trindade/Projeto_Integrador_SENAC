@@ -113,10 +113,6 @@ def nova_linha(request):
             return redirect('linhas:listalinhas')
     else:
         form = LinhaForm()
-    
-    return render(request, 'linhas/nova_linha.html', {'form': form})
-        form = LinhaForm()
-    
     return render(request, 'linhas/nova_linha.html', {'form': form})
 
 @login_required
