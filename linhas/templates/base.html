@@ -82,12 +82,7 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
-            {% if request.resolver_match.url_name != 'login' %}
-            <a class="navbar-brand" href="{% url 'linhas:listalinhas' %}">
-                <i class="fas fa-mobile-alt"></i>
-                Gestor de Linhas de Telefonia
-            </a>
-            {% endif %}
+            {# Marca removida para evitar duplicação com o menu "Linhas" #}
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -97,13 +92,36 @@
                 {% if request.resolver_match.url_name != 'login' %}
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'linhas:listalinhas' %}">
-                            <i class="fas fa-list"></i> Linhas
+                        <a class="nav-link" href="{% url 'linhas:dashboard' %}">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
                         </a>
                     </li>
+
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="linhasDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-mobile-alt"></i> Linhas
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="linhasDropdown">
+                            <li><a class="dropdown-item" href="{% url 'linhas:listalinhas' %}"><i class="fas fa-list"></i> Listar Linhas</a></li>
+                            <li><a class="dropdown-item" href="{% url 'linhas:novalinha' %}"><i class="fas fa-plus"></i> Nova Linha</a></li>
+                        </ul>
+                    </li>
+
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'linhas:novalinha' %}">
-                            <i class="fas fa-plus"></i> Nova Linha
+                        <a class="nav-link" href="{% url 'linhas:protocolo' %}">
+                            <i class="fas fa-file-alt"></i> Protocolo
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'linhas:relatorios' %}">
+                            <i class="fas fa-chart-line"></i> Relatórios
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'linhas:configuracoes' %}">
+                            <i class="fas fa-cog"></i> Configurações
                         </a>
                     </li>
                 </ul>

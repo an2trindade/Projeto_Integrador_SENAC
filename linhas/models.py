@@ -26,6 +26,9 @@ class Linha(models.Model):
         ('PORTABILIDADE', 'PORTABILIDADE'),
         ('ESTOQUE', 'ESTOQUE'),
     ]
+    # Campo 'acao' foi removido/alterado em migrações anteriores; reintroduzimos aqui
+    # para manter o modelo consistente com as views/templates que dependem dele.
+    acao = models.CharField(max_length=20, choices=ACAO_CHOICES, default='TT', verbose_name='Ação')
     iccid = models.CharField(max_length=25, verbose_name="ICCID", default="", blank=True, null=True)
     cnpj = models.CharField(max_length=18, verbose_name="CNPJ", default="")
     empresa = models.CharField(max_length=100, verbose_name="Cliente", default="")
@@ -38,10 +41,36 @@ class Linha(models.Model):
     criado_por = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Criado por")
     criado_em = models.DateTimeField(auto_now_add=True, verbose_name="Criado em")
     atualizado_em = models.DateTimeField(auto_now=True, verbose_name="Atualizado em")
+    # restore representation and meta for Linha
     def __str__(self):
-        return f"{self.numero} - {self.nome_titular}"
+        # fallback if nome_titular does not exist on all records
+        nome = getattr(self, 'nome_titular', '')
+        return f"{self.numero} - {nome}" if nome else f"{self.numero}"
 
     class Meta:
         ordering = ['numero']
         verbose_name = 'Linha de Telefonia'
         verbose_name_plural = 'Linhas de Telefonia'
+
+
+class Protocolo(models.Model):
+    STATUS_CHOICES = [
+        ('pendente', 'Pendente'),
+        ('em_andamento', 'Em andamento'),
+        ('resolvido', 'Resolvido'),
+        ('cancelado', 'Cancelado'),
+    ]
+
+    titulo = models.CharField(max_length=200, verbose_name='Título')
+    descricao = models.TextField(blank=True, null=True, verbose_name='Descrição')
+    criado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Criado por')
+    criado_em = models.DateTimeField(auto_now_add=True, verbose_name='Criado em')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pendente', verbose_name='Status')
+
+    class Meta:
+        ordering = ['-criado_em']
+        verbose_name = 'Protocolo'
+        verbose_name_plural = 'Protocolos'
+
+    def __str__(self):
+        return f"{self.titulo} ({self.get_status_display()})"

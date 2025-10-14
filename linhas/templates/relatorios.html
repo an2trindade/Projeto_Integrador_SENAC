@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}Relatórios - Gestor de Linhas{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1>Relatórios</h1>
+        <p>Painel de relatórios e exportações.</p>
+    </div>
+</div>
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card p-3">
+            <h5>Exportações</h5>
+            <p>Gerar relatórios em CSV:</p>
+            <!-- Filter form -->
+            <form method="get" class="mb-3" id="filtros-relatorio">
+                <div class="row g-2">
+                    <div class="col-12 col-md-6">
+                        <label class="form-label">Cliente / Empresa</label>
+                        <input type="text" name="empresa" class="form-control" value="{{ request.GET.empresa|default_if_none:'' }}">
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label">CNPJ</label>
+                        <input type="text" name="cnpj" class="form-control" value="{{ request.GET.cnpj|default_if_none:'' }}">
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <label class="form-label">Plano</label>
+                        <input type="text" name="tipo_plano" class="form-control" value="{{ request.GET.tipo_plano|default_if_none:'' }}">
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <label class="form-label">Linha (número)</label>
+                        <input type="text" name="numero" class="form-control" value="{{ request.GET.numero|default_if_none:'' }}">
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <label class="form-label">Status</label>
+                        <select name="status" class="form-select">
+                            <option value="">Todos</option>
+                            <option value="ativa" {% if request.GET.status == 'ativa' %}selected{% endif %}>Ativas</option>
+                            <option value="cancelada" {% if request.GET.status == 'cancelada' %}selected{% endif %}>Canceladas</option>
+                        </select>
+                    </div>
+                    <div class="col-6 col-md-6">
+                        <label class="form-label">Período início</label>
+                        <input type="date" name="periodo_start" class="form-control" value="{{ request.GET.periodo_start|default_if_none:'' }}">
+                    </div>
+                    <div class="col-6 col-md-6">
+                        <label class="form-label">Período fim</label>
+                        <input type="date" name="periodo_end" class="form-control" value="{{ request.GET.periodo_end|default_if_none:'' }}">
+                    </div>
+                    <div class="col-12 mt-2">
+                        <button type="submit" class="btn btn-primary">Aplicar filtros</button>
+                        <a href="{% url 'linhas:export_linhas_cycle_csv' %}?{{ request.GET.urlencode }}" class="btn btn-outline-primary ms-2">Exportar Linhas (ciclo 19→18)</a>
+                        <a href="{% url 'linhas:export_protocolos_pendentes_csv' %}?{{ request.GET.urlencode }}" class="btn btn-outline-secondary ms-2">Exportar Protocolos Pendentes</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

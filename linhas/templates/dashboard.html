@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Gestor de Linhas{% endblock %}
+
+{% load static %}
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1>Dashboard</h1>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-3">
+        <div class="card p-3 card-stats">
+            <h5><i class="fas fa-sitemap"></i> Total de Linhas</h5>
+            <h2>{{ total_linhas }}</h2>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 card-stats">
+            <h5><i class="fas fa-check-circle"></i> Ativas</h5>
+            <h2 class="status-ativo">{{ linhas_ativas }}</h2>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 card-stats">
+            <h5><i class="fas fa-times-circle"></i> Canceladas</h5>
+            <h2 class="status-inativo">{{ linhas_canceladas }}</h2>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 card-stats">
+            <h5><i class="fas fa-calendar-plus"></i> Novas (Estoque / Portabilidade)</h5>
+            <h2>{{ novas_30 }}</h2>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="alert alert-light text-dark">
+            Período de análise do ciclo: <strong>{{ ciclo_start }}</strong> até <strong>{{ ciclo_end }}</strong>
+        </div>
+    </div>
+</div>
+
+<!-- Protocols pendentes -->
+<div class="row mb-3">
+    <div class="col-md-6">
+        <div class="card p-3">
+            <h5><i class="fas fa-file-alt"></i> Protocolos Pendentes</h5>
+            <h2>{{ protocolos_pendentes_count }}</h2>
+            <small class="text-muted">Protocolos com status pendente</small>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-lg-6">
+        <div class="card p-3">
+            <h5>Distribuição por Tipo de Plano</h5>
+            <div class="chart-wrapper" style="position:relative; height:320px;">
+                <canvas id="tipoPlanoChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card p-3">
+            <h5>Protocolos por Status (ciclo 19→18)</h5>
+            <div class="chart-wrapper" style="position:relative; height:320px;">
+                <canvas id="protocolosChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    const tipoLabels = JSON.parse('{{ tipo_plano_labels_json|escapejs }}');
+    const tipoData = JSON.parse('{{ tipo_plano_data_json|escapejs }}');
+
+    const ctx = document.getElementById('tipoPlanoChart').getContext('2d');
+    // prepare shortened labels for display
+    const tipoLabelsShort = tipoLabels.map(l => (typeof l === 'string' && l.length > 20) ? l.slice(0,20) + '…' : l);
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: tipoLabelsShort,
+            datasets: [{
+                label: 'Quantidade',
+                data: tipoData,
+                backgroundColor: 'rgba(0, 191, 174, 0.7)'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        title: function(items) {
+                            // show full label in tooltip
+                            const idx = items[0].dataIndex;
+                            return tipoLabels[idx] || items[0].label;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: { ticks: { autoSkip: false }, grid: { display: false } },
+                y: { beginAtZero: true }
+            }
+        }
+    });
+
+    const protocolosDias = JSON.parse('{{ protocolos_dias_labels_json|escapejs }}');
+    const protocolosPendente = JSON.parse('{{ protocolos_pendente_series_json|escapejs }}');
+    const protocolosResolvido = JSON.parse('{{ protocolos_resolvido_series_json|escapejs }}');
+    const protocolosCancelado = JSON.parse('{{ protocolos_cancelado_series_json|escapejs }}');
+
+    const ctx2 = document.getElementById('protocolosChart').getContext('2d');
+    new Chart(ctx2, {
+        type: 'line',
+        data: {
+            labels: protocolosDias,
+            datasets: [
+                {
+                    label: 'Pendente',
+                    data: protocolosPendente,
+                    fill: false,
+                    borderColor: 'rgba(255, 99, 132, 0.9)'
+                },
+                {
+                    label: 'Resolvido',
+                    data: protocolosResolvido,
+                    fill: false,
+                    borderColor: 'rgba(54, 162, 235, 0.9)'
+                },
+                {
+                    label: 'Cancelado',
+                    data: protocolosCancelado,
+                    fill: false,
+                    borderColor: 'rgba(201, 203, 207, 0.9)'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: true } },
+            scales: {
+                x: {
+                    ticks: { maxRotation: 45, minRotation: 0, autoSkip: true, maxTicksLimit: 12 },
+                    grid: { display: false }
+                },
+                y: { beginAtZero: true }
+            }
+        }
+    });
+</script>
+{% endblock %}
+{% endblock %}

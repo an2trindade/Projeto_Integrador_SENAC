@@ -1,5 +1,6 @@
 from django.contrib import admin
 from .models import Linha
+from .models import Protocolo
 
 @admin.register(Linha)
 class LinhaAdmin(admin.ModelAdmin):
@@ -55,4 +56,12 @@ class LinhaAdmin(admin.ModelAdmin):
         count = queryset.update(ativa=False)
         self.message_user(request, f'{count} linha(s) desativada(s) com sucesso.')
     desativar_linhas.short_description = 'Desativar linhas selecionadas'
+
+
+@admin.register(Protocolo)
+class ProtocoloAdmin(admin.ModelAdmin):
+    list_display = ['titulo', 'status', 'criado_por', 'criado_em']
+    list_filter = ['status', 'criado_em']
+    search_fields = ['titulo', 'descricao']
+    readonly_fields = ['criado_em']
 

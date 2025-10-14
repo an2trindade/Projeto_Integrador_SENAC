@@ -1,0 +1,14 @@
+version: 3.8
+services:
+  db:
+    image: postgres:15
+    build: .
+    container_name: gestor_linhas_db
+    environment:
+      POSTGRES_DB: gestor_linhas
+      POSTGRES_USER: ana.trindade
+      POSTGRES_PASSWORD: 9kE4(35yLLgWdxE+2CAO£MflrogMc~8:QK8cSD~N1,&CTLF`YI
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
