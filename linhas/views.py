@@ -34,13 +34,50 @@ def buscar_linhas_estoque(request):
         for l in linhas[:10]
     ]
     return JsonResponse(resultados, safe=False)
+
+
+def buscar_empresas(request):
+    """AJAX: retornar lista de empresas (empresa, cnpj) que contenham o termo q
+    Retorna JSON: [{ 'empresa': 'Nome', 'cnpj': '00000000000000' }, ...]
+    """
+    q = request.GET.get('q', '').strip()
+    # buscar por empresa parcialmente
+    empresas_qs = Linha.objects.filter(empresa__icontains=q).values('empresa', 'cnpj').distinct()[:50]
+    # deduplicate by empresa keeping first cnpj
+    seen = set()
+    results = []
+    for row in empresas_qs:
+        nome = row.get('empresa') or ''
+        cnpj = row.get('cnpj') or ''
+        if not nome:
+            continue
+        if nome in seen:
+            continue
+        seen.add(nome)
+        results.append({'empresa': nome, 'cnpj': cnpj})
+    return JsonResponse(results, safe=False)
+
+
+def buscar_clientes(request):
+    """AJAX: retornar lista de clientes existentes que contenham o termo q
+    Retorna JSON: [{ 'id': 1, 'empresa': 'Nome', 'cnpj': '00000000000000', 'fantasia': '...', 'razao_social': '...'}, ...]
+    """
+    q = request.GET.get('q', '').strip()
+    qs = Cliente.objects.all()
+    if q:
+        qs = qs.filter(models.Q(empresa__icontains=q) | models.Q(cnpj__icontains=q) | models.Q(fantasia__icontains=q) | models.Q(razao_social__icontains=q))
+    results = []
+    for c in qs[:50]:
+        results.append({'id': c.id, 'empresa': c.empresa, 'cnpj': c.cnpj, 'fantasia': c.fantasia, 'razao_social': c.razao_social})
+    return JsonResponse(results, safe=False)
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q
-from .models import Linha
-from .forms import LinhaForm, BuscaLinhaForm
+from .models import Linha, Protocolo, Cliente
+from .forms import LinhaForm, BuscaLinhaForm, ClienteForm
+from django.urls import reverse
 
 @login_required
 def lista_linhas(request):
@@ -89,6 +126,45 @@ def lista_linhas(request):
     
     return render(request, 'linhas/lista_linhas.html', context)
 
+
+@login_required
+def cliente_novo(request):
+    """Criar novo cliente (form simples)."""
+    if request.method == 'POST':
+        form = ClienteForm(request.POST)
+        if form.is_valid():
+            cliente = form.save()
+            messages.success(request, 'Cliente cadastrado com sucesso.')
+            # redireciona para a página de nova linha e já preenche empresa/cnpj via GET
+            url = reverse('linhas:novalinha')
+            params = f'?empresa={cliente.empresa}&cnpj={cliente.cnpj}'
+            return redirect(url + params)
+    else:
+        form = ClienteForm()
+    return render(request, 'linhas/novo_cliente.html', {'form': form})
+
+
+@login_required
+def cliente_create_ajax(request):
+    """Receive AJAX POST to create a Cliente and return JSON response."""
+    from django.http import JsonResponse
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'errors': {'__all__': 'Método inválido.'}}, status=400)
+    form = ClienteForm(request.POST)
+    if form.is_valid():
+        cliente = form.save()
+        return JsonResponse({'success': True, 'cliente': {
+            'id': cliente.id,
+            'empresa': cliente.empresa,
+            'cnpj': cliente.cnpj,
+            'razao_social': cliente.razao_social,
+            'fantasia': cliente.fantasia,
+        }})
+    else:
+        # format errors as dict
+        errors = {k: v for k, v in form.errors.items()}
+        return JsonResponse({'success': False, 'errors': errors}, status=400)
+
 @login_required
 def nova_linha(request):
     if request.method == 'POST':
@@ -105,6 +181,21 @@ def nova_linha(request):
                 else:
                     linha.observacoes = observacoes_lateral
             linha.save()
+            # Attempt to attach a Cliente if one exists with the same CNPJ or empresa
+            try:
+                import re
+                cliente = None
+                if linha.cnpj:
+                    cnpj_digits = re.sub(r"\D", "", linha.cnpj)
+                    cliente = Cliente.objects.filter(cnpj__icontains=cnpj_digits).first()
+                if not cliente and linha.empresa:
+                    cliente = Cliente.objects.filter(empresa__iexact=linha.empresa).first()
+                if cliente:
+                    linha.cliente = cliente
+                    linha.save()
+            except Exception:
+                # don't block save on any lookup error
+                pass
             # Salvar anexos (exemplo: salvar em pasta e registrar caminho, adaptar conforme modelo)
             for arquivo in anexos:
                 with open(f'media/anexos/{arquivo.name}', 'wb+') as dest:
@@ -113,7 +204,15 @@ def nova_linha(request):
             messages.success(request, f'Linha {linha.numero} cadastrada com sucesso!')
             return redirect('linhas:listalinhas')
     else:
-        form = LinhaForm()
+        # Allow prefilling empresa/cnpj when redirected after creating a Cliente
+        initial = {}
+        empresa_prefill = request.GET.get('empresa')
+        cnpj_prefill = request.GET.get('cnpj')
+        if empresa_prefill:
+            initial['empresa'] = empresa_prefill
+        if cnpj_prefill:
+            initial['cnpj'] = cnpj_prefill
+        form = LinhaForm(initial=initial)
     return render(request, 'linhas/nova_linha.html', {'form': form})
 
 @login_required
@@ -270,7 +369,12 @@ def protocolo(request):
 
 @login_required
 def relatorios(request):
-    return render(request, 'relatorios.html')
+    # Provide distinct tipo_plano values so template can render a select
+    tipo_planos = Linha.objects.order_by('tipo_plano').values_list('tipo_plano', flat=True).distinct()
+    context = {
+        'tipo_plano_choices': list(tipo_planos),
+    }
+    return render(request, 'relatorios.html', context)
 
 
 @login_required
@@ -310,6 +414,10 @@ def export_linhas_cycle_csv(request):
             dt_start = _dt.combine(_dt.strptime(periodo_start, '%Y-%m-%d').date(), time.min)
         if periodo_end:
             dt_end = _dt.combine(_dt.strptime(periodo_end, '%Y-%m-%d').date(), time.max)
+        # server-side validation: start must not be after end
+        if periodo_start and periodo_end and dt_start > dt_end:
+            messages.error(request, 'Período inválido: data de início posterior à data fim.')
+            return redirect('linhas:relatorios')
     except Exception:
         # ignore parse errors and keep the cycle defaults
         pass
@@ -323,10 +431,18 @@ def export_linhas_cycle_csv(request):
     numero = request.GET.get('numero')
     status = request.GET.get('status')
 
+    # server-side CNPJ validation (if provided)
+    if cnpj:
+        import re
+        cnpj_digits = re.sub(r'\D', '', cnpj)
+        if len(cnpj_digits) != 14:
+            messages.error(request, 'CNPJ inválido: verifique o número informado.')
+            return redirect('linhas:relatorios')
+        # normalize to the stored format by filtering with contains on digits
+        qs = qs.filter(cnpj__icontains=cnpj_digits)
+
     if empresa:
         qs = qs.filter(empresa__icontains=empresa)
-    if cnpj:
-        qs = qs.filter(cnpj__icontains=cnpj)
     if tipo_plano:
         qs = qs.filter(tipo_plano__icontains=tipo_plano)
     if numero:
@@ -349,6 +465,99 @@ def export_linhas_cycle_csv(request):
 
 
 @login_required
+def export_linhas_cycle_xlsx(request):
+    """Generate an XLSX file with the same filters as CSV export."""
+    # compute ciclo as in dashboard
+    from django.utils import timezone
+    from datetime import datetime, date, time
+    hoje = timezone.now().date()
+    if hoje.day >= 19:
+        ciclo_start = date(hoje.year, hoje.month, 19)
+        if hoje.month == 12:
+            ciclo_end = date(hoje.year + 1, 1, 18)
+        else:
+            ciclo_end = date(hoje.year, hoje.month + 1, 18)
+    else:
+        if hoje.month == 1:
+            ciclo_start = date(hoje.year - 1, 12, 19)
+        else:
+            ciclo_start = date(hoje.year, hoje.month - 1, 19)
+        ciclo_end = date(hoje.year, hoje.month, 18)
+
+    dt_start = datetime.combine(ciclo_start, time.min)
+    dt_end = datetime.combine(ciclo_end, time.max)
+
+    # Allow overrides from GET params: periodo_start / periodo_end (YYYY-MM-DD)
+    periodo_start = request.GET.get('periodo_start')
+    periodo_end = request.GET.get('periodo_end')
+    from datetime import datetime as _dt
+    try:
+        if periodo_start:
+            dt_start = _dt.combine(_dt.strptime(periodo_start, '%Y-%m-%d').date(), time.min)
+        if periodo_end:
+            dt_end = _dt.combine(_dt.strptime(periodo_end, '%Y-%m-%d').date(), time.max)
+        if periodo_start and periodo_end and dt_start > dt_end:
+            messages.error(request, 'Período inválido: data de início posterior à data fim.')
+            return redirect('linhas:relatorios')
+    except Exception:
+        pass
+
+    qs = Linha.objects.filter(criado_em__gte=dt_start, criado_em__lte=dt_end)
+
+    # same optional filters as CSV
+    empresa = request.GET.get('empresa')
+    cnpj = request.GET.get('cnpj')
+    tipo_plano = request.GET.get('tipo_plano')
+    numero = request.GET.get('numero')
+    status = request.GET.get('status')
+
+    if cnpj:
+        import re
+        cnpj_digits = re.sub(r'\D', '', cnpj)
+        if len(cnpj_digits) != 14:
+            messages.error(request, 'CNPJ inválido: verifique o número informado.')
+            return redirect('linhas:relatorios')
+        qs = qs.filter(cnpj__icontains=cnpj_digits)
+
+    if empresa:
+        qs = qs.filter(empresa__icontains=empresa)
+    if tipo_plano:
+        qs = qs.filter(tipo_plano__icontains=tipo_plano)
+    if numero:
+        qs = qs.filter(numero__icontains=numero)
+    if status:
+        if status == 'ativa':
+            qs = qs.filter(ativa=True)
+        elif status == 'cancelada':
+            qs = qs.filter(ativa=False)
+
+    # generate xlsx in-memory
+    from io import BytesIO
+    try:
+        from openpyxl import Workbook
+    except Exception:
+        # openpyxl not installed; return a helpful message
+        messages.error(request, 'openpyxl não está instalado no servidor. Instale via pip install openpyxl')
+        return redirect('linhas:relatorios')
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = 'Linhas'
+    headers = ['Numero', 'ICCID', 'Empresa', 'CNPJ', 'RP', 'Tipo Plano', 'Valor Plano', 'Ação', 'Ativa', 'Criado Em']
+    ws.append(headers)
+    for l in qs:
+        ws.append([l.numero, l.iccid, l.empresa, l.cnpj, l.rp, l.tipo_plano, float(l.valor_plano or 0), l.acao, 'Sim' if l.ativa else 'Não', l.criado_em.strftime('%Y-%m-%d %H:%M')])
+
+    bio = BytesIO()
+    wb.save(bio)
+    bio.seek(0)
+
+    response = HttpResponse(bio.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = f'attachment; filename="linhas_{ciclo_start}_{ciclo_end}.xlsx"'
+    return response
+
+
+@login_required
 def export_protocolos_pendentes_csv(request):
     # Allow optional date filters when exporting protocolos
     periodo_start = request.GET.get('periodo_start')
@@ -365,6 +574,14 @@ def export_protocolos_pendentes_csv(request):
             from datetime import time as _time
             de = datetime.combine(de.date(), _time.max)
             qs = qs.filter(criado_em__lte=de)
+        # server-side validation: if both provided, ensure start <= end
+        if periodo_start and periodo_end:
+            # compare by date
+            ds_check = datetime.strptime(periodo_start, '%Y-%m-%d')
+            de_check = datetime.strptime(periodo_end, '%Y-%m-%d')
+            if ds_check > de_check:
+                messages.error(request, 'Período inválido: data de início posterior à data fim.')
+                return redirect('linhas:relatorios')
     except Exception:
         # ignore parse errors
         pass

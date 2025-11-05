@@ -1,6 +1,7 @@
 from django.contrib import admin
 from .models import Linha
 from .models import Protocolo
+from .models import Cliente
 
 @admin.register(Linha)
 class LinhaAdmin(admin.ModelAdmin):
@@ -64,4 +65,10 @@ class ProtocoloAdmin(admin.ModelAdmin):
     list_filter = ['status', 'criado_em']
     search_fields = ['titulo', 'descricao']
     readonly_fields = ['criado_em']
+
+
+@admin.register(Cliente)
+class ClienteAdmin(admin.ModelAdmin):
+    list_display = ('empresa', 'cnpj', 'contato', 'telefone')
+    search_fields = ('empresa', 'cnpj', 'contato')
 

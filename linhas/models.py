@@ -1,6 +1,27 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+class Cliente(models.Model):
+    empresa = models.CharField(max_length=150, verbose_name='Empresa')
+    cnpj = models.CharField(max_length=18, verbose_name='CNPJ', blank=True, default='')
+    razao_social = models.CharField(max_length=200, verbose_name='Razão Social', blank=True, default='')
+    fantasia = models.CharField(max_length=200, verbose_name='Nome Fantasia', blank=True, default='')
+    endereco_completo = models.TextField(verbose_name='Endereço completo', blank=True, default='')
+    contato = models.CharField(max_length=100, verbose_name='Contato', blank=True, default='')
+    telefone = models.CharField(max_length=30, verbose_name='Telefone', blank=True, default='')
+    nome_dono = models.CharField(max_length=150, verbose_name='Nome do Titular / Dono', blank=True, default='')
+    cpf_dono = models.CharField(max_length=20, verbose_name='CPF do Dono', blank=True, default='')
+    data_nascimento_dono = models.DateField(verbose_name='Data de Nascimento do Dono', null=True, blank=True)
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['empresa']
+        verbose_name = 'Cliente'
+        verbose_name_plural = 'Clientes'
+
+    def __str__(self):
+        return f"{self.empresa} ({self.cnpj})" if self.cnpj else self.empresa
+
 class Linha(models.Model):
     TIPO_CHOICES = [
         ('BLACK_VOZ_GW_800SMS', 'BLACK VOZ + GW + 800SMS'),
@@ -41,6 +62,7 @@ class Linha(models.Model):
     criado_por = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Criado por")
     criado_em = models.DateTimeField(auto_now_add=True, verbose_name="Criado em")
     atualizado_em = models.DateTimeField(auto_now=True, verbose_name="Atualizado em")
+    cliente = models.ForeignKey(Cliente, null=True, blank=True, on_delete=models.SET_NULL, verbose_name='Cliente vinculado')
     # restore representation and meta for Linha
     def __str__(self):
         # fallback if nome_titular does not exist on all records

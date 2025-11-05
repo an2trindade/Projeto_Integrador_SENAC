@@ -10,53 +10,259 @@
     </div>
 </div>
 <div class="row mt-4">
-    <div class="col-md-6">
-        <div class="card p-3">
-            <h5>Exportações</h5>
-            <p>Gerar relatórios em CSV:</p>
+    <div class="col-12">
+        <div class="card p-3 shadow-sm">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="mb-0">Exportações</h5>
+                    <small class="text-muted">Filtre os dados e gere CSVs personalizados</small>
+                </div>
+                <div>
+                    <a href="{% url 'linhas:relatorios' %}" class="btn btn-sm btn-outline-secondary">Limpar</a>
+                </div>
+            </div>
+            <hr>
+
             <!-- Filter form -->
-            <form method="get" class="mb-3" id="filtros-relatorio">
-                <div class="row g-2">
-                    <div class="col-12 col-md-6">
-                        <label class="form-label">Cliente / Empresa</label>
-                        <input type="text" name="empresa" class="form-control" value="{{ request.GET.empresa|default_if_none:'' }}">
+            <form method="get" class="mb-0" id="filtros-relatorio">
+                <div class="row gy-3">
+                    <div class="col-12 col-md-4 position-relative">
+                        <label class="form-label small">Cliente / Empresa</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-building"></i></span>
+                            <input type="text" name="empresa" class="form-control" placeholder="Nome da empresa" autocomplete="off" value="{{ request.GET.empresa|default_if_none:'' }}">
+                        </div>
+                        <!-- suggestions dropdown -->
+                        <div id="empresa-suggestions" class="list-group position-absolute w-100 mt-1" style="z-index:2000; display:none; max-height:240px; overflow:auto;"></div>
                     </div>
-                    <div class="col-12 col-md-6">
-                        <label class="form-label">CNPJ</label>
-                        <input type="text" name="cnpj" class="form-control" value="{{ request.GET.cnpj|default_if_none:'' }}">
-                    </div>
+
                     <div class="col-12 col-md-4">
-                        <label class="form-label">Plano</label>
-                        <input type="text" name="tipo_plano" class="form-control" value="{{ request.GET.tipo_plano|default_if_none:'' }}">
+                        <label class="form-label small">CNPJ</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-id-card"></i></span>
+                            <input type="text" name="cnpj" class="form-control" placeholder="00.000.000/0000-00" value="{{ request.GET.cnpj|default_if_none:'' }}">
+                        </div>
                     </div>
+
                     <div class="col-12 col-md-4">
-                        <label class="form-label">Linha (número)</label>
-                        <input type="text" name="numero" class="form-control" value="{{ request.GET.numero|default_if_none:'' }}">
+                        <label class="form-label small">Plano</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-file-contract"></i></span>
+                            <select name="tipo_plano" class="form-select">
+                                <option value="">Todos</option>
+                                {% for p in tipo_plano_choices %}
+                                    <option value="{{ p }}" {% if request.GET.tipo_plano == p %}selected{% endif %}>{{ p }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
                     </div>
-                    <div class="col-12 col-md-4">
-                        <label class="form-label">Status</label>
+
+                    <div class="col-12 col-md-3">
+                        <label class="form-label small">Linha (número)</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-mobile-alt"></i></span>
+                            <input type="text" name="numero" class="form-control" placeholder="(99) 9XXXX-XXXX" value="{{ request.GET.numero|default_if_none:'' }}">
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-3">
+                        <label class="form-label small">Status</label>
                         <select name="status" class="form-select">
                             <option value="">Todos</option>
                             <option value="ativa" {% if request.GET.status == 'ativa' %}selected{% endif %}>Ativas</option>
                             <option value="cancelada" {% if request.GET.status == 'cancelada' %}selected{% endif %}>Canceladas</option>
                         </select>
                     </div>
-                    <div class="col-6 col-md-6">
-                        <label class="form-label">Período início</label>
+
+                    <div class="col-12 col-md-3">
+                        <label class="form-label small">Período início</label>
                         <input type="date" name="periodo_start" class="form-control" value="{{ request.GET.periodo_start|default_if_none:'' }}">
                     </div>
-                    <div class="col-6 col-md-6">
-                        <label class="form-label">Período fim</label>
+
+                    <div class="col-12 col-md-3">
+                        <label class="form-label small">Período fim</label>
                         <input type="date" name="periodo_end" class="form-control" value="{{ request.GET.periodo_end|default_if_none:'' }}">
                     </div>
-                    <div class="col-12 mt-2">
+
+                    <div class="col-12 d-flex gap-2 justify-content-end mt-2">
                         <button type="submit" class="btn btn-primary">Aplicar filtros</button>
-                        <a href="{% url 'linhas:export_linhas_cycle_csv' %}?{{ request.GET.urlencode }}" class="btn btn-outline-primary ms-2">Exportar Linhas (ciclo 19→18)</a>
-                        <a href="{% url 'linhas:export_protocolos_pendentes_csv' %}?{{ request.GET.urlencode }}" class="btn btn-outline-secondary ms-2">Exportar Protocolos Pendentes</a>
+                        <a href="{% url 'linhas:export_linhas_cycle_csv' %}?{{ request.GET.urlencode }}" class="btn btn-success export-linhas">Exportar Linhas (CSV)</a>
+                        <a href="{% url 'linhas:export_linhas_cycle_xlsx' %}?{{ request.GET.urlencode }}" class="btn btn-info export-xlsx">Exportar Linhas (XLSX)</a>
+                        <a href="{% url 'linhas:export_protocolos_pendentes_csv' %}?{{ request.GET.urlencode }}" class="btn btn-outline-secondary export-protocolos">Exportar Protocolos Pendentes</a>
+                    </div>
+                    <div class="col-12">
+                        <small class="text-muted">Dica: deixe o período vazio para usar o ciclo atual (19→18).</small>
                     </div>
                 </div>
             </form>
         </div>
     </div>
 </div>
+{% block extra_js %}
+<script>
+// Validate that periodo_start <= periodo_end before submitting
+document.addEventListener('DOMContentLoaded', function(){
+    var form = document.getElementById('filtros-relatorio');
+    if (!form) return;
+    form.addEventListener('submit', function(e){
+        var start = form.querySelector('input[name="periodo_start"]').value;
+        var end = form.querySelector('input[name="periodo_end"]').value;
+        if (start && end && start > end){
+            e.preventDefault();
+            // Remove existing alert if present
+            var existing = document.getElementById('relatorios-date-error');
+            if (existing) existing.remove();
+            var alert = document.createElement('div');
+            alert.id = 'relatorios-date-error';
+            alert.className = 'alert alert-danger mt-3';
+            alert.textContent = 'Período inválido: a data de início não pode ser posterior à data de fim.';
+            var card = form.closest('.card');
+            if (card) card.insertBefore(alert, card.firstChild.nextSibling);
+            alert.scrollIntoView({behavior: 'smooth'});
+            // auto-remove after 6s
+            setTimeout(function(){ if (alert) alert.remove(); }, 6000);
+        }
+    });
+    // CNPJ mask and validation
+    var cnpjInput = form.querySelector('input[name="cnpj"]');
+    function onlyDigits(v){ return v.replace(/\D/g, ''); }
+    function formatCNPJ(v){
+        v = onlyDigits(v).slice(0,14);
+        if (v.length <= 2) return v;
+        if (v.length <= 5) return v.slice(0,2) + '.' + v.slice(2);
+        if (v.length <= 8) return v.slice(0,2) + '.' + v.slice(2,5) + '.' + v.slice(5);
+        if (v.length <= 12) return v.slice(0,2) + '.' + v.slice(2,5) + '.' + v.slice(5,8) + '/' + v.slice(8);
+        return v.slice(0,2) + '.' + v.slice(2,5) + '.' + v.slice(5,8) + '/' + v.slice(8,12) + '-' + v.slice(12);
+    }
+    if (cnpjInput){
+        cnpjInput.addEventListener('input', function(e){
+            var pos = this.selectionStart;
+            var old = this.value;
+            this.value = formatCNPJ(this.value);
+            // try to preserve cursor roughly
+            if (this.value.length > old.length) this.selectionStart = this.selectionEnd = pos + (this.value.length - old.length);
+        });
+    }
+
+    function showAlert(msg){
+        var existing = document.getElementById('relatorios-cnpj-error');
+        if (existing) existing.remove();
+        var alert = document.createElement('div');
+        alert.id = 'relatorios-cnpj-error';
+        alert.className = 'alert alert-danger mt-3';
+        alert.textContent = msg;
+        var card = form.closest('.card');
+        if (card) card.insertBefore(alert, card.firstChild.nextSibling);
+        setTimeout(function(){ if (alert) alert.remove(); }, 6000);
+        if (alert) alert.scrollIntoView({behavior: 'smooth'});
+    }
+
+    // validate cnpj helper
+    function validateCnpjValue(){
+        if (!cnpjInput) return true;
+        var v = onlyDigits(cnpjInput.value || '');
+        if (!v) return true; // empty allowed
+        return v.length === 14;
+    }
+
+    // intercept export links to validate before navigation
+    var exportLinks = document.querySelectorAll('.export-linhas, .export-protocolos');
+    exportLinks.forEach(function(a){
+        a.addEventListener('click', function(e){
+            // validate date range
+            var start = form.querySelector('input[name="periodo_start"]').value;
+            var end = form.querySelector('input[name="periodo_end"]').value;
+            if (start && end && start > end){
+                e.preventDefault();
+                showAlert('Período inválido: a data de início não pode ser posterior à data de fim.');
+                return;
+            }
+            // validate cnpj
+            if (!validateCnpjValue()){
+                e.preventDefault();
+                showAlert('CNPJ inválido: verifique o número informado.');
+                return;
+            }
+            // otherwise allow navigation
+        });
+    });
+
+    // Auto-fill empresa when CNPJ completed (14 digits) - debounce to avoid many requests
+    var empresaInput = form.querySelector('input[name="empresa"]');
+    var debounceTimer = null;
+    function fetchEmpresaByCnpj(cnpjDigits){
+        var url = "{% url 'linhas:buscar_cliente_por_cnpj' %}" + '?cnpj=' + encodeURIComponent(cnpjDigits);
+        fetch(url)
+            .then(function(res){ return res.json(); })
+            .then(function(data){
+                if (data && data.empresa){
+                    if (empresaInput) empresaInput.value = data.empresa;
+                }
+            }).catch(function(){ /* silent fail */ });
+    }
+
+    if (cnpjInput){
+        cnpjInput.addEventListener('input', function(){
+            var digits = onlyDigits(this.value || '');
+            if (debounceTimer) clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(function(){
+                if (digits.length === 14){
+                    fetchEmpresaByCnpj(digits);
+                }
+            }, 450);
+        });
+        // also try on blur immediately
+        cnpjInput.addEventListener('blur', function(){
+            var digits = onlyDigits(this.value || '');
+            if (digits.length === 14){
+                fetchEmpresaByCnpj(digits);
+            }
+        });
+    }
+
+    // Empresa autocomplete suggestions
+    var suggestionsBox = document.getElementById('empresa-suggestions');
+    var empresaTimer = null;
+    function showSuggestions(items){
+        if (!suggestionsBox) return;
+        suggestionsBox.innerHTML = '';
+        if (!items || items.length === 0){ suggestionsBox.style.display = 'none'; return; }
+        items.slice(0,10).forEach(function(it){
+            var a = document.createElement('a');
+            a.href = '#';
+            a.className = 'list-group-item list-group-item-action';
+            a.textContent = it.empresa + (it.cnpj ? (' — ' + formatCNPJ(it.cnpj)) : '');
+            a.dataset.empresa = it.empresa;
+            a.dataset.cnpj = it.cnpj || '';
+            a.addEventListener('click', function(ev){
+                ev.preventDefault();
+                if (empresaInput) empresaInput.value = this.dataset.empresa;
+                if (cnpjInput) cnpjInput.value = formatCNPJ(this.dataset.cnpj || '');
+                suggestionsBox.style.display = 'none';
+            });
+            suggestionsBox.appendChild(a);
+        });
+        suggestionsBox.style.display = 'block';
+    }
+
+    if (empresaInput){
+        empresaInput.addEventListener('input', function(){
+            var q = this.value || '';
+            if (empresaTimer) clearTimeout(empresaTimer);
+            empresaTimer = setTimeout(function(){
+                q = q.trim();
+                if (q.length < 2){ showSuggestions([]); return; }
+                var url = "{% url 'linhas:buscar_empresas' %}" + '?q=' + encodeURIComponent(q);
+                fetch(url)
+                    .then(function(r){ return r.json(); })
+                    .then(function(data){ showSuggestions(data); })
+                    .catch(function(){ showSuggestions([]); });
+            }, 300);
+        });
+        // hide suggestions on blur (slight delay to allow click)
+        empresaInput.addEventListener('blur', function(){ setTimeout(function(){ if (suggestionsBox) suggestionsBox.style.display = 'none'; }, 200); });
+    }
+});
+</script>
+{% endblock %}
 {% endblock %}

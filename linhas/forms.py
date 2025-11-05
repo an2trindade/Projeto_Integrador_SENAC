@@ -1,7 +1,43 @@
 from django import forms
-from .models import Linha
+from .models import Linha, Cliente
+import re
+
+def validar_cpf(cpf_raw: str) -> bool:
+    cpf = re.sub(r'\D', '', cpf_raw or '')
+    if not cpf or len(cpf) != 11:
+        return False
+    if cpf == cpf[0] * 11:
+        return False
+    def calc(digs):
+        s = 0
+        for i, d in enumerate(digs):
+            s += int(d) * (len(digs) + 1 - i)
+        r = s % 11
+        return '0' if r < 2 else str(11 - r)
+    ver1 = calc(cpf[:9])
+    ver2 = calc(cpf[:10])
+    return cpf[9] == ver1 and cpf[10] == ver2
+
+def validar_cnpj(cnpj_raw: str) -> bool:
+    cnpj = re.sub(r'\D', '', cnpj_raw or '')
+    if not cnpj or len(cnpj) != 14:
+        return False
+    if cnpj == cnpj[0] * 14:
+        return False
+    def calc(digs, pesos):
+        s = 0
+        for d, p in zip(digs, pesos):
+            s += int(d) * p
+        r = s % 11
+        return '0' if r < 2 else str(11 - r)
+    pesos1 = [5,4,3,2,9,8,7,6,5,4,3,2]
+    pesos2 = [6] + pesos1
+    ver1 = calc(cnpj[:12], pesos1)
+    ver2 = calc(cnpj[:13], pesos2)
+    return cnpj[12] == ver1 and cnpj[13] == ver2
 
 class LinhaForm(forms.ModelForm):
+    cliente = forms.ModelChoiceField(queryset=Cliente.objects.all(), required=False, widget=forms.Select(attrs={'class': 'form-select'}))
     def clean(self):
         cleaned_data = super().clean()
         tipo_plano = cleaned_data.get('tipo_plano')
@@ -41,7 +77,7 @@ class LinhaForm(forms.ModelForm):
         model = Linha
         fields = [
             # CLIENTE
-            'empresa', 'cnpj', 'taxa_manutencao', 'rp',
+            'cliente', 'empresa', 'cnpj', 'taxa_manutencao', 'rp',
             # LINHA
             'numero', 'tipo_plano', 'valor_plano',
             # AÇÃO
@@ -142,4 +178,38 @@ class BuscaLinhaForm(forms.Form):
             'class': 'form-select'
         })
     )
+
+
+class ClienteForm(forms.ModelForm):
+    class Meta:
+        model = Cliente
+        fields = ['empresa', 'cnpj', 'razao_social', 'fantasia', 'endereco_completo', 'contato', 'telefone', 'nome_dono', 'cpf_dono', 'data_nascimento_dono']
+        widgets = {
+            'empresa': forms.TextInput(attrs={'class': 'form-control'}),
+            'cnpj': forms.TextInput(attrs={'class': 'form-control'}),
+            'razao_social': forms.TextInput(attrs={'class': 'form-control'}),
+            'fantasia': forms.TextInput(attrs={'class': 'form-control'}),
+            'endereco_completo': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'contato': forms.TextInput(attrs={'class': 'form-control'}),
+            'telefone': forms.TextInput(attrs={'class': 'form-control'}),
+            'nome_dono': forms.TextInput(attrs={'class': 'form-control'}),
+            'cpf_dono': forms.TextInput(attrs={'class': 'form-control'}),
+            'data_nascimento_dono': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+        }
+
+    def clean_cpf_dono(self):
+        cpf = self.cleaned_data.get('cpf_dono', '').strip()
+        digits = re.sub(r'\D', '', cpf)
+        if digits:
+            if not validar_cpf(digits):
+                raise forms.ValidationError('CPF inválido: verifique o número informado.')
+        return cpf
+
+    def clean_cnpj(self):
+        cnpj = self.cleaned_data.get('cnpj', '').strip()
+        digits = re.sub(r'\D', '', cnpj)
+        if digits:
+            if not validar_cnpj(digits):
+                raise forms.ValidationError('CNPJ inválido: verifique o número informado.')
+        return cnpj
 

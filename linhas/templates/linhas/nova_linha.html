@@ -223,6 +223,38 @@
                                 empresaSuggestions.style.display = 'none';
                             }
                         });
+                        // Autocomplete clientes (fills hidden cliente id + empresa + cnpj)
+                        var clienteSearch = document.getElementById('cliente-search');
+                        var clienteSuggestions = document.getElementById('cliente-suggestions');
+                        var clienteIdInput = document.getElementById('cliente-id');
+                        clienteSearch && clienteSearch.addEventListener('input', function() {
+                            var q = clienteSearch.value.trim();
+                            if (q.length < 2) { clienteSuggestions.style.display = 'none'; return; }
+                            fetch('/linhas/buscar-clientes/?q=' + encodeURIComponent(q))
+                                .then(r => r.json())
+                                .then(data => {
+                                    clienteSuggestions.innerHTML = '';
+                                    if (!data || data.length === 0) { clienteSuggestions.style.display = 'none'; return; }
+                                    data.forEach(function(it) {
+                                        var el = document.createElement('a');
+                                        el.className = 'list-group-item list-group-item-action';
+                                        el.textContent = it.empresa + (it.cnpj ? ' - ' + it.cnpj : '');
+                                        el.href = '#';
+                                        el.onclick = function(ev) {
+                                            ev.preventDefault();
+                                            clienteIdInput.value = it.id;
+                                            var empresaInput = document.getElementById('{{ form.empresa.id_for_label }}');
+                                            var cnpjInput = document.getElementById('{{ form.cnpj.id_for_label }}');
+                                            if (empresaInput) empresaInput.value = it.empresa || '';
+                                            if (cnpjInput) cnpjInput.value = it.cnpj || '';
+                                            clienteSuggestions.style.display = 'none';
+                                        };
+                                        clienteSuggestions.appendChild(el);
+                                    });
+                                    clienteSuggestions.style.display = '';
+                                }).catch(() => { clienteSuggestions.style.display = 'none'; });
+                        });
+                        document.addEventListener('click', function(e) { if (!clienteSearch.contains(e.target)) clienteSuggestions.style.display = 'none'; });
                     });
                     </script>
 
@@ -518,30 +550,30 @@
                     textoObs.innerHTML = '<i class="fas fa-info-circle"></i> Insira o documento pessoal do titular da linha a ser transferida e o documento de Transferência de Titularidade - TT assinada.';
                     anexoArea.style.display = '';
                     // Adiciona segunda observação e botão abaixo
-                    if (!document.getElementById('cliente-cadastro-area')) {
+                        if (!document.getElementById('cliente-cadastro-area')) {
                         var clienteDiv = document.createElement('div');
                         clienteDiv.id = 'cliente-cadastro-area';
-                        clienteDiv.innerHTML = '<span class="text-secondary">Caso o cliente não possua fatura ainda, primeiro cadastre o cliente e depois de andamento com a movimentação da linha.</span><br><a href="/clientes/novo/" class="btn btn-outline-primary mt-2"><i class="fas fa-user-plus"></i> Novo cadastro de cliente</a>';
+                        clienteDiv.innerHTML = '<span class="text-secondary">Caso o cliente não possua fatura ainda, primeiro cadastre o cliente e depois de andamento com a movimentação da linha.</span><br><a href="' + "{% url 'linhas:cliente_novo' %}" + '" class="btn btn-outline-primary mt-2"><i class="fas fa-user-plus"></i> Novo cadastro de cliente</a>';
                         obsArea.appendChild(clienteDiv);
                     }
                 } else if (acaoPrincipal.value === 'PORTABILIDADE') {
                     obsArea.style.display = '';
                     textoObs.innerHTML = '<i class="fas fa-info-circle"></i> Insira o documento do titular da linha a ser portada, o termo de portabilidade e a tabela excel da portabilidade.';
                     anexoArea.style.display = '';
-                    if (!document.getElementById('cliente-cadastro-area')) {
+                        if (!document.getElementById('cliente-cadastro-area')) {
                         var clienteDiv = document.createElement('div');
                         clienteDiv.id = 'cliente-cadastro-area';
-                        clienteDiv.innerHTML = '<span class="text-secondary">Caso o cliente não possua fatura ainda, primeiro cadastre o cliente e depois de andamento com a movimentação da linha.</span><br><a href="/clientes/novo/" class="btn btn-outline-primary mt-2"><i class="fas fa-user-plus"></i> Novo cadastro de cliente</a>';
+                        clienteDiv.innerHTML = '<span class="text-secondary">Caso o cliente não possua fatura ainda, primeiro cadastre o cliente e depois de andamento com a movimentação da linha.</span><br><a href="' + "{% url 'linhas:cliente_novo' %}" + '" class="btn btn-outline-primary mt-2"><i class="fas fa-user-plus"></i> Novo cadastro de cliente</a>';
                         obsArea.appendChild(clienteDiv);
                     }
                 } else if (acaoPrincipal.value === 'ESTOQUE') {
                     obsArea.style.display = '';
                     textoObs.innerHTML = '';
                     anexoArea.style.display = 'none';
-                    if (!document.getElementById('cliente-cadastro-area')) {
+                        if (!document.getElementById('cliente-cadastro-area')) {
                         var clienteDiv = document.createElement('div');
                         clienteDiv.id = 'cliente-cadastro-area';
-                        clienteDiv.innerHTML = '<i class="fas fa-info-circle"></i> Caso o cliente não possua fatura ainda, primeiro cadastre o cliente e depois de andamento com a movimentação da linha.<br><a href="/clientes/novo/" class="btn btn-outline-primary mt-2"><i class="fas fa-user-plus"></i> Novo cadastro de cliente</a>';
+                        clienteDiv.innerHTML = '<i class="fas fa-info-circle"></i> Caso o cliente não possua fatura ainda, primeiro cadastre o cliente e depois de andamento com a movimentação da linha.<br><a href="' + "{% url 'linhas:cliente_novo' %}" + '" class="btn btn-outline-primary mt-2"><i class="fas fa-user-plus"></i> Novo cadastro de cliente</a>';
                         obsArea.appendChild(clienteDiv);
                     }
                 } else {
@@ -561,4 +593,229 @@
     </script>
 </div>
 {% endblock %}
+
+<!-- Modal para cadastro rápido de Cliente -->
+<div class="modal fade" id="clienteModal" tabindex="-1" aria-labelledby="clienteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="clienteModalLabel">Novo cadastro de cliente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <div id="cliente-modal-errors" class="alert alert-danger d-none"></div>
+                <form id="cliente-modal-form">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">CNPJ</label>
+                            <input type="text" name="cnpj" id="modal-cnpj" class="form-control" placeholder="00.000.000/0000-00">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Empresa (Nome)</label>
+                            <input type="text" name="empresa" id="modal-empresa" class="form-control">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Razão Social</label>
+                            <input type="text" name="razao_social" id="modal-razao" class="form-control">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Nome Fantasia</label>
+                            <input type="text" name="fantasia" id="modal-fantasia" class="form-control">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Endereço completo</label>
+                        <textarea name="endereco_completo" id="modal-endereco" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Nome do Titular / Dono</label>
+                            <input type="text" name="nome_dono" id="modal-nome-dono" class="form-control">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">CPF do Dono</label>
+                            <input type="text" name="cpf_dono" id="modal-cpf-dono" class="form-control">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Data de Nascimento</label>
+                            <input type="date" name="data_nascimento_dono" id="modal-data-nasc" class="form-control">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" id="cliente-modal-save" class="btn btn-primary">Salvar cliente</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+        // Delegate click to open modal. Accept button with class or legacy anchor to /clientes/novo/
+        document.body.addEventListener('click', function(e) {
+                try {
+                    var trigger = null;
+                    if (e.target && (e.target.classList && (e.target.classList.contains('btn-open-cliente-modal') || e.target.closest && e.target.closest('.btn-open-cliente-modal')))) {
+                        trigger = e.target.closest ? e.target.closest('.btn-open-cliente-modal') || e.target : e.target;
+                    } else {
+                        // also accept anchors that point to the legacy page
+                        var a = e.target.closest ? e.target.closest('a[href]') : null;
+                        if (a && a.getAttribute('href') && a.getAttribute('href').indexOf('/clientes/novo') !== -1) {
+                            trigger = a;
+                        }
+                    }
+                    if (trigger) {
+                        e.preventDefault();
+                        var modalEl = document.getElementById('clienteModal');
+                        var clienteModal = new bootstrap.Modal(modalEl);
+                        // clear previous errors
+                        document.getElementById('cliente-modal-errors').classList.add('d-none');
+                        document.getElementById('cliente-modal-errors').innerHTML = '';
+                        // open
+                        clienteModal.show();
+                    }
+                } catch (err) {
+                    // swallow any errors in delegation to avoid breaking the page
+                    console.error(err);
+                }
+        });
+
+        function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                        const cookies = document.cookie.split(';');
+                        for (let i = 0; i < cookies.length; i++) {
+                                const cookie = cookies[i].trim();
+                                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                        break;
+                                }
+                        }
+                }
+                return cookieValue;
+        }
+
+        document.getElementById('cliente-modal-save').addEventListener('click', function() {
+                var url = "{% url 'linhas:cliente_create_ajax' %}";
+                var form = document.getElementById('cliente-modal-form');
+                var fd = new FormData(form);
+                // send fetch
+                // Attempt to fetch CNPJ data before submitting if modal CNPJ filled (try BrasilAPI)
+                var modalCnpjRaw = document.getElementById('modal-cnpj').value || '';
+                var modalCnpjDigits = modalCnpjRaw.replace(/\D/g, '');
+                if (modalCnpjDigits.length === 14) {
+                    // try to fetch CNPJ card and prefill some fields
+                    fetch('https://brasilapi.com.br/api/cnpj/v1/' + modalCnpjDigits)
+                        .then(r => r.json()).then(data => {
+                            try {
+                                if (data && data.razao_social) document.getElementById('modal-razao').value = data.razao_social || document.getElementById('modal-razao').value;
+                                if (data && data.fantasia) document.getElementById('modal-fantasia').value = data.fantasia || document.getElementById('modal-fantasia').value;
+                                if (data && data.estabelecimento && data.estabelecimento[0] && data.estabelecimento[0].logradouro) {
+                                    var endereco = '';
+                                    var e = data.estabelecimento[0];
+                                    endereco = (e.logradouro || '') + ' ' + (e.numero || '') + ' ' + (e.complemento || '') + ' ' + (e.bairro || '') + ' ' + (e.municipio || '') + ' ' + (e.uf || '') + ' ' + (e.cep || '');
+                                    document.getElementById('modal-endereco').value = endereco.trim();
+                                }
+                            } catch (err) {
+                                // ignore
+                            }
+                        }).catch(() => {});
+                }
+
+                fetch(url, {
+                        method: 'POST',
+                        headers: {
+                                'X-CSRFToken': getCookie('csrftoken')
+                        },
+                        body: fd,
+                        credentials: 'same-origin'
+                }).then(r => r.json().then(body => ({status: r.status, body}))).then(resp => {
+                        if (resp.status >= 200 && resp.status < 300 && resp.body.success) {
+                                // success: fill empresa/cnpj in main form
+                                var empresaInput = document.getElementById('{{ form.empresa.id_for_label }}');
+                                var cnpjInput = document.getElementById('{{ form.cnpj.id_for_label }}');
+                                if (empresaInput) empresaInput.value = resp.body.cliente.empresa || '';
+                                if (cnpjInput) cnpjInput.value = resp.body.cliente.cnpj || '';
+                                // hide modal
+                                var modalEl = document.getElementById('clienteModal');
+                                var clienteModal = bootstrap.Modal.getInstance(modalEl);
+                                if (clienteModal) clienteModal.hide();
+                        } else {
+                                // show errors
+                                var errBox = document.getElementById('cliente-modal-errors');
+                                errBox.classList.remove('d-none');
+                                var msgs = [];
+                                if (resp.body && resp.body.errors) {
+                                        for (var k in resp.body.errors) {
+                                                msgs.push('<strong>' + k + '</strong>: ' + resp.body.errors[k]);
+                                        }
+                                } else if (resp.body && resp.body.body) {
+                                        msgs.push(JSON.stringify(resp.body.body));
+                                } else {
+                                        msgs.push('Erro desconhecido ao salvar cliente.');
+                                }
+                                errBox.innerHTML = msgs.join('<br>');
+                        }
+                }).catch(err => {
+                        var errBox = document.getElementById('cliente-modal-errors');
+                        errBox.classList.remove('d-none');
+                        errBox.innerHTML = 'Erro de rede ao tentar salvar o cliente.';
+                });
+        });
+});
+</script>
+
+    <!-- Tom Select + Cleave.js (masks) -->
+    <link href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/tom-select/dist/js/tom-select.complete.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/cleave.js@1.6.0/dist/cleave.min.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // initialize Tom Select on cliente-select
+        try {
+            new TomSelect('#cliente-select', {
+                valueField: 'id',
+                labelField: 'empresa',
+                searchField: ['empresa','cnpj','fantasia','razao_social'],
+                placeholder: 'Pesquisar clientes por nome ou CNPJ...',
+                load: function(query, callback) {
+                    if (!query.length) return callback();
+                    fetch('/linhas/buscar-clientes/?q=' + encodeURIComponent(query))
+                        .then(r => r.json())
+                        .then(data => { callback(data); })
+                        .catch(() => { callback(); });
+                },
+                onChange: function(value) {
+                    // when a client is selected, fetch its details and fill fields
+                    if (!value) return;
+                    fetch('/linhas/buscar-clientes/?q=' + encodeURIComponent(value))
+                        .then(r => r.json())
+                        .then(data => {
+                            var sel = data.find(d => d.id == value) || data[0] || null;
+                            if (sel) {
+                                var empresaInput = document.getElementById('{{ form.empresa.id_for_label }}');
+                                var cnpjInput = document.getElementById('{{ form.cnpj.id_for_label }}');
+                                if (empresaInput) empresaInput.value = sel.empresa || '';
+                                if (cnpjInput) cnpjInput.value = sel.cnpj || '';
+                                // optionally fill taxa_manutencao or rp if you store them on Cliente
+                            }
+                        });
+                }
+            });
+        } catch (e) { /* ignore if TomSelect not available */ }
+
+        // apply masks with Cleave.js
+        try {
+            // CNPJ mask on modal and main form
+            new Cleave('#modal-cnpj', { delimiters: ['.','.','/','-'], blocks: [2,3,3,4,2], numericOnly: true });
+            new Cleave('#{{ form.cnpj.id_for_label }}', { delimiters: ['.','.','/','-'], blocks: [2,3,3,4,2], numericOnly: true });
+            // CPF mask
+            new Cleave('#modal-cpf-dono', { delimiters: ['.','.','-'], blocks: [3,3,3,2], numericOnly: true });
+        } catch (e) { /* ignore */ }
+    });
+    </script>
 
