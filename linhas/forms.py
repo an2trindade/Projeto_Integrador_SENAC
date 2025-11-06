@@ -181,20 +181,30 @@ class BuscaLinhaForm(forms.Form):
 
 
 class ClienteForm(forms.ModelForm):
+    # Override the date field to accept DD/MM/YYYY from the UI
+    data_nascimento_dono = forms.DateField(
+        required=False,
+        input_formats=['%d/%m/%Y'],
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'DD/MM/AAAA'
+        })
+    )
+
     class Meta:
         model = Cliente
         fields = ['empresa', 'cnpj', 'razao_social', 'fantasia', 'endereco_completo', 'contato', 'telefone', 'nome_dono', 'cpf_dono', 'data_nascimento_dono']
         widgets = {
-            'empresa': forms.TextInput(attrs={'class': 'form-control'}),
-            'cnpj': forms.TextInput(attrs={'class': 'form-control'}),
-            'razao_social': forms.TextInput(attrs={'class': 'form-control'}),
-            'fantasia': forms.TextInput(attrs={'class': 'form-control'}),
-            'endereco_completo': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'contato': forms.TextInput(attrs={'class': 'form-control'}),
-            'telefone': forms.TextInput(attrs={'class': 'form-control'}),
-            'nome_dono': forms.TextInput(attrs={'class': 'form-control'}),
-            'cpf_dono': forms.TextInput(attrs={'class': 'form-control'}),
-            'data_nascimento_dono': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'empresa': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome / Razão social'}),
+            'cnpj': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '00.000.000/0000-00', 'required': True}),
+            'razao_social': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Razão social', 'required': True}),
+            'fantasia': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome fantasia'}),
+            'endereco_completo': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Logradouro, número, complemento, bairro, cidade - UF'}),
+            'contato': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Contato principal (email ou telefone)'}),
+            'telefone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '(11) 99999-9999'}),
+            'nome_dono': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome do proprietário', 'required': True}),
+            'cpf_dono': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '000.000.000-00'}),
+            # data_nascimento_dono widget is overridden above to accept DD/MM/YYYY
         }
 
     def clean_cpf_dono(self):

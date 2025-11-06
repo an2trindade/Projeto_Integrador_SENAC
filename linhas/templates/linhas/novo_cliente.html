@@ -12,27 +12,59 @@
     <div class="card-body">
         <form method="post">
             {% csrf_token %}
-            <div class="mb-3">
-                <label class="form-label">Empresa</label>
-                {{ form.empresa }}
-                {% if form.empresa.errors %}<div class="text-danger small">{{ form.empresa.errors.0 }}</div>{% endif %}
-            </div>
+
             <div class="mb-3">
                 <label class="form-label">CNPJ</label>
-                {{ form.cnpj }}
+                <div class="input-group">
+                    {{ form.cnpj }}
+                    <button type="button" class="btn btn-outline-secondary" id="btn-buscar-cnpj" title="Buscar dados por CNPJ">
+                        <i class="fas fa-search"></i> Buscar CNPJ
+                    </button>
+                </div>
+                <div id="cnpj-alert" class="form-text text-danger mt-1" style="display:none;"></div>
                 {% if form.cnpj.errors %}<div class="text-danger small">{{ form.cnpj.errors.0 }}</div>{% endif %}
             </div>
+
             <div class="mb-3">
-                <label class="form-label">Contato</label>
-                {{ form.contato }}
+                <label class="form-label">Razão Social</label>
+                {{ form.razao_social }}
+                {% if form.razao_social.errors %}<div class="text-danger small">{{ form.razao_social.errors.0 }}</div>{% endif %}
             </div>
+
             <div class="mb-3">
-                <label class="form-label">Telefone</label>
-                {{ form.telefone }}
+                <label class="form-label">Fantasia</label>
+                {{ form.fantasia }}
+                {% if form.fantasia.errors %}<div class="text-danger small">{{ form.fantasia.errors.0 }}</div>{% endif %}
             </div>
+
             <div class="mb-3">
                 <label class="form-label">Endereço</label>
-                {{ form.endereco }}
+                {{ form.endereco_completo }}
+                {% if form.endereco_completo.errors %}<div class="text-danger small">{{ form.endereco_completo.errors.0 }}</div>{% endif %}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Contato principal</label>
+                {{ form.contato }}
+                {% if form.contato.errors %}<div class="text-danger small">{{ form.contato.errors.0 }}</div>{% endif %}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Nome proprietário</label>
+                {{ form.nome_dono }}
+                {% if form.nome_dono.errors %}<div class="text-danger small">{{ form.nome_dono.errors.0 }}</div>{% endif %}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">CPF</label>
+                {{ form.cpf_dono }}
+                {% if form.cpf_dono.errors %}<div class="text-danger small">{{ form.cpf_dono.errors.0 }}</div>{% endif %}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Data de nascimento</label>
+                {{ form.data_nascimento_dono }}
+                {% if form.data_nascimento_dono.errors %}<div class="text-danger small">{{ form.data_nascimento_dono.errors.0 }}</div>{% endif %}
             </div>
             <div class="d-flex justify-content-end">
                 <a href="{% url 'linhas:novalinha' %}" class="btn btn-secondary me-2">Cancelar</a>
@@ -43,3 +75,168 @@
 </div>
 
 {% endblock %}
+
+<!-- Cleave.js (masks) -->
+<script src="https://cdn.jsdelivr.net/npm/cleave.js@1.6.0/dist/cleave.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    try {
+        // CNPJ mask
+        var cnpjEl = document.getElementById('id_cnpj');
+        if (cnpjEl) new Cleave(cnpjEl, { delimiters: ['.','.','/','-'], blocks: [2,3,3,4,2], numericOnly: true });
+
+        // CPF mask
+        var cpfEl = document.getElementById('id_cpf_dono');
+        if (cpfEl) new Cleave(cpfEl, { delimiters: ['.','.','-'], blocks: [3,3,3,2], numericOnly: true });
+
+        // Data mask (DD/MM/AAAA)
+        var dataEl = document.getElementById('id_data_nascimento_dono');
+        if (dataEl) new Cleave(dataEl, { date: true, datePattern: ['d', 'm', 'Y'] });
+    } catch (e) {
+        console.warn('Cleave init failed', e);
+    }
+});
+</script>
+
+<script>
+// Fetch CNPJ data on demand (button) with fallback and inline alerts
+document.addEventListener('DOMContentLoaded', function() {
+    try {
+        console.log('novo_cliente: CNPJ script init');
+    } catch (e) {}
+
+    var cnpjInput = document.getElementById('id_cnpj');
+    if (!cnpjInput) return;
+
+    var btnBuscar = document.getElementById('btn-buscar-cnpj');
+    // ensure button is enabled on load (if it was left disabled by prior attempts)
+    try { if (btnBuscar) btnBuscar.disabled = false; } catch (e) { console.warn(e); }
+    var razaoEl = document.getElementById('id_razao_social');
+    var fantasiaEl = document.getElementById('id_fantasia');
+    var enderecoEl = document.getElementById('id_endereco_completo');
+    var alertEl = document.getElementById('cnpj-alert');
+
+    function showAlert(msg, isError) {
+        try {
+            if (!alertEl) return;
+            alertEl.style.display = msg ? '' : 'none';
+            alertEl.textContent = msg || '';
+            alertEl.classList.toggle('text-danger', !!isError);
+            alertEl.classList.toggle('text-success', !isError && !!msg);
+        } catch (err) {
+            try { console.warn('showAlert error', err); } catch (e) {}
+        }
+    }
+
+    async function fetchBrasilApi(cnpjDigits) {
+        var url = 'https://brasilapi.com.br/api/cnpj/v1/' + cnpjDigits;
+        var resp = await fetch(url);
+        if (!resp.ok) throw new Error('notfound');
+        return resp.json();
+    }
+
+    async function fetchReceitaWs(cnpjDigits) {
+        // Fallback: receitaws (may be rate limited / CORS-restricted)
+        var url = 'https://www.receitaws.com.br/v1/cnpj/' + cnpjDigits;
+        var resp = await fetch(url);
+        if (!resp.ok) throw new Error('notfound');
+        return resp.json();
+    }
+
+    async function buscarCnpj() {
+        showAlert('', false);
+        var digits = (cnpjInput.value || '').replace(/\D/g, '');
+        if (digits.length !== 14) {
+            showAlert('Digite o CNPJ completo (14 dígitos).', true);
+            return;
+        }
+
+        btnBuscar && (btnBuscar.disabled = true);
+        showAlert('Buscando dados do CNPJ...', false);
+
+        try {
+            var data = null;
+            try {
+                data = await fetchBrasilApi(digits);
+            } catch (e) {
+                // try fallback
+                try {
+                    data = await fetchReceitaWs(digits);
+                } catch (e2) {
+                    throw new Error('notfound');
+                }
+            }
+
+            // adapt receita.ws schema to brasilapi if needed
+            if (data) {
+                // Some APIs use different property names
+                var razao = data.razao_social || data.nome || '';
+                var fantasia = data.fantasia || data.nome_fantasia || '';
+                var endereco = '';
+                if (data.estabelecimento && data.estabelecimento[0]) {
+                    var e = data.estabelecimento[0];
+                    var parts = [];
+                    if (e.logradouro) parts.push(e.logradouro);
+                    if (e.numero) parts.push(e.numero);
+                    if (e.complemento) parts.push(e.complemento);
+                    if (e.bairro) parts.push(e.bairro);
+                    if (e.municipio) parts.push(e.municipio);
+                    if (e.uf) parts.push(e.uf);
+                    if (e.cep) parts.push(e.cep);
+                    endereco = parts.filter(Boolean).join(', ');
+                } else if (data.logradouro || data.municipio) {
+                    // receita.ws schema
+                    var parts2 = [];
+                    if (data.logradouro) parts2.push(data.logradouro);
+                    if (data.numero) parts2.push(data.numero);
+                    if (data.complemento) parts2.push(data.complemento);
+                    if (data.bairro) parts2.push(data.bairro);
+                    if (data.municipio) parts2.push(data.municipio);
+                    if (data.uf) parts2.push(data.uf);
+                    if (data.cep) parts2.push(data.cep);
+                    endereco = parts2.filter(Boolean).join(', ');
+                }
+
+                if (razaoEl && razao) razaoEl.value = razao;
+                if (fantasiaEl && fantasia) fantasiaEl.value = fantasia;
+                if (enderecoEl && endereco) enderecoEl.value = endereco;
+
+                showAlert('Dados carregados pelo CNPJ.', false);
+            } else {
+                throw new Error('notfound');
+            }
+        } catch (err) {
+            showAlert('CNPJ não encontrado ou serviço indisponível. Tente novamente mais tarde.', true);
+        } finally {
+            btnBuscar && (btnBuscar.disabled = false);
+        }
+    }
+
+    if (btnBuscar) {
+        btnBuscar.addEventListener('click', function(ev) {
+            try {
+                ev.preventDefault();
+                btnBuscar.disabled = true;
+                btnBuscar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Buscando...';
+            } catch (e) { console.warn(e); }
+            buscarCnpj().finally(function() {
+                try { btnBuscar.disabled = false; btnBuscar.innerHTML = '<i class="fas fa-search"></i> Buscar CNPJ'; } catch (xx) {}
+            });
+        });
+    }
+
+    // Fallback delegated listener on document body in case direct binding fails
+    document.body.addEventListener('click', function(e) {
+        try {
+            var el = e.target.closest ? e.target.closest('#btn-buscar-cnpj') : null;
+            if (el) {
+                e.preventDefault();
+                try { el.disabled = true; el.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Buscando...'; } catch (xx) {}
+                buscarCnpj().finally(function() {
+                    try { el.disabled = false; el.innerHTML = '<i class="fas fa-search"></i> Buscar CNPJ'; } catch (xx) {}
+                });
+            }
+        } catch (err) { try { console.warn(err); } catch (e) {} }
+    });
+});
+</script>
