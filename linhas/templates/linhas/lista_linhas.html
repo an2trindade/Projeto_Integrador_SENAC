@@ -62,16 +62,26 @@
     <div class="card-body">
         <form method="get" class="row g-3">
             <div class="col-md-4">
-                {{ form_busca.busca.label_tag }}
-                {{ form_busca.busca }}
+                <label class="form-label small">Buscar</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <!-- Render a plain bootstrap input to avoid the custom widget styles and match the Plano field -->
+                    <input type="text" id="{{ form_busca.busca.id_for_label }}" name="busca" class="form-control" placeholder="Buscar por CNPJ, nome do cliente, número da linha ou RP..." value="{{ request.GET.busca|default_if_none:'' }}" autocomplete="off">
+                </div>
             </div>
             <div class="col-md-2">
-                {{ form_busca.tipo_plano.label_tag }}
-                {{ form_busca.tipo_plano }}
+                <label class="form-label small">Plano</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-file-contract"></i></span>
+                    {{ form_busca.tipo_plano }}
+                </div>
             </div>
             <div class="col-md-2">
-                {{ form_busca.ativa.label_tag }}
-                {{ form_busca.ativa }}
+                <label class="form-label small">Status</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-info-circle"></i></span>
+                    {{ form_busca.ativa }}
+                </div>
             </div>
             <div class="col-md-2 d-flex align-items-end">
                 <button type="submit" class="btn btn-outline-primary me-2">

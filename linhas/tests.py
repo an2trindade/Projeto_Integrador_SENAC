@@ -13,12 +13,16 @@ class ClienteAjaxTestCase(TestCase):
 		url = reverse('linhas:cliente_create_ajax')
 		data = {
 			'empresa': 'ACME Ltda',
-			'cnpj': '',
+			'cnpj': '04.252.011/0001-10',
 			'razao_social': 'ACME LTDA',
 			'fantasia': 'ACME',
 			'endereco_completo': 'Rua A, 123',
+			'contato': '(11) 99999-9999',
+			'email': 'contato@acme.com',
+			'telefone': '(11) 99999-9999',
 			'nome_dono': 'João Silva',
-			'cpf_dono': '',
+			'cpf_dono': '529.982.247-25',
+			'data_nascimento_dono': '01/01/1980',
 		}
 		resp = self.client.post(url, data)
 		self.assertEqual(resp.status_code, 200)

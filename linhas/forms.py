@@ -184,13 +184,14 @@ class BuscaLinhaForm(forms.Form):
 
 
 class ClienteForm(forms.ModelForm):
-    # Override the date field to accept DD/MM/YYYY from the UI
+    # Override the date field to accept DD/MM/YYYY from the UI and require it
     data_nascimento_dono = forms.DateField(
-        required=False,
+        required=True,
         input_formats=['%d/%m/%Y'],
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': 'DD/MM/AAAA'
+            'placeholder': 'DD/MM/AAAA',
+            'required': True
         })
     )
 
@@ -198,32 +199,54 @@ class ClienteForm(forms.ModelForm):
         model = Cliente
         fields = ['empresa', 'cnpj', 'razao_social', 'fantasia', 'endereco_completo', 'contato', 'email', 'telefone', 'nome_dono', 'cpf_dono', 'data_nascimento_dono']
         widgets = {
-            'empresa': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome / Razão social'}),
+            'empresa': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome / Razão social', 'required': True}),
             'cnpj': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '00.000.000/0000-00', 'required': True}),
             'razao_social': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Razão social', 'required': True}),
-            'fantasia': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome fantasia'}),
-            'endereco_completo': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Logradouro, número, complemento, bairro, cidade - UF'}),
-            'contato': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Contato principal (email ou telefone)'}),
-            'telefone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '(11) 99999-9999'}),
-            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'contato@exemplo.com'}),
+            'fantasia': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome fantasia', 'required': True}),
+            'endereco_completo': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Logradouro, número, complemento, bairro, cidade - UF', 'required': True}),
+            'contato': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Telefone de contato (somente número)', 'required': True, 'inputmode': 'tel', 'maxlength': '15'}),
+            'telefone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '(11) 99999-9999', 'required': True, 'inputmode': 'tel'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'contato@exemplo.com', 'required': True}),
             'nome_dono': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome do proprietário', 'required': True}),
-            'cpf_dono': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '000.000.000-00'}),
+            'cpf_dono': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '000.000.000-00', 'required': True}),
             # data_nascimento_dono widget is overridden above to accept DD/MM/YYYY
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Force all form fields to be required at form-level regardless of model blank=True
+        for name, field in self.fields.items():
+            field.required = True
 
     def clean_cpf_dono(self):
         cpf = self.cleaned_data.get('cpf_dono', '').strip()
         digits = re.sub(r'\D', '', cpf)
-        if digits:
-            if not validar_cpf(digits):
-                raise forms.ValidationError('CPF inválido: verifique o número informado.')
+        # Field is required at form-level; ensure presence and validity
+        if not digits:
+            raise forms.ValidationError('CPF obrigatório: preencha o CPF do titular.')
+        if not validar_cpf(digits):
+            raise forms.ValidationError('CPF inválido: verifique o número informado.')
         return cpf
 
     def clean_cnpj(self):
         cnpj = self.cleaned_data.get('cnpj', '').strip()
         digits = re.sub(r'\D', '', cnpj)
-        if digits:
-            if not validar_cnpj(digits):
-                raise forms.ValidationError('CNPJ inválido: verifique o número informado.')
+        # Field is required at form-level; ensure presence and validity
+        if not digits:
+            raise forms.ValidationError('CNPJ obrigatório: preencha o CNPJ do cliente.')
+        if not validar_cnpj(digits):
+            raise forms.ValidationError('CNPJ inválido: verifique o número informado.')
         return cnpj
+
+    def clean_contato(self):
+        contato = self.cleaned_data.get('contato', '').strip()
+        # normalize to digits only
+        digits = re.sub(r'\D', '', contato)
+        if not digits:
+            raise forms.ValidationError('Telefone de contato obrigatório: preencha o número do telefone.')
+        # Accept 10 (landline) or 11 (mobile) digits
+        if len(digits) not in (10, 11):
+            raise forms.ValidationError('Telefone inválido: informe 10 ou 11 dígitos (DDD + número).')
+        # Optional: store formatted phone or just return original input
+        return contato
 

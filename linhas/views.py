@@ -445,8 +445,22 @@ def export_linhas_cycle_csv(request):
         qs = qs.filter(empresa__icontains=empresa)
     if tipo_plano:
         qs = qs.filter(tipo_plano__icontains=tipo_plano)
+
+    # Behavior requirement: when a CNPJ or empresa is provided, numero filter should only
+    # be applied if the given numero actually belongs to that CNPJ/empresa. Otherwise
+    # return all lines linked to that CNPJ/empresa (ignore numero filter).
     if numero:
-        qs = qs.filter(numero__icontains=numero)
+        if cnpj or empresa:
+            # check within the already filtered qs (which contains only lines for that cnpj/empresa)
+            if qs.filter(numero__icontains=numero).exists():
+                qs = qs.filter(numero__icontains=numero)
+            else:
+                # numero not associated with this CNPJ/empresa — ignore numero filter
+                pass
+        else:
+            # no cnpj/empresa context — apply numero filter globally
+            qs = qs.filter(numero__icontains=numero)
+
     if status:
         # map status to active flag
         if status == 'ativa':
@@ -523,8 +537,19 @@ def export_linhas_cycle_xlsx(request):
         qs = qs.filter(empresa__icontains=empresa)
     if tipo_plano:
         qs = qs.filter(tipo_plano__icontains=tipo_plano)
+
+    # Same business rule as CSV: if CNPJ or empresa provided, only apply numero filter
+    # when the numero exists for that CNPJ/empresa; otherwise ignore numero and return
+    # all lines for that CNPJ/empresa.
     if numero:
-        qs = qs.filter(numero__icontains=numero)
+        if cnpj or empresa:
+            if qs.filter(numero__icontains=numero).exists():
+                qs = qs.filter(numero__icontains=numero)
+            else:
+                pass
+        else:
+            qs = qs.filter(numero__icontains=numero)
+
     if status:
         if status == 'ativa':
             qs = qs.filter(ativa=True)
