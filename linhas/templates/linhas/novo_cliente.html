@@ -50,6 +50,12 @@
             </div>
 
             <div class="mb-3">
+                <label class="form-label">Email</label>
+                {{ form.email }}
+                {% if form.email.errors %}<div class="text-danger small">{{ form.email.errors.0 }}</div>{% endif %}
+            </div>
+
+            <div class="mb-3">
                 <label class="form-label">Nome proprietário</label>
                 {{ form.nome_dono }}
                 {% if form.nome_dono.errors %}<div class="text-danger small">{{ form.nome_dono.errors.0 }}</div>{% endif %}
@@ -80,18 +86,37 @@
 <script src="https://cdn.jsdelivr.net/npm/cleave.js@1.6.0/dist/cleave.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize masks with multiple fallbacks to handle different rendering scenarios
+    function findCnpjElement() {
+        return document.getElementById('id_cnpj') || document.querySelector('input[name="cnpj"]') || document.querySelector('input[id$="cnpj"]');
+    }
+    function findCpfElement() {
+        return document.getElementById('id_cpf_dono') || document.querySelector('input[name="cpf_dono"]') || document.querySelector('input[id$="cpf_dono"]');
+    }
+    function findDateElement() {
+        return document.getElementById('id_data_nascimento_dono') || document.querySelector('input[name="data_nascimento_dono"]') || document.querySelector('input[id$="data_nascimento_dono"]');
+    }
+
     try {
-        // CNPJ mask
-        var cnpjEl = document.getElementById('id_cnpj');
-        if (cnpjEl) new Cleave(cnpjEl, { delimiters: ['.','.','/','-'], blocks: [2,3,3,4,2], numericOnly: true });
+        var cnpjEl = findCnpjElement();
+        var cpfEl = findCpfElement();
+        var dataEl = findDateElement();
 
-        // CPF mask
-        var cpfEl = document.getElementById('id_cpf_dono');
-        if (cpfEl) new Cleave(cpfEl, { delimiters: ['.','.','-'], blocks: [3,3,3,2], numericOnly: true });
+        // Apply mask when element exists. Also re-init on focus/paste to handle programmatic inserts.
+        if (cnpjEl) {
+            var cnpjMask = new Cleave(cnpjEl, { delimiters: ['.','.','/','-'], blocks: [2,3,3,4,2], numericOnly: true });
+            cnpjEl.addEventListener('paste', function() { setTimeout(function(){ try{ cnpjMask.destroy(); cnpjMask = new Cleave(cnpjEl, { delimiters: ['.','.','/','-'], blocks: [2,3,3,4,2], numericOnly: true }); }catch(e){} }, 50); });
+            cnpjEl.addEventListener('focus', function(){ try{ if(!cnpjEl._cleave){ cnpjMask = new Cleave(cnpjEl, { delimiters: ['.','.','/','-'], blocks: [2,3,3,4,2], numericOnly: true }); } }catch(e){} });
+        }
 
-        // Data mask (DD/MM/AAAA)
-        var dataEl = document.getElementById('id_data_nascimento_dono');
-        if (dataEl) new Cleave(dataEl, { date: true, datePattern: ['d', 'm', 'Y'] });
+        if (cpfEl) {
+            var cpfMask = new Cleave(cpfEl, { delimiters: ['.','.','-'], blocks: [3,3,3,2], numericOnly: true });
+            cpfEl.addEventListener('paste', function() { setTimeout(function(){ try{ cpfMask.destroy(); cpfMask = new Cleave(cpfEl, { delimiters: ['.','.','-'], blocks: [3,3,3,2], numericOnly: true }); }catch(e){} }, 50); });
+        }
+
+        if (dataEl) {
+            var dataMask = new Cleave(dataEl, { date: true, datePattern: ['d', 'm', 'Y'] });
+        }
     } catch (e) {
         console.warn('Cleave init failed', e);
     }
@@ -105,12 +130,16 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('novo_cliente: CNPJ script init');
     } catch (e) {}
 
-    var cnpjInput = document.getElementById('id_cnpj');
-    if (!cnpjInput) return;
+    // robustly locate the CNPJ input and the Buscar button using fallbacks
+    var cnpjInput = document.getElementById('id_cnpj') || document.querySelector('input[name="cnpj"]') || document.querySelector('input[id$="cnpj"]');
+    if (!cnpjInput) {
+        console.warn('CNPJ input not found on page');
+        return;
+    }
 
-    var btnBuscar = document.getElementById('btn-buscar-cnpj');
-    // ensure button is enabled on load (if it was left disabled by prior attempts)
-    try { if (btnBuscar) btnBuscar.disabled = false; } catch (e) { console.warn(e); }
+    var btnBuscar = document.getElementById('btn-buscar-cnpj') || document.querySelector('button[title*="Buscar"]');
+    // ensure button is enabled on load
+    try { if (btnBuscar) { btnBuscar.disabled = false; btnBuscar.style.cursor = 'pointer'; } } catch (e) { console.warn(e); }
     var razaoEl = document.getElementById('id_razao_social');
     var fantasiaEl = document.getElementById('id_fantasia');
     var enderecoEl = document.getElementById('id_endereco_completo');
@@ -217,12 +246,15 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 ev.preventDefault();
                 btnBuscar.disabled = true;
+                btnBuscar.dataset.origHtml = btnBuscar.innerHTML;
                 btnBuscar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Buscando...';
             } catch (e) { console.warn(e); }
             buscarCnpj().finally(function() {
-                try { btnBuscar.disabled = false; btnBuscar.innerHTML = '<i class="fas fa-search"></i> Buscar CNPJ'; } catch (xx) {}
+                try { btnBuscar.disabled = false; btnBuscar.innerHTML = btnBuscar.dataset.origHtml || '<i class="fas fa-search"></i> Buscar CNPJ'; } catch (xx) {}
             });
         });
+    } else {
+        console.warn('Buscar CNPJ button not found to attach listener');
     }
 
     // Fallback delegated listener on document body in case direct binding fails

@@ -808,13 +808,67 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         } catch (e) { /* ignore if TomSelect not available */ }
 
-        // apply masks with Cleave.js
+        // apply masks with Cleave.js (robust selectors + re-init on paste/focus)
         try {
-            // CNPJ mask on modal and main form
-            new Cleave('#modal-cnpj', { delimiters: ['.','.','/','-'], blocks: [2,3,3,4,2], numericOnly: true });
-            new Cleave('#{{ form.cnpj.id_for_label }}', { delimiters: ['.','.','/','-'], blocks: [2,3,3,4,2], numericOnly: true });
-            // CPF mask
-            new Cleave('#modal-cpf-dono', { delimiters: ['.','.','-'], blocks: [3,3,3,2], numericOnly: true });
+            function findEl(selectorList) {
+                for (var i = 0; i < selectorList.length; i++) {
+                    var el = document.querySelector(selectorList[i]);
+                    if (el) return el;
+                }
+                return null;
+            }
+
+            var modalCnpj = findEl(['#modal-cnpj', 'input[name="modal-cnpj"]', 'input[id$="modal-cnpj"]']);
+            var mainCnpj = findEl(['#{{ form.cnpj.id_for_label }}', 'input[name="cnpj"]', 'input[id$="cnpj"]']);
+            var modalCpf = findEl(['#modal-cpf-dono', 'input[name="cpf_dono"]', 'input[id$="cpf_dono"]']);
+
+            function initCnpjMask(el) {
+                if (!el) return null;
+                try {
+                    var mask = new Cleave(el, { delimiters: ['.','.','/','-'], blocks: [2,3,3,4,2], numericOnly: true });
+                    el.addEventListener('paste', function() { setTimeout(function(){ try{ mask.destroy(); mask = new Cleave(el, { delimiters: ['.','.','/','-'], blocks: [2,3,3,4,2], numericOnly: true }); }catch(e){} }, 50); });
+                    el.addEventListener('focus', function(){ try{ if(!el._cleave){ mask = new Cleave(el, { delimiters: ['.','.','/','-'], blocks: [2,3,3,4,2], numericOnly: true }); } }catch(e){} });
+                    return mask;
+                } catch (e) { return null; }
+            }
+
+            function initCpfMask(el) {
+                if (!el) return null;
+                try {
+                    var mask = new Cleave(el, { delimiters: ['.','.','-'], blocks: [3,3,3,2], numericOnly: true });
+                    el.addEventListener('paste', function() { setTimeout(function(){ try{ mask.destroy(); mask = new Cleave(el, { delimiters: ['.','.','-'], blocks: [3,3,3,2], numericOnly: true }); }catch(e){} }, 50); });
+                    return mask;
+                } catch (e) { return null; }
+            }
+
+            initCnpjMask(modalCnpj);
+            initCnpjMask(mainCnpj);
+            initCpfMask(modalCpf);
+
+            // Also ensure formatting while typing: if Cleave isn't active, format input on input event
+            if (mainCnpj) {
+                mainCnpj.addEventListener('input', function() {
+                    try {
+                        // allow Cleave to handle it if present; otherwise format manually
+                        if (window.Cleave && mainCnpj._cleave) return;
+                        var v = mainCnpj.value.replace(/\D/g, '').slice(0,14);
+                        if (!v) { mainCnpj.value = ''; return; }
+                        var parts = [];
+                        parts.push(v.slice(0,2));
+                        if (v.length > 2) parts.push(v.slice(2,5));
+                        if (v.length > 5) parts.push(v.slice(5,8));
+                        if (v.length > 8) parts.push(v.slice(8,12));
+                        if (v.length > 12) parts.push(v.slice(12,14));
+                        var out = '';
+                        if (parts.length >= 1) out = parts[0];
+                        if (parts.length >= 2) out += '.' + parts[1];
+                        if (parts.length >= 3) out += '.' + parts[2];
+                        if (parts.length >= 4) out += '/' + parts[3];
+                        if (parts.length >= 5) out += '-' + parts[4];
+                        mainCnpj.value = out;
+                    } catch (e) { console.warn('manual cnpj format failed', e); }
+                });
+            }
         } catch (e) { /* ignore */ }
     });
     </script>

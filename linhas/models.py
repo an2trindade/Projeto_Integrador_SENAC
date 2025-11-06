@@ -9,6 +9,7 @@ class Cliente(models.Model):
     endereco_completo = models.TextField(verbose_name='Endereço completo', blank=True, default='')
     contato = models.CharField(max_length=100, verbose_name='Contato', blank=True, default='')
     telefone = models.CharField(max_length=30, verbose_name='Telefone', blank=True, default='')
+    email = models.EmailField(max_length=254, verbose_name='Email', blank=True, default='')
     nome_dono = models.CharField(max_length=150, verbose_name='Nome do Titular / Dono', blank=True, default='')
     cpf_dono = models.CharField(max_length=20, verbose_name='CPF do Dono', blank=True, default='')
     data_nascimento_dono = models.DateField(verbose_name='Data de Nascimento do Dono', null=True, blank=True)

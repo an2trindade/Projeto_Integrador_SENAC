@@ -159,7 +159,8 @@ CSRF_COOKIE_HTTPONLY = True
 
 # Login/Logout URLs
 LOGIN_URL = '/login/'
-LOGIN_REDIRECT_URL = '/linhas/'
+# Redirect users after login to the Protocolos page
+LOGIN_REDIRECT_URL = '/linhas/protocolo/'
 LOGOUT_REDIRECT_URL = '/login/'
 
 # Configurações de email (para produção)

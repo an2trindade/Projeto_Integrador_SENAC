@@ -100,7 +100,10 @@ class LinhaForm(forms.ModelForm):
             }),
             'cnpj': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'CNPJ do cliente'
+                'placeholder': 'CNPJ do cliente',
+                'maxlength': '18',
+                'inputmode': 'numeric',
+                'autocomplete': 'off'
             }),
             'empresa': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -193,7 +196,7 @@ class ClienteForm(forms.ModelForm):
 
     class Meta:
         model = Cliente
-        fields = ['empresa', 'cnpj', 'razao_social', 'fantasia', 'endereco_completo', 'contato', 'telefone', 'nome_dono', 'cpf_dono', 'data_nascimento_dono']
+        fields = ['empresa', 'cnpj', 'razao_social', 'fantasia', 'endereco_completo', 'contato', 'email', 'telefone', 'nome_dono', 'cpf_dono', 'data_nascimento_dono']
         widgets = {
             'empresa': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome / Razão social'}),
             'cnpj': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '00.000.000/0000-00', 'required': True}),
@@ -202,6 +205,7 @@ class ClienteForm(forms.ModelForm):
             'endereco_completo': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Logradouro, número, complemento, bairro, cidade - UF'}),
             'contato': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Contato principal (email ou telefone)'}),
             'telefone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '(11) 99999-9999'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'contato@exemplo.com'}),
             'nome_dono': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome do proprietário', 'required': True}),
             'cpf_dono': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '000.000.000-00'}),
             # data_nascimento_dono widget is overridden above to accept DD/MM/YYYY
