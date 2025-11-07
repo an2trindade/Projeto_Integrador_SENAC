@@ -1,3 +1,87 @@
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login
+from django.utils import timezone
+from datetime import timedelta
+from .models import LoginAttempt
+
+def get_client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
+
+def login_view(request):
+    if request.method == 'POST' and request.POST.get('login_form'):
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        ip_address = get_client_ip(request)
+        
+        print(f"Login attempt - Username: {username}, IP: {ip_address}")
+        print(f"POST data: {request.POST}")
+        
+        # Check if user is blocked
+        login_attempt = LoginAttempt.objects.filter(
+            username=username,
+            ip_address=ip_address,
+            is_blocked=True
+        ).first()
+
+        if login_attempt and login_attempt.is_currently_blocked():
+            remaining_time = login_attempt.blocked_until - timezone.now()
+            minutes = int(remaining_time.total_seconds() / 60)
+            return render(request, 'login.html', {
+                'error': f'Conta bloqueada. Tente novamente em {minutes} minutos ou entre em contato com o suporte.',
+                'show_support': True
+            })
+
+        user = authenticate(username=username, password=password)
+        
+        if user is not None:
+            # Reset login attempts on successful login
+            LoginAttempt.objects.filter(username=username, ip_address=ip_address).delete()
+            login(request, user)
+            return redirect('dashboard')
+        else:
+            # Track failed login attempt
+            login_attempt = LoginAttempt.objects.filter(
+                username=username,
+                ip_address=ip_address,
+                is_blocked=False
+            ).first()
+
+            print(f"Failed login - Current attempt: {login_attempt}")
+
+            if login_attempt:
+                login_attempt.attempt_count += 1
+                print(f"Incrementing attempt count to: {login_attempt.attempt_count}")
+                
+                if login_attempt.attempt_count >= 3:
+                    print("Blocking user - 3 or more attempts")
+                    login_attempt.is_blocked = True
+                    login_attempt.blocked_until = timezone.now() + timedelta(minutes=15)
+                    login_attempt.save()
+                    return render(request, 'login.html', {
+                        'error': 'Conta bloqueada por 15 minutos devido a múltiplas tentativas incorretas.',
+                        'show_support': True
+                    })
+                login_attempt.save()
+                print(f"Saved attempt count: {login_attempt.attempt_count}")
+            else:
+                print("Creating new login attempt record")
+                login_attempt = LoginAttempt.objects.create(
+                    username=username,
+                    ip_address=ip_address
+                )
+                print(f"Created new attempt record: {login_attempt.id}")
+
+            return render(request, 'login.html', {
+                'error': 'Usuário ou senha incorretos'
+            })
+
+    return render(request, 'login.html')
+
 def listar_rps_cliente(request):
     cnpj = request.GET.get('cnpj', '')
     empresa = request.GET.get('empresa', '')

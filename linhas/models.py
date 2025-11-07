@@ -1,5 +1,25 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
+
+class LoginAttempt(models.Model):
+    username = models.CharField(max_length=255)
+    ip_address = models.GenericIPAddressField()
+    attempt_time = models.DateTimeField(auto_now_add=True)
+    is_blocked = models.BooleanField(default=False)
+    blocked_until = models.DateTimeField(null=True, blank=True)
+    attempt_count = models.IntegerField(default=1)
+
+    def __str__(self):
+        return f"{self.username} - {self.ip_address} - Tentativas: {self.attempt_count}"
+
+    class Meta:
+        ordering = ['-attempt_time']
+
+    def is_currently_blocked(self):
+        if not self.is_blocked:
+            return False
+        return timezone.now() < self.blocked_until
 
 class Cliente(models.Model):
     empresa = models.CharField(max_length=150, verbose_name='Empresa')
