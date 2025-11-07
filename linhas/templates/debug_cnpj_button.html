@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug CNPJ Button</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .debug { background: #f5f5f5; padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .success { background: #d4edda; }
+        .error { background: #f8d7da; }
+        input, button { padding: 8px; margin: 5px; }
+        button { background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Debug do Botão CNPJ</h1>
+    
+    <div>
+        <label>CNPJ:</label>
+        <input type="text" id="cnpj-input" value="19131243000197" placeholder="Digite o CNPJ">
+        <button id="btn-test" onclick="testCnpjApi()">Testar API</button>
+    </div>
+    
+    <div id="debug-output"></div>
+
+    <script>
+        function log(message, type = 'info') {
+            const output = document.getElementById('debug-output');
+            const div = document.createElement('div');
+            div.className = 'debug ' + (type === 'error' ? 'error' : type === 'success' ? 'success' : '');
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}:</strong> ${message}`;
+            output.appendChild(div);
+            console.log(message);
+        }
+
+        async function testCnpjApi() {
+            const cnpj = document.getElementById('cnpj-input').value.replace(/\D/g, '');
+            const btn = document.getElementById('btn-test');
+            
+            log('Iniciando teste com CNPJ: ' + cnpj);
+            
+            if (cnpj.length !== 14) {
+                log('CNPJ deve ter 14 dígitos', 'error');
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.textContent = 'Testando...';
+            
+            try {
+                const url = '/linhas/buscar-cnpj-api/?cnpj=' + cnpj;
+                log('Fazendo requisição para: ' + url);
+                
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                log('Status da resposta: ' + response.status);
+                log('Headers da resposta: ' + JSON.stringify(Object.fromEntries(response.headers)));
+                
+                if (!response.ok) {
+                    throw new Error('HTTP ' + response.status + ': ' + response.statusText);
+                }
+                
+                const result = await response.json();
+                log('Resposta da API: ' + JSON.stringify(result, null, 2), 'success');
+                
+                if (result.success) {
+                    log('✓ API funcionando! Dados encontrados para: ' + result.dados.nome, 'success');
+                } else {
+                    log('✗ API retornou erro: ' + result.error, 'error');
+                }
+                
+            } catch (error) {
+                log('✗ Erro na requisição: ' + error.message, 'error');
+                console.error('Erro completo:', error);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Testar API';
+            }
+        }
+        
+        // Log inicial
+        log('Página carregada. JavaScript funcionando!');
+        
+        // Verificar se a API está acessível
+        log('Verificando se o servidor está respondendo...');
+        fetch('/linhas/')
+            .then(response => log('✓ Servidor Django respondendo (status: ' + response.status + ')', 'success'))
+            .catch(error => log('✗ Erro ao conectar com servidor: ' + error.message, 'error'));
+    </script>
+</body>
+</html>

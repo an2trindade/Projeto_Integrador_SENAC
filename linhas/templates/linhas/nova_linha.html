@@ -714,17 +714,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 var modalCnpjRaw = document.getElementById('modal-cnpj').value || '';
                 var modalCnpjDigits = modalCnpjRaw.replace(/\D/g, '');
                 if (modalCnpjDigits.length === 14) {
-                    // try to fetch CNPJ card and prefill some fields
-                    fetch('https://brasilapi.com.br/api/cnpj/v1/' + modalCnpjDigits)
-                        .then(r => r.json()).then(data => {
+                    // usar nossa API interna em vez da externa
+                    fetch('/linhas/buscar-cnpj-api/?cnpj=' + modalCnpjDigits)
+                        .then(r => r.json()).then(result => {
                             try {
-                                if (data && data.razao_social) document.getElementById('modal-razao').value = data.razao_social || document.getElementById('modal-razao').value;
-                                if (data && data.fantasia) document.getElementById('modal-fantasia').value = data.fantasia || document.getElementById('modal-fantasia').value;
-                                if (data && data.estabelecimento && data.estabelecimento[0] && data.estabelecimento[0].logradouro) {
-                                    var endereco = '';
-                                    var e = data.estabelecimento[0];
-                                    endereco = (e.logradouro || '') + ' ' + (e.numero || '') + ' ' + (e.complemento || '') + ' ' + (e.bairro || '') + ' ' + (e.municipio || '') + ' ' + (e.uf || '') + ' ' + (e.cep || '');
-                                    document.getElementById('modal-endereco').value = endereco.trim();
+                                if (result.success && result.dados) {
+                                    var data = result.dados;
+                                    if (data.razao_social) document.getElementById('modal-razao').value = data.razao_social || document.getElementById('modal-razao').value;
+                                    if (data.fantasia) document.getElementById('modal-fantasia').value = data.fantasia || document.getElementById('modal-fantasia').value;
+                                    if (data.endereco) {
+                                        var endereco = '';
+                                        var endParts = [];
+                                        if (data.endereco) endParts.push(data.endereco);
+                                        if (data.numero) endParts.push(data.numero);
+                                        if (data.complemento) endParts.push(data.complemento);
+                                        if (data.bairro) endParts.push(data.bairro);
+                                        if (data.municipio) endParts.push(data.municipio);
+                                        if (data.uf) endParts.push(data.uf);
+                                        if (data.cep) endParts.push('CEP: ' + data.cep);
+                                        endereco = endParts.join(', ');
+                                        document.getElementById('modal-endereco').value = endereco;
+                                    }
                                 }
                             } catch (err) {
                                 // ignore
