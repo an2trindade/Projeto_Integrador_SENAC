@@ -106,6 +106,49 @@ def buscar_cliente_por_cnpj(request):
     if linha:
         return JsonResponse({'empresa': linha.empresa})
     return JsonResponse({'empresa': ''})
+
+def buscar_cnpj_api_externa(request):
+    """
+    View para buscar dados de CNPJ usando APIs externas (ReceitaWS e BrasilAPI)
+    
+    Usage: GET /linhas/buscar-cnpj-api/?cnpj=19131243000197
+    """
+    from .utils import buscar_cnpj_completo
+    
+    cnpj = request.GET.get('cnpj', '')
+    
+    if not cnpj:
+        return JsonResponse({
+            'success': False, 
+            'error': 'CNPJ não informado'
+        }, status=400)
+    
+    # Busca dados usando as APIs externas
+    dados = buscar_cnpj_completo(cnpj)
+    
+    if dados:
+        return JsonResponse({
+            'success': True,
+            'dados': dados
+        })
+    else:
+        return JsonResponse({
+            'success': False,
+            'error': 'CNPJ não encontrado nas APIs externas'
+        }, status=404)
+
+def test_cnpj_api_view(request):
+    """
+    View para página de teste da API de CNPJ
+    """
+    return render(request, 'test_cnpj_api.html')
+
+def debug_cnpj_button_view(request):
+    """
+    View para debug do botão CNPJ
+    """
+    return render(request, 'debug_cnpj_button.html')
+
 from django.http import JsonResponse
 from .models import Linha
 

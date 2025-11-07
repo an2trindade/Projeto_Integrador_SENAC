@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste API CNPJ</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        .btn { background-color: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+        .btn:hover { background-color: #0056b3; }
+        .result { margin-top: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 4px; background-color: #f8f9fa; }
+        .error { border-color: #dc3545; background-color: #f8d7da; }
+        .success { border-color: #28a745; background-color: #d4edda; }
+    </style>
+</head>
+<body>
+    <h1>Teste da API de Busca de CNPJ</h1>
+    
+    <div class="form-group">
+        <label for="cnpj">CNPJ:</label>
+        <input type="text" id="cnpj" placeholder="Digite o CNPJ (ex: 19131243000197)" value="19131243000197">
+    </div>
+    
+    <button class="btn" onclick="buscarCNPJ()">Buscar CNPJ</button>
+    
+    <div id="resultado" class="result" style="display: none;"></div>
+
+    <script>
+        function formatarCNPJ(cnpj) {
+            // Remove caracteres não numéricos
+            cnpj = cnpj.replace(/\D/g, '');
+            
+            // Aplica a máscara XX.XXX.XXX/XXXX-XX
+            if (cnpj.length === 14) {
+                return cnpj.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+            }
+            return cnpj;
+        }
+
+        async function buscarCNPJ() {
+            const cnpjInput = document.getElementById('cnpj');
+            const resultadoDiv = document.getElementById('resultado');
+            
+            const cnpj = cnpjInput.value.replace(/\D/g, ''); // Remove formatação
+            
+            if (!cnpj || cnpj.length !== 14) {
+                mostrarResultado('Erro: Digite um CNPJ válido com 14 dígitos.', 'error');
+                return;
+            }
+            
+            mostrarResultado('Buscando dados do CNPJ...', 'info');
+            
+            try {
+                const response = await fetch(`/linhas/buscar-cnpj-api/?cnpj=${cnpj}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const dados = data.dados;
+                    const html = `
+                        <h3>Dados encontrados:</h3>
+                        <p><strong>CNPJ:</strong> ${formatarCNPJ(dados.cnpj || cnpj)}</p>
+                        <p><strong>Nome/Razão Social:</strong> ${dados.nome || 'N/A'}</p>
+                        <p><strong>Nome Fantasia:</strong> ${dados.fantasia || 'N/A'}</p>
+                        <p><strong>Situação:</strong> ${dados.situacao || 'N/A'}</p>
+                        <p><strong>Endereço:</strong> ${dados.endereco || 'N/A'}</p>
+                        <p><strong>Número:</strong> ${dados.numero || 'N/A'}</p>
+                        <p><strong>Bairro:</strong> ${dados.bairro || 'N/A'}</p>
+                        <p><strong>Município:</strong> ${dados.municipio || 'N/A'}</p>
+                        <p><strong>UF:</strong> ${dados.uf || 'N/A'}</p>
+                        <p><strong>CEP:</strong> ${dados.cep || 'N/A'}</p>
+                        <p><strong>Data de Abertura:</strong> ${dados.data_abertura || 'N/A'}</p>
+                        <p><strong>Fonte:</strong> ${dados.fonte || 'N/A'}</p>
+                    `;
+                    mostrarResultado(html, 'success');
+                } else {
+                    mostrarResultado(`Erro: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                mostrarResultado(`Erro de conexão: ${error.message}`, 'error');
+            }
+        }
+        
+        function mostrarResultado(html, tipo) {
+            const resultadoDiv = document.getElementById('resultado');
+            resultadoDiv.innerHTML = html;
+            resultadoDiv.style.display = 'block';
+            
+            // Remove classes anteriores
+            resultadoDiv.classList.remove('error', 'success');
+            
+            // Adiciona a classe apropriada
+            if (tipo === 'error') {
+                resultadoDiv.classList.add('error');
+            } else if (tipo === 'success') {
+                resultadoDiv.classList.add('success');
+            }
+        }
+        
+        // Permite buscar ao pressionar Enter
+        document.getElementById('cnpj').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                buscarCNPJ();
+            }
+        });
+    </script>
+</body>
+</html>
