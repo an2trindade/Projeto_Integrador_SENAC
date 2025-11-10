@@ -847,26 +847,71 @@ def export_protocolos_pendentes_csv(request):
 @login_required
 def fidelidade(request):
     """
-    Página de fidelidade com formulário para número da linha,
+    Página de fidelidade com formulário para múltiplas linhas,
     cliente e RP (campos automáticos) e observações
     """
     if request.method == 'POST':
-        from .forms import FidelidadeForm
-        form = FidelidadeForm(request.POST)
+        from .models import Fidelidade
         
-        if form.is_valid():
-            fidelidade = form.save(user=request.user)
-            messages.success(request, f'Fidelidade da linha {fidelidade.linha.numero} cadastrada com sucesso!')
-            
-            # Redirecionar para a mesma página limpo ou para lista de fidelidades
+        # Coletar dados de múltiplas linhas do POST
+        linhas_processadas = []
+        erros = []
+        
+        # Buscar todos os campos numero_linha_X no POST
+        for key in request.POST.keys():
+            if key.startswith('numero_linha_'):
+                try:
+                    indice = key.split('_')[-1]
+                    numero_linha = request.POST.get(f'numero_linha_{indice}', '').strip()
+                    observacoes = request.POST.get(f'observacoes_{indice}', '').strip()
+                    
+                    if not numero_linha or not observacoes:
+                        continue
+                    
+                    # Buscar linha no banco
+                    try:
+                        linha = Linha.objects.get(numero=numero_linha)
+                    except Linha.DoesNotExist:
+                        erros.append(f'Linha {numero_linha} não encontrada')
+                        continue
+                    
+                    # Validar observações
+                    if len(observacoes) < 10:
+                        erros.append(f'Observações da linha {numero_linha} devem ter pelo menos 10 caracteres')
+                        continue
+                    
+                    # Criar registro de fidelidade
+                    fidelidade = Fidelidade.objects.create(
+                        linha=linha,
+                        observacoes=observacoes,
+                        criado_por=request.user
+                    )
+                    
+                    linhas_processadas.append(fidelidade)
+                    
+                except Exception as e:
+                    erros.append(f'Erro ao processar linha {numero_linha}: {str(e)}')
+        
+        # Retornar resultado
+        if linhas_processadas and not erros:
+            total = len(linhas_processadas)
+            messages.success(request, f'Fidelidade de {total} linha{"s" if total > 1 else ""} cadastrada{"s" if total > 1 else ""} com sucesso!')
+            return redirect('linhas:fidelidade')
+        elif linhas_processadas and erros:
+            total_sucesso = len(linhas_processadas)
+            total_erros = len(erros)
+            messages.warning(request, f'{total_sucesso} linha{"s" if total_sucesso > 1 else ""} processada{"s" if total_sucesso > 1 else ""} com sucesso, {total_erros} com erro{"s" if total_erros > 1 else ""}.')
+            for erro in erros:
+                messages.error(request, erro)
             return redirect('linhas:fidelidade')
         else:
-            messages.error(request, 'Erro ao cadastrar fidelidade. Verifique os dados informados.')
-    else:
-        from .forms import FidelidadeForm
-        form = FidelidadeForm()
+            if erros:
+                for erro in erros:
+                    messages.error(request, erro)
+            else:
+                messages.error(request, 'Nenhuma linha válida foi enviada.')
     
-    return render(request, 'linhas/fidelidade.html', {'form': form})
+    return render(request, 'linhas/fidelidade.html')
 
 def buscar_linha_dados(request):
     """

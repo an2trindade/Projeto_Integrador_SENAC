@@ -2,150 +2,199 @@
 
 {% block title %}Fidelidade - Gestor de Linhas{% endblock %}
 
+{% load static %}
+
+<style>
+    .linha-item {
+        border: 1px solid #dee2e6;
+        transition: all 0.3s ease;
+    }
+    
+    .linha-item:hover {
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .linha-item .card-header {
+        background-color: #f8f9fa !important;
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    .btn-remover-linha {
+        opacity: 0.7;
+        transition: opacity 0.3s ease;
+    }
+    
+    .btn-remover-linha:hover {
+        opacity: 1;
+    }
+    
+    .info-adicional {
+        border: 1px solid #e3f2fd;
+        border-radius: 0.375rem;
+        background-color: #f8f9fa;
+    }
+    
+    .info-adicional .card-header {
+        background-color: #e3f2fd !important;
+        color: #1976d2;
+    }
+    
+    .sugestoes-linha {
+        position: relative;
+        z-index: 1050;
+    }
+    
+    .contador-linhas {
+        font-size: 0.9em;
+        opacity: 0.8;
+    }
+</style>
+
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1><i class="fas fa-heart"></i> Fidelidade</h1>
-    <a href="{% url 'linhas:listalinhas' %}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Voltar</a>
+    <h1><i class="fas fa-clock"></i> Fidelidade</h1>
+    <div>
+        <button type="button" class="btn btn-success me-2" id="btnAdicionarLinha">
+            <i class="fas fa-plus"></i> Adicionar Linha
+        </button>
+        <a href="{% url 'linhas:listalinhas' %}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Voltar</a>
+    </div>
 </div>
 
 <div class="card">
-    <div class="card-header bg-primary text-white">
-        <h5 class="mb-0"><i class="fas fa-mobile-alt"></i> Informações de Fidelidade da Linha</h5>
+    <div class="card-header bg-primary text-white d-flex justify-content-end align-items-center">
+        <small id="contadorLinhas">1 linha</small>
     </div>
     <div class="card-body">
         <form id="formFidelidade" method="post">
             {% csrf_token %}
             
-            <div class="row">
-                <!-- Número da Linha -->
-                <div class="col-md-6 mb-3">
-                    <label for="numeroLinha" class="form-label">
-                        <i class="fas fa-mobile-alt"></i> Número da Linha *
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="fas fa-phone"></i></span>
-                        <input type="text" 
-                               class="form-control" 
-                               id="numeroLinha" 
-                               name="numero_linha" 
-                               placeholder="Digite o número da linha"
-                               required
-                               autocomplete="off"
-                               value="{{ form.numero_linha.value|default:'' }}">
-                        <button type="button" class="btn btn-outline-secondary" id="btnBuscarLinha" title="Buscar dados da linha">
-                            <i class="fas fa-search"></i>
+            <!-- Container para múltiplas linhas -->
+            <div id="containerLinhas"></div>
+            
+            <!-- Template para nova linha (oculto) -->
+            <div id="templateLinha" style="display: none;">
+                <div class="linha-item card mb-3" data-linha-index="0">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">
+                            <i class="fas fa-clock"></i> Linha <span class="linha-numero">1</span>
+                        </h6>
+                        <button type="button" class="btn btn-outline-danger btn-sm btn-remover-linha" title="Remover esta linha">
+                            <i class="fas fa-trash"></i>
                         </button>
-                    </div>
-                    <div class="form-text">Digite o número da linha para buscar automaticamente cliente e RP</div>
-                    <div id="linha-alert" class="mt-1" style="display:none;"></div>
-                    {% if form.numero_linha.errors %}
-                        <div class="text-danger small mt-1">
-                            {% for error in form.numero_linha.errors %}
-                                <i class="fas fa-exclamation-circle"></i> {{ error }}
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                    
-                    <!-- Lista de sugestões para autocompletar -->
-                    <div class="dropdown" id="sugestoesLinha" style="display: none;">
-                        <ul class="dropdown-menu show w-100" id="listaSugestoes" style="max-height: 200px; overflow-y: auto;">
-                            <!-- Sugestões serão inseridas aqui via JavaScript -->
-                        </ul>
-                    </div>
-                </div>
-                
-                <!-- Cliente (readonly) -->
-                <div class="col-md-6 mb-3">
-                    <label for="cliente" class="form-label">
-                        <i class="fas fa-building"></i> Cliente
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="fas fa-user-tie"></i></span>
-                        <input type="text" 
-                               class="form-control" 
-                               id="cliente" 
-                               name="cliente" 
-                               placeholder="Cliente será preenchido automaticamente"
-                               readonly
-                               style="background-color: #f8f9fa;">
-                    </div>
-                    <div class="form-text text-muted">Campo preenchido automaticamente ao selecionar a linha</div>
-                </div>
-            </div>
-            
-            <div class="row">
-                <!-- RP (readonly) -->
-                <div class="col-md-6 mb-3">
-                    <label for="rp" class="form-label">
-                        <i class="fas fa-id-badge"></i> RP
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="fas fa-hashtag"></i></span>
-                        <input type="text" 
-                               class="form-control" 
-                               id="rp" 
-                               name="rp" 
-                               placeholder="RP será preenchido automaticamente"
-                               readonly
-                               style="background-color: #f8f9fa;">
-                    </div>
-                    <div class="form-text text-muted">Campo preenchido automaticamente ao selecionar a linha</div>
-                </div>
-                
-                <!-- Status da busca -->
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">
-                        <i class="fas fa-info-circle"></i> Status da Linha
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="fas fa-signal"></i></span>
-                        <input type="text" 
-                               class="form-control" 
-                               id="statusLinha" 
-                               placeholder="Status será exibido após busca"
-                               readonly
-                               style="background-color: #f8f9fa;">
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Observações -->
-            <div class="mb-4">
-                <label for="observacoes" class="form-label">
-                    <i class="fas fa-sticky-note"></i> Observações
-                </label>
-                <textarea class="form-control" 
-                          id="observacoes" 
-                          name="observacoes" 
-                          rows="4" 
-                          placeholder="Digite aqui as observações sobre a fidelidade desta linha..."
-                          style="resize: vertical;"
-                          required>{{ form.observacoes.value|default:'' }}</textarea>
-                <div class="form-text">Adicione informações relevantes sobre a fidelidade da linha</div>
-                {% if form.observacoes.errors %}
-                    <div class="text-danger small mt-1">
-                        {% for error in form.observacoes.errors %}
-                            <i class="fas fa-exclamation-circle"></i> {{ error }}
-                        {% endfor %}
-                    </div>
-                {% endif %}
-            </div>
-            
-            <!-- Informações adicionais (ocultas inicialmente) -->
-            <div id="infoAdicional" class="mb-4" style="display: none;">
-                <div class="card bg-light">
-                    <div class="card-header">
-                        <h6 class="mb-0"><i class="fas fa-info"></i> Informações Adicionais da Linha</h6>
                     </div>
                     <div class="card-body">
                         <div class="row">
-                            <div class="col-md-6">
-                                <p><strong>CNPJ:</strong> <span id="cnpjInfo">-</span></p>
-                                <p><strong>Empresa:</strong> <span id="empresaInfo">-</span></p>
+                            <!-- Número da Linha -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">
+                                    <i class="fas fa-mobile-alt"></i> Número da Linha *
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                    <input type="text" 
+                                           class="form-control numero-linha-input" 
+                                           name="numero_linha_0"
+                                           placeholder="Digite o número da linha"
+                                           required
+                                           autocomplete="off">
+                                    <button type="button" class="btn btn-outline-secondary btn-buscar-linha" title="Buscar dados da linha">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                                <div class="form-text">Digite o número da linha para buscar automaticamente cliente e RP</div>
+                                <div class="linha-alert mt-1" style="display:none;"></div>
+                                
+                                <!-- Lista de sugestões para autocompletar -->
+                                <div class="dropdown sugestoes-linha" style="display: none;">
+                                    <ul class="dropdown-menu show w-100 lista-sugestoes" style="max-height: 200px; overflow-y: auto;">
+                                        <!-- Sugestões serão inseridas aqui via JavaScript -->
+                                    </ul>
+                                </div>
                             </div>
-                            <div class="col-md-6">
-                                <p><strong>Operadora:</strong> <span id="operadoraInfo">-</span></p>
-                                <p><strong>Tipo de Plano:</strong> <span id="tipoPlanoInfo">-</span></p>
+                            
+                            <!-- Cliente (readonly) -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">
+                                    <i class="fas fa-building"></i> Cliente
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-user-tie"></i></span>
+                                    <input type="text" 
+                                           class="form-control cliente-input" 
+                                           placeholder="Cliente será preenchido automaticamente"
+                                           readonly
+                                           style="background-color: #f8f9fa;">
+                                </div>
+                                <div class="form-text text-muted">Campo preenchido automaticamente ao selecionar a linha</div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <!-- RP (readonly) -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">
+                                    <i class="fas fa-id-badge"></i> RP
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-hashtag"></i></span>
+                                    <input type="text" 
+                                           class="form-control rp-input" 
+                                           placeholder="RP será preenchido automaticamente"
+                                           readonly
+                                           style="background-color: #f8f9fa;">
+                                </div>
+                                <div class="form-text text-muted">Campo preenchido automaticamente ao selecionar a linha</div>
+                            </div>
+                            
+                            <!-- Status da busca -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">
+                                    <i class="fas fa-info-circle"></i> Status da Linha
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-signal"></i></span>
+                                    <input type="text" 
+                                           class="form-control status-linha-input" 
+                                           placeholder="Status será exibido após busca"
+                                           readonly
+                                           style="background-color: #f8f9fa;">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Observações -->
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-sticky-note"></i> Observações
+                            </label>
+                            <textarea class="form-control observacoes-input" 
+                                      name="observacoes_0"
+                                      rows="3" 
+                                      placeholder="Digite aqui as observações sobre a fidelidade desta linha..."
+                                      style="resize: vertical;"
+                                      required></textarea>
+                            <div class="form-text">Adicione informações relevantes sobre a fidelidade da linha</div>
+                        </div>
+                        
+                        <!-- Informações adicionais (ocultas inicialmente) -->
+                        <div class="info-adicional mb-3" style="display: none;">
+                            <div class="card bg-light">
+                                <div class="card-header">
+                                    <h6 class="mb-0"><i class="fas fa-info"></i> Informações Adicionais da Linha</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p><strong>CNPJ:</strong> <span class="cnpj-info">-</span></p>
+                                            <p><strong>Empresa:</strong> <span class="empresa-info">-</span></p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p><strong>Operadora:</strong> <span class="operadora-info">-</span></p>
+                                            <p><strong>Tipo de Plano:</strong> <span class="tipo-plano-info">-</span></p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -153,17 +202,17 @@
             </div>
             
             <!-- Botões de ação -->
-            <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex justify-content-between align-items-center mt-4">
                 <a href="{% url 'linhas:listalinhas' %}" class="btn btn-secondary">
                     <i class="fas fa-arrow-left"></i> Voltar para Linhas
                 </a>
                 
                 <div>
-                    <button type="button" class="btn btn-outline-primary me-2" id="btnLimpar">
-                        <i class="fas fa-eraser"></i> Limpar Formulário
+                    <button type="button" class="btn btn-outline-warning me-2" id="btnLimparTudo">
+                        <i class="fas fa-eraser"></i> Limpar Tudo
                     </button>
-                    <button type="submit" class="btn btn-success" disabled id="btnSalvar">
-                        <i class="fas fa-save"></i> Salvar Fidelidade
+                    <button type="submit" class="btn btn-success" id="btnSalvarTudo">
+                        <i class="fas fa-save"></i> Salvar Todas as Fidelidades
                     </button>
                 </div>
             </div>
@@ -172,7 +221,7 @@
 </div>
 
 <!-- Modal para confirmar limpeza -->
-<div class="modal fade" id="modalLimpar" tabindex="-1">
+<div class="modal fade" id="modalLimparTudo" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -180,12 +229,33 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                Tem certeza que deseja limpar todos os campos do formulário?
+                Tem certeza que deseja limpar TODAS as linhas e reiniciar o formulário?
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-warning" id="confirmarLimpar">
-                    <i class="fas fa-eraser"></i> Sim, Limpar
+                <button type="button" class="btn btn-warning" id="confirmarLimparTudo">
+                    <i class="fas fa-eraser"></i> Sim, Limpar Tudo
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para confirmar remoção de linha -->
+<div class="modal fade" id="modalRemoverLinha" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-exclamation-triangle text-warning"></i> Confirmar Remoção</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                Tem certeza que deseja remover esta linha do formulário?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="confirmarRemoverLinha">
+                    <i class="fas fa-trash"></i> Sim, Remover
                 </button>
             </div>
         </div>
@@ -196,57 +266,182 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Variáveis globais
+    let proximoIndice = 0;
+    let linhasEncontradas = new Set();
+    let timeoutsBusca = new Map();
+    
     // Elementos do DOM
-    const numeroLinhaInput = document.getElementById('numeroLinha');
-    const clienteInput = document.getElementById('cliente');
-    const rpInput = document.getElementById('rp');
-    const statusLinhaInput = document.getElementById('statusLinha');
-    const observacoesTextarea = document.getElementById('observacoes');
-    const btnBuscarLinha = document.getElementById('btnBuscarLinha');
-    const btnSalvar = document.getElementById('btnSalvar');
-    const btnLimpar = document.getElementById('btnLimpar');
-    const linhaAlert = document.getElementById('linha-alert');
-    const infoAdicional = document.getElementById('infoAdicional');
-    const sugestoesLinha = document.getElementById('sugestoesLinha');
-    const listaSugestoes = document.getElementById('listaSugestoes');
+    const containerLinhas = document.getElementById('containerLinhas');
+    const templateLinha = document.getElementById('templateLinha');
+    const btnAdicionarLinha = document.getElementById('btnAdicionarLinha');
+    const btnLimparTudo = document.getElementById('btnLimparTudo');
+    const btnSalvarTudo = document.getElementById('btnSalvarTudo');
+    const contadorLinhas = document.getElementById('contadorLinhas');
     
-    // Variáveis de controle
-    let timeoutBusca = null;
-    let linhaEncontrada = false;
+    // Adicionar primeira linha automaticamente
+    adicionarNovaLinha();
     
-    // Função para mostrar alertas
-    function mostrarAlerta(mensaje, tipo = 'info') {
-        linhaAlert.style.display = 'block';
-        linhaAlert.className = `alert alert-${tipo} mt-1 mb-0`;
-        linhaAlert.innerHTML = `<i class="fas fa-${tipo === 'success' ? 'check-circle' : tipo === 'danger' ? 'exclamation-circle' : 'info-circle'}"></i> ${mensaje}`;
-    }
+    // Event listeners principais
+    btnAdicionarLinha.addEventListener('click', adicionarNovaLinha);
+    btnLimparTudo.addEventListener('click', mostrarModalLimparTudo);
     
-    function ocultarAlerta() {
-        linhaAlert.style.display = 'none';
-    }
+    // Modal de limpeza
+    document.getElementById('confirmarLimparTudo').addEventListener('click', function() {
+        limparTodasLinhas();
+        const modal = bootstrap.Modal.getInstance(document.getElementById('modalLimparTudo'));
+        modal.hide();
+    });
     
-    // Função para limpar campos
-    function limparCampos() {
-        clienteInput.value = '';
-        rpInput.value = '';
-        statusLinhaInput.value = '';
-        infoAdicional.style.display = 'none';
-        btnSalvar.disabled = true;
-        linhaEncontrada = false;
-        ocultarAlerta();
-        sugestoesLinha.style.display = 'none';
-    }
+    // Modal de remoção de linha
+    let linhaParaRemover = null;
+    document.getElementById('confirmarRemoverLinha').addEventListener('click', function() {
+        if (linhaParaRemover) {
+            removerLinha(linhaParaRemover);
+            linhaParaRemover = null;
+        }
+        const modal = bootstrap.Modal.getInstance(document.getElementById('modalRemoverLinha'));
+        modal.hide();
+    });
     
-    // Função para buscar dados da linha
-    async function buscarDadosLinha(numero) {
-        if (!numero || numero.length < 8) {
-            limparCampos();
+    // Submissão do formulário
+    document.getElementById('formFidelidade').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        if (!validarFormularioCompleto()) {
             return;
         }
         
-        btnBuscarLinha.disabled = true;
-        btnBuscarLinha.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-        mostrarAlerta('Buscando dados da linha...', 'info');
+        // Submeter o formulário normalmente
+        this.submit();
+    });
+    
+    // Função para adicionar nova linha
+    function adicionarNovaLinha() {
+        const novaLinha = templateLinha.cloneNode(true);
+        novaLinha.id = '';
+        novaLinha.style.display = 'block';
+        novaLinha.dataset.linhaIndex = proximoIndice;
+        
+        // Atualizar números e IDs
+        const numeroSpan = novaLinha.querySelector('.linha-numero');
+        numeroSpan.textContent = proximoIndice + 1;
+        
+        // Atualizar names dos inputs
+        const numeroInput = novaLinha.querySelector('.numero-linha-input');
+        const observacoesInput = novaLinha.querySelector('.observacoes-input');
+        numeroInput.name = `numero_linha_${proximoIndice}`;
+        observacoesInput.name = `observacoes_${proximoIndice}`;
+        
+        // Adicionar ao container
+        containerLinhas.appendChild(novaLinha);
+        
+        // Configurar event listeners para esta linha
+        configurarEventListenersLinha(novaLinha, proximoIndice);
+        
+        proximoIndice++;
+        atualizarContador();
+        
+        // Focus no primeiro campo da nova linha
+        numeroInput.focus();
+        
+        // Mostrar/ocultar botão de remover
+        atualizarBotoesRemover();
+    }
+    
+    // Função para configurar event listeners de uma linha
+    function configurarEventListenersLinha(linhaElement, indice) {
+        const numeroInput = linhaElement.querySelector('.numero-linha-input');
+        const btnBuscar = linhaElement.querySelector('.btn-buscar-linha');
+        const btnRemover = linhaElement.querySelector('.btn-remover-linha');
+        const observacoesInput = linhaElement.querySelector('.observacoes-input');
+        const linhaAlert = linhaElement.querySelector('.linha-alert');
+        const sugestoesLinha = linhaElement.querySelector('.sugestoes-linha');
+        const listaSugestoes = linhaElement.querySelector('.lista-sugestoes');
+        
+        // Busca automática ao digitar
+        numeroInput.addEventListener('input', function() {
+            const numero = this.value.trim();
+            
+            // Limpar timeout anterior
+            if (timeoutsBusca.has(indice)) {
+                clearTimeout(timeoutsBusca.get(indice));
+            }
+            
+            // Buscar sugestões (imediato)
+            buscarSugestoes(numero, listaSugestoes, sugestoesLinha);
+            
+            // Buscar dados da linha (com delay)
+            const timeout = setTimeout(() => {
+                if (numero !== numeroInput.value.trim()) return;
+                buscarDadosLinha(numero, linhaElement, indice);
+            }, 800);
+            
+            timeoutsBusca.set(indice, timeout);
+        });
+        
+        // Busca manual
+        btnBuscar.addEventListener('click', function() {
+            const numero = numeroInput.value.trim();
+            if (numero) {
+                buscarDadosLinha(numero, linhaElement, indice);
+            } else {
+                mostrarAlerta(linhaAlert, 'Digite o número da linha', 'warning');
+            }
+        });
+        
+        // Remover linha
+        btnRemover.addEventListener('click', function() {
+            if (containerLinhas.children.length <= 1) {
+                mostrarAlerta(linhaAlert, 'É necessário manter pelo menos uma linha', 'warning');
+                return;
+            }
+            
+            linhaParaRemover = linhaElement;
+            const modal = new bootstrap.Modal(document.getElementById('modalRemoverLinha'));
+            modal.show();
+        });
+        
+        // Selecionar sugestão
+        listaSugestoes.addEventListener('click', function(e) {
+            if (e.target.closest('.dropdown-item')) {
+                const numero = e.target.closest('.dropdown-item').dataset.numero;
+                numeroInput.value = numero;
+                sugestoesLinha.style.display = 'none';
+                buscarDadosLinha(numero, linhaElement, indice);
+            }
+        });
+        
+        // Validação de observações
+        observacoesInput.addEventListener('input', function() {
+            validarFormularioCompleto();
+        });
+        
+        // Ocultar sugestões ao clicar fora
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.numero-linha-input') && !e.target.closest('.sugestoes-linha')) {
+                sugestoesLinha.style.display = 'none';
+            }
+        });
+    }
+    
+    // Função para buscar dados da linha
+    async function buscarDadosLinha(numero, linhaElement, indice) {
+        if (!numero || numero.length < 8) {
+            limparCamposLinha(linhaElement, indice);
+            return;
+        }
+        
+        const btnBuscar = linhaElement.querySelector('.btn-buscar-linha');
+        const linhaAlert = linhaElement.querySelector('.linha-alert');
+        const clienteInput = linhaElement.querySelector('.cliente-input');
+        const rpInput = linhaElement.querySelector('.rp-input');
+        const statusInput = linhaElement.querySelector('.status-linha-input');
+        const infoAdicional = linhaElement.querySelector('.info-adicional');
+        
+        btnBuscar.disabled = true;
+        btnBuscar.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        mostrarAlerta(linhaAlert, 'Buscando dados da linha...', 'info');
         
         try {
             const response = await fetch(`/linhas/buscar-linha-dados/?numero=${encodeURIComponent(numero)}`, {
@@ -260,46 +455,45 @@ document.addEventListener('DOMContentLoaded', function() {
             const result = await response.json();
             
             if (result.success && result.dados) {
-                // Preencher campos com os dados encontrados
+                // Preencher campos
                 clienteInput.value = result.dados.cliente || '';
                 rpInput.value = result.dados.rp || '';
-                statusLinhaInput.value = result.dados.status || 'Desconhecido';
+                statusInput.value = result.dados.status || 'Desconhecido';
                 
                 // Mostrar informações adicionais
-                document.getElementById('cnpjInfo').textContent = result.dados.cnpj || '-';
-                document.getElementById('empresaInfo').textContent = result.dados.empresa || '-';
-                document.getElementById('operadoraInfo').textContent = result.dados.operadora || '-';
-                document.getElementById('tipoPlanoInfo').textContent = result.dados.tipo_plano || '-';
+                linhaElement.querySelector('.cnpj-info').textContent = result.dados.cnpj || '-';
+                linhaElement.querySelector('.empresa-info').textContent = result.dados.empresa || '-';
+                linhaElement.querySelector('.operadora-info').textContent = result.dados.operadora || '-';
+                linhaElement.querySelector('.tipo-plano-info').textContent = result.dados.tipo_plano || '-';
                 infoAdicional.style.display = 'block';
                 
-                btnSalvar.disabled = false;
-                linhaEncontrada = true;
-                mostrarAlerta('Dados da linha carregados com sucesso!', 'success');
+                linhasEncontradas.add(indice);
+                mostrarAlerta(linhaAlert, 'Dados da linha carregados com sucesso!', 'success');
                 
             } else {
-                limparCampos();
-                mostrarAlerta(result.error || 'Linha não encontrada', 'danger');
+                limparCamposLinha(linhaElement, indice);
+                mostrarAlerta(linhaAlert, result.error || 'Linha não encontrada', 'danger');
             }
             
         } catch (error) {
             console.error('Erro ao buscar dados da linha:', error);
-            limparCampos();
-            mostrarAlerta('Erro ao buscar dados da linha: ' + error.message, 'danger');
+            limparCamposLinha(linhaElement, indice);
+            mostrarAlerta(linhaAlert, 'Erro ao buscar dados da linha: ' + error.message, 'danger');
         } finally {
-            btnBuscarLinha.disabled = false;
-            btnBuscarLinha.innerHTML = '<i class="fas fa-search"></i>';
+            btnBuscar.disabled = false;
+            btnBuscar.innerHTML = '<i class="fas fa-search"></i>';
+            validarFormularioCompleto();
         }
     }
     
-    // Função para buscar sugestões de linhas
-    async function buscarSugestoes(termo) {
+    // Função para buscar sugestões
+    async function buscarSugestoes(termo, listaSugestoes, sugestoesLinha) {
         if (!termo || termo.length < 3) {
             sugestoesLinha.style.display = 'none';
             return;
         }
         
         try {
-            // Simulação de busca - em produção, fazer requisição AJAX
             const response = await fetch(`/linhas/buscar-linhas-estoque/?q=${encodeURIComponent(termo)}`, {
                 method: 'GET',
                 headers: {
@@ -309,7 +503,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (response.ok) {
                 const sugestoes = await response.json();
-                mostrarSugestoes(sugestoes);
+                mostrarSugestoes(sugestoes, listaSugestoes, sugestoesLinha);
             }
         } catch (error) {
             console.warn('Erro ao buscar sugestões:', error);
@@ -317,7 +511,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Função para mostrar sugestões
-    function mostrarSugestoes(sugestoes) {
+    function mostrarSugestoes(sugestoes, listaSugestoes, sugestoesLinha) {
         listaSugestoes.innerHTML = '';
         
         if (sugestoes && sugestoes.length > 0) {
@@ -337,98 +531,98 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Event listeners
+    // Função para mostrar alertas
+    function mostrarAlerta(alertElement, mensaje, tipo = 'info') {
+        alertElement.style.display = 'block';
+        alertElement.className = `alert alert-${tipo} mt-1 mb-0`;
+        alertElement.innerHTML = `<i class="fas fa-${tipo === 'success' ? 'check-circle' : tipo === 'danger' ? 'exclamation-circle' : 'info-circle'}"></i> ${mensaje}`;
+    }
     
-    // Busca automática ao digitar no campo número da linha
-    numeroLinhaInput.addEventListener('input', function() {
-        const numero = this.value.trim();
+    // Função para limpar campos de uma linha
+    function limparCamposLinha(linhaElement, indice) {
+        const clienteInput = linhaElement.querySelector('.cliente-input');
+        const rpInput = linhaElement.querySelector('.rp-input');
+        const statusInput = linhaElement.querySelector('.status-linha-input');
+        const infoAdicional = linhaElement.querySelector('.info-adicional');
+        const linhaAlert = linhaElement.querySelector('.linha-alert');
+        const sugestoesLinha = linhaElement.querySelector('.sugestoes-linha');
         
-        // Limpar timeout anterior
-        if (timeoutBusca) {
-            clearTimeout(timeoutBusca);
-        }
+        clienteInput.value = '';
+        rpInput.value = '';
+        statusInput.value = '';
+        infoAdicional.style.display = 'none';
+        linhaAlert.style.display = 'none';
+        sugestoesLinha.style.display = 'none';
         
-        // Buscar sugestões (imediato)
-        buscarSugestoes(numero);
+        linhasEncontradas.delete(indice);
+        validarFormularioCompleto();
+    }
+    
+    // Função para remover linha
+    function removerLinha(linhaElement) {
+        const indice = parseInt(linhaElement.dataset.linhaIndex);
+        linhasEncontradas.delete(indice);
+        timeoutsBusca.delete(indice);
         
-        // Buscar dados da linha (com delay)
-        timeoutBusca = setTimeout(() => {
-            if (numero !== numeroLinhaInput.value.trim()) return; // Verificar se ainda é o mesmo valor
-            buscarDadosLinha(numero);
-        }, 800);
-    });
+        linhaElement.remove();
+        atualizarContador();
+        atualizarBotoesRemover();
+        validarFormularioCompleto();
+    }
     
-    // Busca manual ao clicar no botão
-    btnBuscarLinha.addEventListener('click', function() {
-        const numero = numeroLinhaInput.value.trim();
-        if (numero) {
-            buscarDadosLinha(numero);
-        } else {
-            mostrarAlerta('Digite o número da linha', 'warning');
-        }
-    });
+    // Função para limpar todas as linhas
+    function limparTodasLinhas() {
+        containerLinhas.innerHTML = '';
+        linhasEncontradas.clear();
+        timeoutsBusca.clear();
+        proximoIndice = 0;
+        
+        // Adicionar primeira linha
+        adicionarNovaLinha();
+    }
     
-    // Selecionar sugestão
-    listaSugestoes.addEventListener('click', function(e) {
-        if (e.target.closest('.dropdown-item')) {
-            const numero = e.target.closest('.dropdown-item').dataset.numero;
-            numeroLinhaInput.value = numero;
-            sugestoesLinha.style.display = 'none';
-            buscarDadosLinha(numero);
-        }
-    });
-    
-    // Ocultar sugestões ao clicar fora
-    document.addEventListener('click', function(e) {
-        if (!e.target.closest('#numeroLinha') && !e.target.closest('#sugestoesLinha')) {
-            sugestoesLinha.style.display = 'none';
-        }
-    });
-    
-    // Habilitar botão salvar quando há observações e linha encontrada
-    observacoesTextarea.addEventListener('input', function() {
-        btnSalvar.disabled = !(linhaEncontrada && this.value.trim().length > 0);
-    });
-    
-    // Botão limpar formulário
-    btnLimpar.addEventListener('click', function() {
-        const modal = new bootstrap.Modal(document.getElementById('modalLimpar'));
+    // Função para mostrar modal de limpeza
+    function mostrarModalLimparTudo() {
+        const modal = new bootstrap.Modal(document.getElementById('modalLimparTudo'));
         modal.show();
-    });
+    }
     
-    // Confirmar limpeza
-    document.getElementById('confirmarLimpar').addEventListener('click', function() {
-        numeroLinhaInput.value = '';
-        observacoesTextarea.value = '';
-        limparCampos();
-        
-        const modal = bootstrap.Modal.getInstance(document.getElementById('modalLimpar'));
-        modal.hide();
-        
-        numeroLinhaInput.focus();
-    });
+    // Função para atualizar contador
+    function atualizarContador() {
+        const total = containerLinhas.children.length;
+        contadorLinhas.textContent = `${total} ${total === 1 ? 'linha' : 'linhas'}`;
+    }
     
-    // Submissão do formulário
-    document.getElementById('formFidelidade').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        if (!linhaEncontrada) {
-            mostrarAlerta('Selecione uma linha válida antes de salvar', 'warning');
-            return;
-        }
-        
-        if (!observacoesTextarea.value.trim()) {
-            mostrarAlerta('Digite as observações antes de salvar', 'warning');
-            observacoesTextarea.focus();
-            return;
-        }
-        
-        // Submeter o formulário normalmente
-        this.submit();
-    });
+    // Função para atualizar botões de remover
+    function atualizarBotoesRemover() {
+        const botoes = containerLinhas.querySelectorAll('.btn-remover-linha');
+        botoes.forEach(btn => {
+            btn.style.display = containerLinhas.children.length > 1 ? 'block' : 'none';
+        });
+    }
     
-    // Focar no campo número da linha ao carregar a página
-    numeroLinhaInput.focus();
+    // Função para validar formulário completo
+    function validarFormularioCompleto() {
+        const linhas = containerLinhas.querySelectorAll('.linha-item');
+        let formularioValido = true;
+        
+        linhas.forEach((linha, index) => {
+            const numeroInput = linha.querySelector('.numero-linha-input');
+            const observacoesInput = linha.querySelector('.observacoes-input');
+            const indice = parseInt(linha.dataset.linhaIndex);
+            
+            const temNumero = numeroInput.value.trim().length > 0;
+            const temObservacoes = observacoesInput.value.trim().length > 0;
+            const linhaEncontrada = linhasEncontradas.has(indice);
+            
+            if (!temNumero || !temObservacoes || !linhaEncontrada) {
+                formularioValido = false;
+            }
+        });
+        
+        btnSalvarTudo.disabled = !formularioValido || linhas.length === 0;
+        return formularioValido;
+    }
 });
 </script>
 {% endblock %}

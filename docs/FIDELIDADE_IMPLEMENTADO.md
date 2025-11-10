@@ -9,7 +9,7 @@ Foi implementado um novo submenu **FIDELIDADE** no menu **Linhas** que permite c
 ### 1. **Menu e Navegação**
 - ✅ Adicionado submenu "FIDELIDADE" no menu Linhas (base.html)
 - ✅ Separador visual entre opções principais e fidelidade
-- ✅ Ícone de coração (fas fa-heart) para identificar a funcionalidade
+- ✅ Ícone de relógio (fas fa-clock) para identificar a funcionalidade
 
 ### 2. **Página de Fidelidade**
 - ✅ Interface responsiva com Bootstrap 5
