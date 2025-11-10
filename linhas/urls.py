@@ -16,6 +16,7 @@ urlpatterns = [
     path("relatorios/export/linhas-cycle-xlsx/", views.export_linhas_cycle_xlsx, name="export_linhas_cycle_xlsx"),
     path("relatorios/export/protocolos-pendentes/", views.export_protocolos_pendentes_csv, name="export_protocolos_pendentes_csv"),
     path("configuracoes/", views.configuracoes, name="configuracoes"),
+    path("configuracoes/desbloquear-usuario/", views.desbloquear_usuario, name="desbloquear_usuario"),
     path("editar/<int:pk>/", views.editar_linha, name="editarlinha"),
     path("excluir/<int:pk>/", views.excluir_linha, name="excluirlinha"),
     path("detalhes/<int:pk>/", views.detalhes_linha, name="detalheslinha"),
