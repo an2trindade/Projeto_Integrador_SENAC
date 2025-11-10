@@ -1,5 +1,5 @@
 from django import forms
-from .models import Linha, Cliente
+from .models import Linha, Cliente, Fidelidade
 import re
 
 def validar_cpf(cpf_raw: str) -> bool:
@@ -249,4 +249,72 @@ class ClienteForm(forms.ModelForm):
             raise forms.ValidationError('Telefone inválido: informe 10 ou 11 dígitos (DDD + número).')
         # Optional: store formatted phone or just return original input
         return contato
+
+
+class FidelidadeForm(forms.ModelForm):
+    """
+    Formulário para cadastro de fidelidade de linhas
+    """
+    numero_linha = forms.CharField(
+        max_length=15,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Digite o número da linha',
+            'autocomplete': 'off'
+        }),
+        label='Número da Linha'
+    )
+    
+    class Meta:
+        model = Fidelidade
+        fields = ['observacoes']
+        widgets = {
+            'observacoes': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'Digite aqui as observações sobre a fidelidade desta linha...',
+                'required': True
+            })
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['observacoes'].required = True
+    
+    def clean_numero_linha(self):
+        numero = self.cleaned_data['numero_linha'].strip()
+        
+        if not numero:
+            raise forms.ValidationError('Número da linha é obrigatório.')
+        
+        # Verificar se a linha existe
+        try:
+            linha = Linha.objects.get(numero=numero)
+            self.cleaned_data['linha'] = linha
+            return numero
+        except Linha.DoesNotExist:
+            raise forms.ValidationError('Linha não encontrada. Verifique o número informado.')
+    
+    def clean_observacoes(self):
+        observacoes = self.cleaned_data.get('observacoes', '').strip()
+        
+        if not observacoes:
+            raise forms.ValidationError('Observações são obrigatórias.')
+        
+        if len(observacoes) < 10:
+            raise forms.ValidationError('Observações devem ter pelo menos 10 caracteres.')
+        
+        return observacoes
+    
+    def save(self, commit=True, user=None):
+        fidelidade = super().save(commit=False)
+        fidelidade.linha = self.cleaned_data['linha']
+        
+        if user:
+            fidelidade.criado_por = user
+        
+        if commit:
+            fidelidade.save()
+        
+        return fidelidade
 

@@ -113,7 +113,8 @@ def buscar_cnpj_api_externa(request):
     
     Usage: GET /linhas/buscar-cnpj-api/?cnpj=19131243000197
     """
-    from .utils import buscar_cnpj_completo
+    import requests
+    import re
     
     cnpj = request.GET.get('cnpj', '')
     
@@ -123,19 +124,95 @@ def buscar_cnpj_api_externa(request):
             'error': 'CNPJ não informado'
         }, status=400)
     
-    # Busca dados usando as APIs externas
-    dados = buscar_cnpj_completo(cnpj)
+    # Limpar CNPJ
+    cnpj_limpo = re.sub(r'\D', '', cnpj)
     
-    if dados:
-        return JsonResponse({
-            'success': True,
-            'dados': dados
-        })
-    else:
+    if len(cnpj_limpo) != 14:
         return JsonResponse({
             'success': False,
-            'error': 'CNPJ não encontrado nas APIs externas'
-        }, status=404)
+            'error': 'CNPJ deve ter 14 dígitos'
+        }, status=400)
+    
+    try:
+        # Tentar BrasilAPI primeiro
+        url_brasil = f"https://brasilapi.com.br/api/cnpj/v1/{cnpj_limpo}"
+        response = requests.get(url_brasil, timeout=10)
+        
+        if response.status_code == 200:
+            data = response.json()
+            dados_padronizados = {
+                'cnpj': data.get('cnpj', cnpj_limpo),
+                'nome': data.get('razao_social', ''),
+                'razao_social': data.get('razao_social', ''),
+                'fantasia': data.get('nome_fantasia', ''),
+                'situacao': data.get('descricao_situacao_cadastral', ''),
+                'endereco': data.get('logradouro', ''),
+                'numero': data.get('numero', ''),
+                'complemento': data.get('complemento', ''),
+                'bairro': data.get('bairro', ''),
+                'municipio': data.get('municipio', ''),
+                'uf': data.get('uf', ''),
+                'cep': data.get('cep', ''),
+                'telefone': data.get('ddd_telefone_1', ''),
+                'email': data.get('email', ''),
+                'data_abertura': data.get('data_inicio_atividade', ''),
+                'fonte': 'BrasilAPI'
+            }
+            
+            return JsonResponse({
+                'success': True,
+                'dados': dados_padronizados
+            })
+        
+    except Exception as e:
+        pass  # Fallback para ReceitaWS
+    
+    try:
+        # Fallback ReceitaWS
+        url_receita = f"https://www.receitaws.com.br/v1/cnpj/{cnpj_limpo}"
+        response = requests.get(url_receita, timeout=10)
+        
+        if response.status_code == 200:
+            data = response.json()
+            
+            # Verificar se a API retornou erro
+            if data.get("status") == "ERROR":
+                return JsonResponse({
+                    'success': False,
+                    'error': data.get('message', 'Erro na consulta CNPJ')
+                }, status=404)
+            
+            dados_padronizados = {
+                'cnpj': data.get('cnpj', cnpj_limpo),
+                'nome': data.get('nome', ''),
+                'razao_social': data.get('nome', ''),
+                'fantasia': data.get('fantasia', ''),
+                'situacao': data.get('situacao', ''),
+                'endereco': data.get('logradouro', ''),
+                'numero': data.get('numero', ''),
+                'complemento': data.get('complemento', ''),
+                'bairro': data.get('bairro', ''),
+                'municipio': data.get('municipio', ''),
+                'uf': data.get('uf', ''),
+                'cep': data.get('cep', ''),
+                'telefone': data.get('telefone', ''),
+                'email': data.get('email', ''),
+                'data_abertura': data.get('abertura', ''),
+                'fonte': 'ReceitaWS'
+            }
+            
+            return JsonResponse({
+                'success': True,
+                'dados': dados_padronizados
+            })
+        
+    except Exception as e:
+        pass
+    
+    return JsonResponse({
+        'success': False,
+        'error': 'CNPJ não encontrado nas APIs externas'
+    }, status=404)
 
 def test_cnpj_api_view(request):
     """
@@ -148,6 +225,12 @@ def debug_cnpj_button_view(request):
     View para debug do botão CNPJ
     """
     return render(request, 'debug_cnpj_button.html')
+
+def debug_cnpj_complete_view(request):
+    """
+    View para debug completo do CNPJ
+    """
+    return render(request, 'debug_cnpj_complete.html')
 
 from django.http import JsonResponse
 from .models import Linha
@@ -261,11 +344,26 @@ def cliente_novo(request):
         form = ClienteForm(request.POST)
         if form.is_valid():
             cliente = form.save()
-            messages.success(request, 'Cliente cadastrado com sucesso.')
-            # redireciona para a página de nova linha e já preenche empresa/cnpj via GET
-            url = reverse('linhas:novalinha')
-            params = f'?empresa={cliente.empresa}&cnpj={cliente.cnpj}'
-            return redirect(url + params)
+            # Verifica se deve redirecionar para nova linha ou ficar na página
+            next_action = request.POST.get('next_action', 'stay')
+            
+            if next_action == 'nova_linha':
+                # Adiciona mensagem antes do redirect
+                messages.success(request, f'Cliente "{cliente.empresa}" cadastrado com sucesso!')
+                # Redireciona para a página de nova linha e já preenche empresa/cnpj via GET
+                url = reverse('linhas:novalinha')
+                params = f'?empresa={cliente.empresa}&cnpj={cliente.cnpj}'
+                return redirect(url + params)
+            else:
+                # Fica na página atual, limpa o formulário para novo cadastro
+                messages.success(request, f'Cliente "{cliente.empresa}" cadastrado com sucesso! Operação concluída.')
+                form = ClienteForm()
+                return render(request, 'linhas/novo_cliente.html', {
+                    'form': form,
+                    'cliente_salvo': cliente
+                })
+        else:
+            messages.error(request, 'Erro ao cadastrar cliente. Verifique os dados informados.')
     else:
         form = ClienteForm()
     return render(request, 'linhas/novo_cliente.html', {'form': form})
@@ -745,4 +843,79 @@ def export_protocolos_pendentes_csv(request):
     for p in qs:
         writer.writerow([p.id, p.titulo, (p.descricao or '')[:200], (p.criado_por.username if p.criado_por else ''), p.criado_em.strftime('%Y-%m-%d %H:%M'), p.status])
     return response
+
+@login_required
+def fidelidade(request):
+    """
+    Página de fidelidade com formulário para número da linha,
+    cliente e RP (campos automáticos) e observações
+    """
+    if request.method == 'POST':
+        from .forms import FidelidadeForm
+        form = FidelidadeForm(request.POST)
+        
+        if form.is_valid():
+            fidelidade = form.save(user=request.user)
+            messages.success(request, f'Fidelidade da linha {fidelidade.linha.numero} cadastrada com sucesso!')
+            
+            # Redirecionar para a mesma página limpo ou para lista de fidelidades
+            return redirect('linhas:fidelidade')
+        else:
+            messages.error(request, 'Erro ao cadastrar fidelidade. Verifique os dados informados.')
+    else:
+        from .forms import FidelidadeForm
+        form = FidelidadeForm()
+    
+    return render(request, 'linhas/fidelidade.html', {'form': form})
+
+def buscar_linha_dados(request):
+    """
+    AJAX endpoint para buscar dados da linha (cliente e RP)
+    baseado no número da linha selecionado
+    """
+    numero = request.GET.get('numero', '')
+    
+    if not numero:
+        return JsonResponse({
+            'success': False,
+            'error': 'Número da linha não informado'
+        })
+    
+    try:
+        linha = Linha.objects.filter(numero=numero).first()
+        
+        if linha:
+            # Buscar nome do cliente baseado no CNPJ da linha
+            cliente_nome = ""
+            if linha.cliente:
+                cliente_nome = linha.cliente.empresa
+            elif linha.empresa:
+                cliente_nome = linha.empresa
+            
+            return JsonResponse({
+                'success': True,
+                'dados': {
+                    'cliente': cliente_nome,
+                    'rp': linha.rp or '',
+                    'empresa': linha.empresa or '',
+                    'cnpj': linha.cnpj or '',
+                    'ativa': linha.ativa,
+                    'tipo_plano': linha.tipo_plano or '',
+                    'operadora': linha.operadora or '',
+                    'valor_plano': str(linha.valor_plano) if linha.valor_plano else '',
+                    'iccid': linha.iccid or '',
+                    'status': 'Ativa' if linha.ativa else 'Inativa'
+                }
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'error': 'Linha não encontrada'
+            })
+            
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'Erro ao buscar dados da linha: {str(e)}'
+        })
 

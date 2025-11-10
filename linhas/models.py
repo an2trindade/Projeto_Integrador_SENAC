@@ -117,3 +117,22 @@ class Protocolo(models.Model):
 
     def __str__(self):
         return f"{self.titulo} ({self.get_status_display()})"
+
+
+class Fidelidade(models.Model):
+    """
+    Modelo para registrar informações de fidelidade das linhas
+    """
+    linha = models.ForeignKey(Linha, on_delete=models.CASCADE, verbose_name='Linha', related_name='fidelidades')
+    observacoes = models.TextField(verbose_name='Observações', help_text='Observações sobre a fidelidade da linha')
+    criado_por = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Criado por')
+    criado_em = models.DateTimeField(auto_now_add=True, verbose_name='Criado em')
+    atualizado_em = models.DateTimeField(auto_now=True, verbose_name='Atualizado em')
+    
+    class Meta:
+        ordering = ['-criado_em']
+        verbose_name = 'Fidelidade'
+        verbose_name_plural = 'Fidelidades'
+    
+    def __str__(self):
+        return f"Fidelidade - Linha {self.linha.numero} ({self.criado_em.strftime('%d/%m/%Y')})"

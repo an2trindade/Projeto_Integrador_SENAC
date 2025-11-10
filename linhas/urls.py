@@ -24,8 +24,11 @@ urlpatterns = [
     path("buscar-cnpj-api/", views.buscar_cnpj_api_externa, name="buscar_cnpj_api_externa"),
     path("test-cnpj-api/", views.test_cnpj_api_view, name="test_cnpj_api"),
     path("debug-cnpj-button/", views.debug_cnpj_button_view, name="debug_cnpj_button"),
+    path("debug-cnpj-complete/", views.debug_cnpj_complete_view, name="debug_cnpj_complete"),
     path("buscar-empresas/", views.buscar_empresas, name="buscar_empresas"),
     path("buscar-clientes/", views.buscar_clientes, name="buscar_clientes"),
     path("autocomplete-cnpj/", views.autocomplete_cnpj, name="autocomplete_cnpj"),
     path("listar-rps-cliente/", views.listar_rps_cliente, name="listar_rps_cliente"),
+    path("fidelidade/", views.fidelidade, name="fidelidade"),
+    path("buscar-linha-dados/", views.buscar_linha_dados, name="buscar_linha_dados"),
 ]

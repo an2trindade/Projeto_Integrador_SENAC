@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug CNPJ - Teste Completo</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 1000px; margin: 0 auto; padding: 20px; }
+        .debug { background: #f5f5f5; padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .warning { background: #fff3cd; color: #856404; }
+        input, button { padding: 8px; margin: 5px; }
+        button { background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:disabled { background: #6c757d; cursor: not-allowed; }
+        #result { max-height: 400px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Debug Completo - Botão Consultar CNPJ</h1>
+    
+    <div>
+        <label><strong>CNPJ para teste:</strong></label>
+        <input type="text" id="cnpj-input" value="19131243000197" placeholder="Digite o CNPJ">
+        <button id="btn-test-api" onclick="testCompleteFlow()">🧪 Testar API</button>
+        <button id="btn-clear" onclick="clearResults()">🗑️ Limpar</button>
+    </div>
+    
+    <div id="result"></div>
+
+    <h2>🎯 Teste Simulação do Formulário Real</h2>
+    <div style="border: 2px dashed #ccc; padding: 20px; margin: 20px 0;">
+        <label>CNPJ:</label>
+        <input type="text" id="form-cnpj" value="19131243000197">
+        <button id="btn-buscar-cnpj" onclick="testRealForm()">🔍 Buscar CNPJ</button>
+        
+        <br><br>
+        
+        <label>Razão Social:</label>
+        <input type="text" id="id_razao_social" readonly style="background: #f9f9f9;">
+        
+        <br><br>
+        
+        <label>Fantasia:</label>
+        <input type="text" id="id_fantasia" readonly style="background: #f9f9f9;">
+        
+        <br><br>
+        
+        <label>Endereço:</label>
+        <input type="text" id="id_endereco_completo" readonly style="background: #f9f9f9; width: 100%;">
+        
+        <div id="cnpj-alert" style="margin-top: 10px; padding: 5px; display: none;"></div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const result = document.getElementById('result');
+            const div = document.createElement('div');
+            div.className = 'debug ' + (type === 'error' ? 'error' : type === 'success' ? 'success' : type === 'warning' ? 'warning' : '');
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}:</strong> ${message}`;
+            result.appendChild(div);
+            result.scrollTop = result.scrollHeight;
+            console.log(message);
+        }
+
+        function clearResults() {
+            document.getElementById('result').innerHTML = '';
+            document.getElementById('id_razao_social').value = '';
+            document.getElementById('id_fantasia').value = '';
+            document.getElementById('id_endereco_completo').value = '';
+            const alert = document.getElementById('cnpj-alert');
+            alert.style.display = 'none';
+        }
+
+        async function testCompleteFlow() {
+            const cnpj = document.getElementById('cnpj-input').value.replace(/\D/g, '');
+            const btn = document.getElementById('btn-test-api');
+            
+            log('🚀 Iniciando teste completo do fluxo CNPJ');
+            log('📝 CNPJ para teste: ' + cnpj);
+            
+            if (cnpj.length !== 14) {
+                log('❌ CNPJ deve ter 14 dígitos, atual: ' + cnpj.length, 'error');
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.textContent = '⏳ Testando...';
+            
+            try {
+                // Teste 1: Verificar se a URL está acessível
+                log('🔗 Teste 1: Verificando URL da API...');
+                const url = '/linhas/buscar-cnpj-api/?cnpj=' + cnpj;
+                log('📡 URL: ' + url);
+                
+                // Teste 2: Fazer a requisição
+                log('📨 Teste 2: Fazendo requisição...');
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                log('📊 Status HTTP: ' + response.status + ' ' + response.statusText, 
+                    response.ok ? 'success' : 'error');
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    log('❌ Erro na resposta: ' + errorText, 'error');
+                    throw new Error('HTTP ' + response.status + ': ' + response.statusText);
+                }
+                
+                // Teste 3: Processar resposta JSON
+                log('🔄 Teste 3: Processando resposta JSON...');
+                const result = await response.json();
+                log('📋 Resposta completa: ' + JSON.stringify(result, null, 2), 'success');
+                
+                // Teste 4: Verificar estrutura da resposta
+                log('🔍 Teste 4: Verificando estrutura da resposta...');
+                if (result.success) {
+                    log('✅ API retornou sucesso!', 'success');
+                    log('📄 Dados recebidos: ' + JSON.stringify(result.dados, null, 2), 'success');
+                    
+                    // Teste 5: Simular preenchimento de campos
+                    log('✏️ Teste 5: Simulando preenchimento de campos...');
+                    const data = result.dados;
+                    log('🏢 Nome/Razão Social: ' + (data.razao_social || data.nome || 'N/A'));
+                    log('🏪 Fantasia: ' + (data.fantasia || data.nome_fantasia || 'N/A'));
+                    log('📍 Endereço: ' + (data.endereco || 'N/A'));
+                    log('🌆 Município: ' + (data.municipio || 'N/A'));
+                    log('🔢 CEP: ' + (data.cep || 'N/A'));
+                    log('🌐 Fonte: ' + (data.fonte || 'N/A'));
+                    
+                } else {
+                    log('❌ API retornou falha: ' + (result.error || 'Erro desconhecido'), 'error');
+                }
+                
+                log('🎉 Teste completo finalizado!', 'success');
+                
+            } catch (error) {
+                log('💥 Erro durante o teste: ' + error.message, 'error');
+                log('🔍 Stack trace: ' + error.stack, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🧪 Testar API';
+            }
+        }
+
+        function showAlert(msg, isError) {
+            const alertEl = document.getElementById('cnpj-alert');
+            if (!alertEl) return;
+            alertEl.style.display = msg ? 'block' : 'none';
+            alertEl.textContent = msg || '';
+            alertEl.style.color = isError ? '#721c24' : '#155724';
+            alertEl.style.backgroundColor = isError ? '#f8d7da' : '#d4edda';
+            alertEl.style.padding = '5px';
+            alertEl.style.borderRadius = '4px';
+        }
+
+        async function testRealForm() {
+            log('🎯 Iniciando teste com formulário real...');
+            
+            const cnpjInput = document.getElementById('form-cnpj');
+            const btnBuscar = document.getElementById('btn-buscar-cnpj');
+            const razaoEl = document.getElementById('id_razao_social');
+            const fantasiaEl = document.getElementById('id_fantasia');
+            const enderecoEl = document.getElementById('id_endereco_completo');
+            
+            showAlert('', false);
+            const digits = (cnpjInput.value || '').replace(/\D/g, '');
+            
+            log('📝 CNPJ extraído: ' + digits);
+            
+            if (digits.length !== 14) {
+                showAlert('Digite o CNPJ completo (14 dígitos).', true);
+                log('❌ CNPJ inválido: ' + digits.length + ' dígitos', 'error');
+                return;
+            }
+
+            btnBuscar.disabled = true;
+            btnBuscar.textContent = '⏳ Buscando...';
+            showAlert('Buscando dados do CNPJ...', false);
+            log('🔄 Iniciando busca...');
+
+            try {
+                const url = '/linhas/buscar-cnpj-api/?cnpj=' + digits;
+                log('📡 Fazendo requisição para: ' + url);
+                
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                log('📊 Status da resposta: ' + response.status);
+                
+                if (!response.ok) {
+                    throw new Error('Erro na requisição: ' + response.status);
+                }
+                
+                const result = await response.json();
+                log('📋 Resultado da API: ' + JSON.stringify(result, null, 2));
+                
+                if (!result.success) {
+                    throw new Error(result.error || 'CNPJ não encontrado');
+                }
+                
+                const data = result.dados;
+
+                // Preencher campos
+                if (razaoEl && data.razao_social) {
+                    razaoEl.value = data.razao_social;
+                    log('✅ Razão social preenchida: ' + data.razao_social);
+                }
+                
+                if (fantasiaEl && data.fantasia) {
+                    fantasiaEl.value = data.fantasia;
+                    log('✅ Fantasia preenchida: ' + data.fantasia);
+                }
+                
+                if (enderecoEl) {
+                    const endParts = [];
+                    if (data.endereco) endParts.push(data.endereco);
+                    if (data.numero) endParts.push(data.numero);
+                    if (data.complemento) endParts.push(data.complemento);
+                    if (data.bairro) endParts.push(data.bairro);
+                    if (data.municipio) endParts.push(data.municipio);
+                    if (data.uf) endParts.push(data.uf);
+                    if (data.cep) endParts.push('CEP: ' + data.cep);
+                    const endereco = endParts.join(', ');
+                    enderecoEl.value = endereco;
+                    log('✅ Endereço preenchido: ' + endereco);
+                }
+                
+                showAlert('Dados carregados com sucesso! Fonte: ' + (data.fonte || 'API'), false);
+                log('🎉 Formulário preenchido com sucesso!', 'success');
+                
+            } catch (error) {
+                log('❌ Erro ao buscar CNPJ: ' + error.message, 'error');
+                showAlert('Erro: ' + error.message, true);
+            } finally {
+                btnBuscar.disabled = false;
+                btnBuscar.textContent = '🔍 Buscar CNPJ';
+            }
+        }
+        
+        // Log inicial
+        log('📱 Página de debug carregada. JavaScript funcionando!');
+        
+        // Verificar se o servidor está respondendo
+        log('🌐 Verificando se o servidor está respondendo...');
+        fetch('/linhas/')
+            .then(response => log('✅ Servidor Django respondendo (status: ' + response.status + ')', 'success'))
+            .catch(error => log('❌ Erro ao conectar com servidor: ' + error.message, 'error'));
+    </script>
+</body>
+</html>

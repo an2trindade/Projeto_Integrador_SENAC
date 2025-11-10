@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exemplo POST - Cadastro Cliente com CNPJ</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h4><i class="fas fa-user-plus"></i> Exemplo POST - Cadastro Cliente com CNPJ</h4>
+                    </div>
+                    <div class="card-body">
+                        
+                        <!-- Seção 1: Buscar CNPJ -->
+                        <div class="mb-4">
+                            <h5 class="text-primary"><i class="fas fa-search"></i> 1. Buscar Dados do CNPJ (GET)</h5>
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <input type="text" id="cnpjInput" class="form-control" placeholder="Digite o CNPJ (ex: 19131243000197)" maxlength="18">
+                                </div>
+                                <div class="col-md-4">
+                                    <button type="button" id="btnBuscarCnpj" class="btn btn-outline-primary w-100">
+                                        <i class="fas fa-search"></i> Buscar CNPJ
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="resultadoBusca" class="mt-3" style="display: none;"></div>
+                        </div>
+
+                        <hr>
+
+                        <!-- Seção 2: Formulário de Cadastro -->
+                        <div class="mb-4">
+                            <h5 class="text-success"><i class="fas fa-user-plus"></i> 2. Cadastrar Cliente (POST)</h5>
+                            <form id="formCliente">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">CNPJ</label>
+                                        <input type="text" id="cnpj" name="cnpj" class="form-control" readonly>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Razão Social</label>
+                                        <input type="text" id="razao_social" name="razao_social" class="form-control">
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Nome Fantasia</label>
+                                        <input type="text" id="fantasia" name="fantasia" class="form-control">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Email</label>
+                                        <input type="email" id="email" name="email" class="form-control">
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Endereço Completo</label>
+                                    <textarea id="endereco_completo" name="endereco_completo" class="form-control" rows="3"></textarea>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Contato Principal</label>
+                                        <input type="text" id="contato" name="contato" class="form-control" placeholder="Nome do contato">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Telefone</label>
+                                        <input type="text" id="telefone" name="telefone" class="form-control">
+                                    </div>
+                                </div>
+                                
+                                <hr>
+                                
+                                <h6 class="text-secondary"><i class="fas fa-user"></i> Dados do Proprietário</h6>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Nome do Proprietário</label>
+                                        <input type="text" id="nome_dono" name="nome_dono" class="form-control">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">CPF</label>
+                                        <input type="text" id="cpf_dono" name="cpf_dono" class="form-control" placeholder="000.000.000-00">
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Data de Nascimento</label>
+                                        <input type="date" id="data_nascimento_dono" name="data_nascimento_dono" class="form-control">
+                                    </div>
+                                </div>
+                                
+                                <div class="d-grid gap-2">
+                                    <button type="button" id="btnCadastrarCliente" class="btn btn-success btn-lg">
+                                        <i class="fas fa-save"></i> Cadastrar Cliente (POST)
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <hr>
+
+                        <!-- Seção 3: Log das Requisições -->
+                        <div class="mb-4">
+                            <h5 class="text-info"><i class="fas fa-code"></i> 3. Log das Requisições</h5>
+                            <div class="accordion" id="logAccordion">
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="headingGet">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseGet">
+                                            <i class="fas fa-download text-primary me-2"></i> Requisição GET (Buscar CNPJ)
+                                        </button>
+                                    </h2>
+                                    <div id="collapseGet" class="accordion-collapse collapse" data-bs-parent="#logAccordion">
+                                        <div class="accordion-body">
+                                            <pre id="logGet" class="bg-light p-3" style="font-size: 0.9em; max-height: 300px; overflow-y: auto;"></pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="headingPost">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePost">
+                                            <i class="fas fa-upload text-success me-2"></i> Requisição POST (Cadastrar Cliente)
+                                        </button>
+                                    </h2>
+                                    <div id="collapsePost" class="accordion-collapse collapse" data-bs-parent="#logAccordion">
+                                        <div class="accordion-body">
+                                            <pre id="logPost" class="bg-light p-3" style="font-size: 0.9em; max-height: 300px; overflow-y: auto;"></pre>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Configurações
+        const BASE_URL = 'http://localhost:8000'; // Ajuste conforme necessário
+        
+        // Elementos do DOM
+        const cnpjInput = document.getElementById('cnpjInput');
+        const btnBuscarCnpj = document.getElementById('btnBuscarCnpj');
+        const btnCadastrarCliente = document.getElementById('btnCadastrarCliente');
+        const resultadoBusca = document.getElementById('resultadoBusca');
+        const formCliente = document.getElementById('formCliente');
+        const logGet = document.getElementById('logGet');
+        const logPost = document.getElementById('logPost');
+
+        // Formatação de CNPJ
+        cnpjInput.addEventListener('input', function() {
+            let value = this.value.replace(/\D/g, '');
+            value = value.replace(/^(\d{2})(\d)/, '$1.$2');
+            value = value.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+            value = value.replace(/\.(\d{3})(\d)/, '.$1/$2');
+            value = value.replace(/(\d{4})(\d)/, '$1-$2');
+            this.value = value;
+        });
+
+        // Função para buscar dados do CNPJ (GET)
+        async function buscarCnpj() {
+            const cnpj = cnpjInput.value.replace(/\D/g, '');
+            
+            if (cnpj.length !== 14) {
+                alert('Digite um CNPJ válido com 14 dígitos');
+                return;
+            }
+
+            btnBuscarCnpj.disabled = true;
+            btnBuscarCnpj.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Buscando...';
+            
+            const url = `${BASE_URL}/linhas/buscar-cnpj-api/?cnpj=${cnpj}`;
+            
+            // Log da requisição GET
+            const getLog = {
+                timestamp: new Date().toISOString(),
+                method: 'GET',
+                url: url,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            };
+
+            try {
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                const result = await response.json();
+                
+                // Completar log da resposta GET
+                getLog.response = {
+                    status: response.status,
+                    statusText: response.statusText,
+                    data: result
+                };
+                
+                logGet.textContent = JSON.stringify(getLog, null, 2);
+
+                if (result.success && result.dados) {
+                    // Preencher formulário com dados obtidos
+                    preencherFormulario(result.dados);
+                    mostrarResultado(result.dados, true);
+                } else {
+                    mostrarResultado({ error: result.error || 'CNPJ não encontrado' }, false);
+                }
+                
+            } catch (error) {
+                getLog.error = error.message;
+                logGet.textContent = JSON.stringify(getLog, null, 2);
+                mostrarResultado({ error: error.message }, false);
+            } finally {
+                btnBuscarCnpj.disabled = false;
+                btnBuscarCnpj.innerHTML = '<i class="fas fa-search"></i> Buscar CNPJ';
+            }
+        }
+
+        // Função para preencher formulário com dados do CNPJ
+        function preencherFormulario(dados) {
+            document.getElementById('cnpj').value = dados.cnpj || '';
+            document.getElementById('razao_social').value = dados.razao_social || dados.nome || '';
+            document.getElementById('fantasia').value = dados.fantasia || dados.nome_fantasia || '';
+            document.getElementById('email').value = dados.email || '';
+            document.getElementById('telefone').value = dados.telefone || '';
+            
+            // Construir endereço completo
+            const enderecoPartes = [];
+            if (dados.endereco) enderecoPartes.push(dados.endereco);
+            if (dados.numero) enderecoPartes.push(`Nº ${dados.numero}`);
+            if (dados.complemento) enderecoPartes.push(dados.complemento);
+            if (dados.bairro) enderecoPartes.push(dados.bairro);
+            if (dados.municipio) enderecoPartes.push(dados.municipio);
+            if (dados.uf) enderecoPartes.push(dados.uf);
+            if (dados.cep) enderecoPartes.push(`CEP: ${dados.cep}`);
+            
+            document.getElementById('endereco_completo').value = enderecoPartes.join(', ');
+        }
+
+        // Função para mostrar resultado da busca
+        function mostrarResultado(dados, sucesso) {
+            resultadoBusca.style.display = 'block';
+            
+            if (sucesso) {
+                resultadoBusca.innerHTML = `
+                    <div class="alert alert-success">
+                        <h6><i class="fas fa-check-circle"></i> Dados encontrados!</h6>
+                        <p><strong>Empresa:</strong> ${dados.razao_social || dados.nome}</p>
+                        <p><strong>CNPJ:</strong> ${dados.cnpj}</p>
+                        <p><strong>Situação:</strong> ${dados.situacao || 'N/A'}</p>
+                        <p><strong>Fonte:</strong> ${dados.fonte}</p>
+                    </div>
+                `;
+            } else {
+                resultadoBusca.innerHTML = `
+                    <div class="alert alert-danger">
+                        <h6><i class="fas fa-exclamation-circle"></i> Erro na busca</h6>
+                        <p>${dados.error}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Função para cadastrar cliente (POST)
+        async function cadastrarCliente() {
+            const formData = new FormData(formCliente);
+            
+            // Simular CSRF token (em produção, obtido do cookie ou meta tag)
+            formData.append('csrfmiddlewaretoken', 'exemplo_csrf_token_123');
+            formData.append('next_action', 'stay');
+            
+            // Converter FormData para objeto para logging
+            const postData = {};
+            for (let [key, value] of formData.entries()) {
+                postData[key] = value;
+            }
+
+            btnCadastrarCliente.disabled = true;
+            btnCadastrarCliente.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cadastrando...';
+            
+            const url = `${BASE_URL}/linhas/novo-cliente/`;
+            
+            // Log da requisição POST
+            const postLog = {
+                timestamp: new Date().toISOString(),
+                method: 'POST',
+                url: url,
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    'X-CSRFToken': 'exemplo_csrf_token_123'
+                },
+                data: postData
+            };
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': 'exemplo_csrf_token_123'
+                    }
+                });
+
+                // Completar log da resposta POST
+                postLog.response = {
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers: Object.fromEntries(response.headers.entries())
+                };
+
+                if (response.ok) {
+                    postLog.response.success = true;
+                    postLog.response.message = 'Cliente cadastrado com sucesso!';
+                    alert('✅ Cliente cadastrado com sucesso!');
+                } else {
+                    postLog.response.success = false;
+                    postLog.response.error = `Erro HTTP: ${response.status}`;
+                    alert(`❌ Erro no cadastro: ${response.status}`);
+                }
+                
+                logPost.textContent = JSON.stringify(postLog, null, 2);
+                
+            } catch (error) {
+                postLog.error = error.message;
+                logPost.textContent = JSON.stringify(postLog, null, 2);
+                alert(`❌ Erro na requisição: ${error.message}`);
+            } finally {
+                btnCadastrarCliente.disabled = false;
+                btnCadastrarCliente.innerHTML = '<i class="fas fa-save"></i> Cadastrar Cliente (POST)';
+            }
+        }
+
+        // Event listeners
+        btnBuscarCnpj.addEventListener('click', buscarCnpj);
+        btnCadastrarCliente.addEventListener('click', cadastrarCliente);
+
+        // Exemplo automático ao carregar a página
+        window.addEventListener('load', function() {
+            // Preencher com exemplo
+            cnpjInput.value = '19.131.243/0001-97';
+            
+            // Log de exemplo
+            const exemploGet = {
+                timestamp: new Date().toISOString(),
+                method: 'GET',
+                url: `${BASE_URL}/linhas/buscar-cnpj-api/?cnpj=19131243000197`,
+                exemplo: true,
+                note: 'Clique em "Buscar CNPJ" para executar a requisição real'
+            };
+            
+            const exemploPost = {
+                timestamp: new Date().toISOString(),
+                method: 'POST',
+                url: `${BASE_URL}/linhas/novo-cliente/`,
+                exemplo: true,
+                note: 'Primeiro busque o CNPJ, depois clique em "Cadastrar Cliente" para executar o POST',
+                data_structure: {
+                    csrfmiddlewaretoken: 'token_obtido_do_cookie_ou_meta_tag',
+                    cnpj: '19.131.243/0001-97',
+                    razao_social: 'EMPRESA EXEMPLO LTDA',
+                    fantasia: 'Exemplo Corp',
+                    endereco_completo: 'RUA DAS FLORES, Nº 123, CENTRO, SAO PAULO, SP',
+                    email: 'contato@exemplo.com.br',
+                    contato: 'João Silva',
+                    telefone: '11987654321',
+                    nome_dono: 'João Silva Santos',
+                    cpf_dono: '123.456.789-00',
+                    data_nascimento_dono: '1980-05-15',
+                    next_action: 'stay'
+                }
+            };
+            
+            logGet.textContent = JSON.stringify(exemploGet, null, 2);
+            logPost.textContent = JSON.stringify(exemploPost, null, 2);
+        });
+    </script>
+</body>
+</html>
