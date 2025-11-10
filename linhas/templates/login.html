@@ -3,10 +3,37 @@
 {% block title %}Login - Gestor de Linhas{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6 col-lg-4">
-        <div class="card shadow">
-            <div class="card-body">
+<style>
+    /* Posicionar o conteúdo de login na esquerda verticalmente */
+    body.login-bg {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        min-height: 100vh !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100vw !important;
+        left: 0 !important;
+    }
+    
+    .login-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        max-width: 500px;
+        padding: 20px;
+        margin: 0 auto;
+    }
+    
+    .login-container .card {
+        width: 100%;
+    }
+</style>
+
+<div class="login-container">
+    <div class="card shadow">
+        <div class="card-body">
                 <div class="text-center mb-4">
                     <i class="fas fa-phone fa-3x text-primary"></i>
                     <h3 class="mt-2">Gestor de Linhas</h3>
@@ -58,7 +85,6 @@
                         <i class="fab fa-whatsapp" style="font-size:1.6rem;"></i>
                     </a>
                 </div>
-            </div>
         </div>
     </div>
 </div>
