@@ -11,8 +11,8 @@
         body {
             background-color: #154423;
             color: #fff;
-            /* espaço inferior para o footer fixo */
-            padding-bottom: 80px;
+            margin: 0;
+            padding: 0; /* remover espaço do antigo footer */
         }
 
         /* Classe aplicada apenas na tela de login para imagem de fundo */
@@ -97,93 +97,200 @@
         .status-inativo {
             color: #dc3545;
         }
+
+        /* Layout principal com sidebar à esquerda (exceto na tela de login) */
+        .app-layout {
+            display: flex;
+            min-height: 100vh; /* ocupar altura total da viewport */
+            width: 100%;
+        }
+        .sidebar {
+            width: 220px;
+            background: #ffffff;
+            color: #000000;
+            border-right: 3px solid #00bfae; /* linha vertical separadora */
+            padding: 20px 15px 0 15px; /* sem padding inferior para controlar a distância via margem do botão Sair */
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            height: 100vh; /* altura total */
+            overflow-y: auto; /* scroll caso conteúdo maior */
+        }
+        .sidebar h5 {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #00bfae;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .nav-vertical {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            flex: 1;
+            display: flex;           /* permite empurrar o último item para baixo */
+            flex-direction: column;   /* itens em coluna */
+            height: 100%;
+        }
+    /* Espaçamento: 0,5 cm entre botões (somente itens de primeiro nível) */
+    .nav-vertical > li { margin-bottom: 0.5cm; }
+    .nav-vertical li.logout { margin-top: auto; margin-bottom: 1cm; }
+        .nav-vertical a,
+        .nav-vertical button.nav-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            background: #f6f8fa;
+            color: #000000;
+            border: 1px solid #e0e0e0;
+            transition: background .15s, color .15s, border-color .15s;
+            width: 100%;
+        }
+        /* Hover igual ao ativo para todos os itens (exceto Sair) */
+        .nav-vertical li:not(.logout) > a:hover,
+        .nav-vertical li:not(.logout) > button.nav-link:hover {
+            background: #00bfae;
+            color: #ffffff;
+            border-color: #00bfae;
+        }
+        .nav-vertical a.active {
+            background: #00bfae;
+            color: #ffffff;
+            border-color: #00bfae;
+            font-weight: 600;
+        }
+        /* Submenu (itens filhos) */
+        .submenu {
+            list-style: none;
+            padding: 0;
+            margin: 6px 0 0 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .submenu a { padding: 8px 10px; }
+        /* Fixar o botão Sair na parte inferior da sidebar */
+        .nav-vertical li.logout { margin-top: auto; }
+        .nav-vertical li.logout button.nav-link { 
+            width: 100%; 
+            display:flex; 
+            align-items:center; 
+            gap:8px; 
+            background:#ffecec; 
+            color:#b30000; 
+            border:1px solid #ffb3b3; 
+            border-radius:6px; 
+            transition: background .15s, color .15s, border-color .15s; 
+        }
+        /* Hover do botão Sair com a mesma cor verde dos demais */
+        .nav-vertical li.logout button.nav-link:hover,
+        .nav-vertical li.logout button.nav-link:focus {
+            background:#00bfae; 
+            color:#ffffff; 
+            border-color:#00bfae;
+        }
+        .logout-form { margin: 0; }
+        .content-area {
+            flex: 1;
+            padding: 25px 30px;
+        }
+        @media (max-width: 768px) {
+            .app-layout { flex-direction: column; }
+            .sidebar { width: 100%; flex-direction: row; flex-wrap: wrap; border-right: none; border-bottom: 3px solid #00bfae; }
+            .nav-vertical li { flex: 1 1 45%; }
+        }
     </style>
 </head>
 <body {% if request.resolver_match.url_name == 'login' %}class="login-bg"{% endif %}>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
-            {# Marca removida para evitar duplicação com o menu "Linhas" #}
-            
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            
-            <div class="collapse navbar-collapse" id="navbarNav">
-                {% if request.resolver_match.url_name != 'login' %}
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'linhas:dashboard' %}">
-                            <i class="fas fa-tachometer-alt"></i> Dashboard
-                        </a>
-                    </li>
-
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="linhasDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-mobile-alt"></i> Linhas
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="linhasDropdown">
-                            <li><a class="dropdown-item" href="{% url 'linhas:listalinhas' %}"><i class="fas fa-list"></i> Listar Linhas</a></li>
-                            <li><a class="dropdown-item" href="{% url 'linhas:novalinha' %}"><i class="fas fa-plus"></i> Nova Linha</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{% url 'linhas:fidelidade' %}"><i class="fas fa-clock"></i> Fidelidade</a></li>
+    {% if request.resolver_match.url_name != 'login' %}
+    <div class="app-layout">
+        <aside class="sidebar">
+            <h5><i class="fas fa-mobile-alt"></i> Menu</h5>
+            <ul class="nav-vertical">
+                <li>
+                    <a href="{% url 'linhas:dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </a>
+                </li>
+                <li>
+            <button class="nav-link border-0" type="button"
+                data-bs-toggle="collapse" data-bs-target="#submenuLinhas"
+                aria-expanded="{% if request.resolver_match.url_name == 'listalinhas' or request.resolver_match.url_name == 'novalinha' or request.resolver_match.url_name == 'fidelidade' %}true{% else %}false{% endif %}"
+                aria-controls="submenuLinhas">
+                        <i class="fas fa-mobile-alt"></i> Linhas
+                        <i class="fas fa-chevron-down ms-auto" style="font-size:0.8rem;"></i>
+                    </button>
+                    <div class="collapse {% if request.resolver_match.url_name == 'listalinhas' or request.resolver_match.url_name == 'novalinha' or request.resolver_match.url_name == 'fidelidade' %}show{% endif %}" id="submenuLinhas">
+                        <ul class="submenu">
+                            <li>
+                                <a href="{% url 'linhas:listalinhas' %}" class="{% if request.resolver_match.url_name == 'listalinhas' %}active{% endif %}">
+                                    <i class="fas fa-list"></i> Listar Linhas
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{% url 'linhas:novalinha' %}" class="{% if request.resolver_match.url_name == 'novalinha' %}active{% endif %}">
+                                    <i class="fas fa-plus"></i> Nova Linha
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{% url 'linhas:fidelidade' %}" class="{% if request.resolver_match.url_name == 'fidelidade' %}active{% endif %}">
+                                    <i class="fas fa-clock"></i> Fidelidade
+                                </a>
+                            </li>
                         </ul>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'linhas:protocolo' %}">
-                            <i class="fas fa-file-alt"></i> Protocolo
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'linhas:relatorios' %}">
-                            <i class="fas fa-chart-line"></i> Relatórios
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'linhas:configuracoes' %}">
-                            <i class="fas fa-cog"></i> Configurações
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <form action="{% url 'logout' %}" method="post" style="display: inline;">
-                            {% csrf_token %}
-                            <button type="submit" class="nav-link border-0 bg-transparent">
-                                <i class="fas fa-sign-out-alt"></i> Sair
-                            </button>
-                        </form>
-                    </li>
-                </ul>
-                {% endif %}
-                
-                {# Botão de Sair adicionado à navbar principal #}
-            </div>
-        </div>
-    </nav>
-
-    <main class="container mt-4">
+                    </div>
+                </li>
+                <li>
+                    <a href="{% url 'linhas:protocolo' %}" class="{% if request.resolver_match.url_name == 'protocolo' %}active{% endif %}">
+                        <i class="fas fa-file-alt"></i> Protocolo
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'linhas:relatorios' %}" class="{% if request.resolver_match.url_name == 'relatorios' %}active{% endif %}">
+                        <i class="fas fa-chart-line"></i> Relatórios
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'linhas:configuracoes' %}" class="{% if request.resolver_match.url_name == 'configuracoes' %}active{% endif %}">
+                        <i class="fas fa-cog"></i> Configurações
+                    </a>
+                </li>
+                <li class="logout">
+                    <form action="{% url 'logout' %}" method="post" class="logout-form">
+                        {% csrf_token %}
+                        <button type="submit" class="nav-link border-0" style="text-align:left;">
+                            <i class="fas fa-sign-out-alt"></i> Sair
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </aside>
+        <div class="content-area">
+    {% else %}
+    <main class="container mt-4 content-area">
+    {% endif %}
         {% if messages %}
             {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert" style="color:#000;">
                     {{ message }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             {% endfor %}
         {% endif %}
-
-        {% block content %}
-        {% endblock %}
-    </main>
-
-    <footer class="footer mt-5 py-4">
-        <div class="container text-center">
-            <p class="mb-0 text-muted">
-                <i class="fas fa-mobile-alt"></i>
-                Sistema de Gestão de Linhas de Telefonia Móvel
-            </p>
+        {% block content %}{% endblock %}
+    {% if request.resolver_match.url_name != 'login' %}
         </div>
-    </footer>
+    </div>
+    {% else %}
+    </main>
+    {% endif %}
+
+    {# Footer removido conforme solicitação #}
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     {% block extra_js %}{% endblock %}
