@@ -158,10 +158,10 @@ CSRF_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_HTTPONLY = True
 
 # Login/Logout URLs
-LOGIN_URL = '/login/'
-# Redirect users after login to the Protocolos page
-LOGIN_REDIRECT_URL = '/linhas/protocolo/'
-LOGOUT_REDIRECT_URL = '/login/'
+LOGIN_URL = '/linhas/login/'
+# Redirect users after login to the Dashboard page
+LOGIN_REDIRECT_URL = '/linhas/dashboard/'
+LOGOUT_REDIRECT_URL = '/linhas/login/'
 
 # Configurações de email (para produção)
 if not DEBUG:
