@@ -3,6 +3,8 @@ from django.contrib.auth import authenticate, login
 from django.utils import timezone
 from datetime import timedelta
 from .models import LoginAttempt
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 
 def get_client_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
@@ -281,8 +283,6 @@ def buscar_clientes(request):
         results.append({'id': c.id, 'empresa': c.empresa, 'cnpj': c.cnpj, 'fantasia': c.fantasia, 'razao_social': c.razao_social})
     return JsonResponse(results, safe=False)
 from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q
 from .models import Linha, Protocolo, Cliente
@@ -604,7 +604,42 @@ def relatorios(request):
 
 @login_required
 def configuracoes(request):
-    return render(request, 'configuracoes.html')
+    # Lista simples de usuários atualmente bloqueados (se houver)
+    bloqueados = LoginAttempt.objects.filter(is_blocked=True, blocked_until__gt=timezone.now()) \
+        .values_list('username', flat=True).distinct()
+    return render(request, 'configuracoes.html', { 'bloqueados': list(bloqueados) })
+
+@login_required
+def desbloquear_usuario(request):
+    """Desbloqueia manualmente um usuário removendo registros de LoginAttempt bloqueados.
+
+    Regras:
+    - Apenas usuários staff podem executar.
+    - Recebe POST com campo 'username'.
+    - Remove tentativas para aquele username e IP (todas) marcadas como bloqueadas.
+    - Exibe mensagem de sucesso ou erro e redireciona para configurações.
+    """
+    if not request.user.is_staff:
+        messages.error(request, 'Você não tem permissão para desbloquear usuários.')
+        return redirect('linhas:configuracoes')
+
+    if request.method == 'POST':
+        username = request.POST.get('username', '').strip()
+        if not username:
+            messages.error(request, 'Informe o nome de usuário para desbloquear.')
+            return redirect('linhas:configuracoes')
+
+        # Remover todas as tentativas para o username (independente do IP) para reset total
+        attempts = LoginAttempt.objects.filter(username=username)
+        count = attempts.count()
+        if count == 0:
+            messages.warning(request, f'Nenhum bloqueio ativo encontrado para "{username}".')
+        else:
+            attempts.delete()
+            messages.success(request, f'Usuário "{username}" desbloqueado. ({count} registro(s) removido(s))')
+        return redirect('linhas:configuracoes')
+
+    return redirect('linhas:configuracoes')
 
 
 @login_required
