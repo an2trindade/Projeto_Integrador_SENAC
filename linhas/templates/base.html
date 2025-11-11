@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -259,6 +260,10 @@
                     <a href="{% url 'linhas:configuracoes' %}" class="{% if request.resolver_match.url_name == 'configuracoes' %}active{% endif %}">
                         <i class="fas fa-cog"></i> Configurações
                     </a>
+                </li>
+                <!-- Bug Hunters Logo -->
+                <li style="margin: 1.5cm auto 0.5cm; text-align: center; padding: 0;">
+                    <img src="{% static 'images/bug_hunters.png' %}" alt="Bug Hunters" style="max-width: 140px; height: auto; border-radius: 8px;">
                 </li>
                 <li class="logout">
                     <form action="{% url 'logout' %}" method="post" class="logout-form">
