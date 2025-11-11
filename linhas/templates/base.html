@@ -10,21 +10,41 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         body {
-            background-color: #154423;
-            color: #fff;
-            margin: 0;
-            padding: 0; /* remover espaço do antigo footer */
-        }
-
-        /* Classe aplicada apenas na tela de login para imagem de fundo */
-        .login-bg {
-            background-image: url('https://www.google.com/url?sa=i&url=https%3A%2F%2Fbr.freepik.com%2Ffotos-vetores-gratis%2Ffundo-tecnologia%2F9&psig=AOvVaw3a2WVq6ImVyNBERN625_xi&ust=1762559280895000&source=images&cd=vfe&opi=89978449&ved=0CBUQjRxqFwoTCMjHlInk3pADFQAAAAAdAAAAABAL');
+            background-image: url("{% static 'images/tech_background.jpg' %}");
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
             background-attachment: fixed;
-            /* manter cor do texto legível sobre a imagem */
             color: #fff;
+            margin: 0;
+            padding: 0;
+            /* Overlay escuro para melhorar legibilidade */
+            position: relative;
+        }
+        
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(26, 20, 60, 0.9) 0%, rgba(15, 30, 65, 0.85) 100%);
+            z-index: -1;
+        }
+
+        /* Classe aplicada apenas na tela de login para imagem de fundo */
+        .login-bg {
+            background-image: url("{% static 'images/tech_background.jpg' %}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            color: #fff;
+        }
+        
+        .login-bg::before {
+            background: linear-gradient(135deg, rgba(26, 20, 60, 0.8) 0%, rgba(15, 30, 65, 0.75) 100%);
         }
         .navbar, .navbar-brand, .navbar-nav .nav-link, .navbar-dark .navbar-nav .nav-link {
             background-color: #ffffff !important;
@@ -34,19 +54,30 @@
             color: #00bfae !important;
         }
         .card, .card-body, .card-header {
-            background-color: #ffffff;
-            color: #000000;
-            border: none;
+            background: linear-gradient(135deg, rgba(26, 20, 60, 0.7) 0%, rgba(15, 30, 65, 0.65) 100%) !important;
+            color: #ffffff !important;
+            border: 1px solid rgba(0, 191, 174, 0.3) !important;
+            backdrop-filter: blur(10px);
         }
+        
+        .card {
+            box-shadow: 0 4px 16px rgba(0, 191, 174, 0.2) !important;
+        }
+        
+        .card-header {
+            border-bottom: 1px solid rgba(0, 191, 174, 0.3) !important;
+        }
+        
         .form-control {
-            background-color: #ffffff;
+            background-color: rgba(255, 255, 255, 0.9) !important;
             color: #000000;
-            border: 1px solid #444;
+            border: 1px solid rgba(0, 191, 174, 0.5);
         }
         .form-control:focus {
-            background-color: #ffffff;
+            background-color: rgba(255, 255, 255, 0.95) !important;
             color: #000000;
             border-color: #00bfae;
+            box-shadow: 0 0 0 0.2rem rgba(0, 191, 174, 0.25);
         }
         .btn-primary {
             background-color: #00bfae;
@@ -69,9 +100,20 @@
             color: #00bfae;
         }
         .alert {
-            background-color: #ffffff;
+            background: linear-gradient(135deg, rgba(220, 53, 69, 0.15) 0%, rgba(200, 30, 50, 0.2) 100%) !important;
             color: #fff;
-            border: 1px solid #00bfae;
+            border: 1px solid rgba(220, 53, 69, 0.5);
+            backdrop-filter: blur(10px);
+        }
+        
+        .alert-success {
+            background: linear-gradient(135deg, rgba(0, 191, 174, 0.15) 0%, rgba(0, 158, 142, 0.2) 100%) !important;
+            border-color: rgba(0, 191, 174, 0.5);
+        }
+        
+        .alert-warning {
+            background: linear-gradient(135deg, rgba(255, 193, 7, 0.15) 0%, rgba(230, 170, 0, 0.2) 100%) !important;
+            border-color: rgba(255, 193, 7, 0.5);
         }
         .footer, footer.bg-light {
             background-color: #e8ebf1 !important;
@@ -107,15 +149,16 @@
         }
         .sidebar {
             width: 220px;
-            background: #ffffff;
-            color: #000000;
-            border-right: 3px solid #00bfae; /* linha vertical separadora */
-            padding: 20px 15px 0 15px; /* sem padding inferior para controlar a distância via margem do botão Sair */
+            background: linear-gradient(180deg, rgba(26, 20, 60, 0.95) 0%, rgba(15, 30, 65, 0.9) 100%);
+            color: #ffffff;
+            border-right: 3px solid #00bfae;
+            padding: 20px 15px 0 15px;
             display: flex;
             flex-direction: column;
             gap: 8px;
-            height: 100vh; /* altura total */
-            overflow-y: auto; /* scroll caso conteúdo maior */
+            height: 100vh;
+            overflow-y: auto;
+            backdrop-filter: blur(10px);
         }
         .sidebar h5 {
             font-weight: 600;
@@ -146,16 +189,16 @@
             text-decoration: none;
             border-radius: 6px;
             font-size: 0.95rem;
-            background: #f6f8fa;
-            color: #000000;
-            border: 1px solid #e0e0e0;
+            background: rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+            border: 1px solid rgba(0, 191, 174, 0.2);
             transition: background .15s, color .15s, border-color .15s;
             width: 100%;
         }
         /* Hover igual ao ativo para todos os itens (exceto Sair) */
         .nav-vertical li:not(.logout) > a:hover,
         .nav-vertical li:not(.logout) > button.nav-link:hover {
-            background: #00bfae;
+            background: rgba(0, 191, 174, 0.3);
             color: #ffffff;
             border-color: #00bfae;
         }
@@ -182,18 +225,18 @@
             display:flex; 
             align-items:center; 
             gap:8px; 
-            background:#ffecec; 
-            color:#b30000; 
-            border:1px solid #ffb3b3; 
+            background: rgba(220, 53, 69, 0.2); 
+            color: #ff6b7a; 
+            border: 1px solid rgba(220, 53, 69, 0.4); 
             border-radius:6px; 
             transition: background .15s, color .15s, border-color .15s; 
         }
         /* Hover do botão Sair com a mesma cor verde dos demais */
         .nav-vertical li.logout button.nav-link:hover,
         .nav-vertical li.logout button.nav-link:focus {
-            background:#00bfae; 
-            color:#ffffff; 
-            border-color:#00bfae;
+            background: rgba(0, 191, 174, 0.3); 
+            color: #ffffff; 
+            border-color: #00bfae;
         }
         .logout-form { margin: 0; }
         .content-area {
@@ -262,8 +305,25 @@
                     </a>
                 </li>
                 <!-- Bug Hunters Logo -->
-                <li style="margin: 1.5cm auto 0.5cm; text-align: center; padding: 0;">
-                    <img src="{% static 'images/bug_hunters.png' %}" alt="Bug Hunters" style="max-width: 140px; height: auto; border-radius: 8px;">
+                <li style="margin: auto; text-align: center; padding: 20px 10px;">
+                    <div style="background: linear-gradient(135deg, #1e3a2e 0%, #2d5a45 100%); 
+                                border: 2px solid #00bfae; 
+                                border-radius: 12px; 
+                                padding: 15px 10px;
+                                box-shadow: 0 4px 12px rgba(0, 191, 174, 0.3);">
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <i class="fas fa-bug" style="color: #ff4444; font-size: 28px;"></i>
+                        </div>
+                        <div style="color: #ffffff; 
+                                    font-weight: 700; 
+                                    font-size: 18px; 
+                                    margin-top: 8px;
+                                    text-transform: uppercase;
+                                    letter-spacing: 1px;
+                                    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
+                            BUG<br>HUNTERS
+                        </div>
+                    </div>
                 </li>
                 <li class="logout">
                     <form action="{% url 'logout' %}" method="post" class="logout-form">
