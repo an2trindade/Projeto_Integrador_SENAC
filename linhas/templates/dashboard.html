@@ -79,6 +79,14 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
+    // Ajustes globais para tema escuro (texto branco)
+    if (window.Chart && Chart.defaults){
+        Chart.defaults.color = '#ffffff';
+        Chart.defaults.borderColor = 'rgba(255,255,255,0.15)';
+        if (Chart.defaults.plugins && Chart.defaults.plugins.legend && Chart.defaults.plugins.legend.labels){
+            Chart.defaults.plugins.legend.labels.color = '#ffffff';
+        }
+    }
     const tipoLabels = JSON.parse('{{ tipo_plano_labels_json|escapejs }}');
     const tipoData = JSON.parse('{{ tipo_plano_data_json|escapejs }}');
 
@@ -101,6 +109,8 @@
             plugins: {
                 legend: { display: false },
                 tooltip: {
+                    titleColor: '#ffffff',
+                    bodyColor: '#ffffff',
                     callbacks: {
                         title: function(items) {
                             // show full label in tooltip
@@ -111,8 +121,8 @@
                 }
             },
             scales: {
-                x: { ticks: { autoSkip: false }, grid: { display: false } },
-                y: { beginAtZero: true }
+                x: { ticks: { autoSkip: false, color: '#ffffff' }, grid: { display: false } },
+                y: { beginAtZero: true, ticks: { color: '#ffffff' }, grid: { color: 'rgba(255,255,255,0.15)' } }
             }
         }
     });
@@ -151,13 +161,16 @@
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { legend: { display: true } },
+            plugins: { 
+                legend: { display: true, labels: { color: '#ffffff' } },
+                tooltip: { titleColor: '#ffffff', bodyColor: '#ffffff' }
+            },
             scales: {
                 x: {
-                    ticks: { maxRotation: 45, minRotation: 0, autoSkip: true, maxTicksLimit: 12 },
+                    ticks: { maxRotation: 45, minRotation: 0, autoSkip: true, maxTicksLimit: 12, color: '#ffffff' },
                     grid: { display: false }
                 },
-                y: { beginAtZero: true }
+                y: { beginAtZero: true, ticks: { color: '#ffffff' }, grid: { color: 'rgba(255,255,255,0.15)' } }
             }
         }
     });

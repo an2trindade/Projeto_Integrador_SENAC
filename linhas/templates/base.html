@@ -128,6 +128,32 @@
         .navbar-brand i {
             margin-right: 8px;
         }
+        /* Forçar textos em branco / cinza claro no conteúdo */
+        .content-area, .content-area h1, .content-area h2, .content-area h3, .content-area h4, .content-area h5, .content-area h6,
+        .content-area p, .content-area span, .content-area small, .content-area strong, .content-area label,
+        .content-area .card, .content-area .card *:not(.form-control):not(input):not(textarea):not(select) {
+            color: #ffffff !important;
+        }
+        .content-area .text-muted, .content-area .card .text-muted { color: #d2d6dc !important; }
+        /* Títulos dos cards maiores e brancos */
+        .content-area .card h5, .content-area .card h4, .content-area .card h3 { color:#ffffff !important; }
+        /* Número/estatísticas destaque */
+        .content-area .stat-number, .content-area .kpi, .content-area .card .display-4 { color:#ffffff !important; }
+        /* Tabelas */
+        .content-area table { color:#ffffff !important; }
+        .content-area table thead th { color:#ffffff !important; border-color:rgba(255,255,255,0.25)!important; }
+        .content-area table tbody td { color:#ffffff !important; border-color:rgba(255,255,255,0.15)!important; }
+        /* Links dentro do conteúdo */
+        .content-area a { color:#54ffe9 !important; }
+        .content-area a:hover { color:#00bfae !important; }
+        /* Botões secundários / outlines adaptados */
+        .btn-outline-secondary, .btn-light { color:#ffffff !important; border-color:#00bfae !important; background:rgba(0,191,174,0.15)!important; }
+        .btn-outline-secondary:hover, .btn-light:hover { background:#00bfae !important; color:#ffffff !important; }
+        /* Corrigir possíveis textos herdando preto de utilitários */
+        .text-dark, .card .text-dark { color:#ffffff !important; }
+        /* Inputs permanecem com texto escuro para legibilidade */
+        .form-control, .form-select { color:#000000 !important; }
+        .form-control::placeholder { color:#555 !important; }
         .card-stats {
             border-left: 4px solid #00bfae;
         }
@@ -341,7 +367,7 @@
     {% endif %}
         {% if messages %}
             {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert" style="color:#000;">
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
                     {{ message }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
