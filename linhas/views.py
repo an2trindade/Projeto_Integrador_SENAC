@@ -44,7 +44,7 @@ def login_view(request):
             # Reset login attempts on successful login
             LoginAttempt.objects.filter(username=username, ip_address=ip_address).delete()
             login(request, user)
-            return redirect('dashboard')
+            return redirect('linhas:dashboard')
         else:
             # Track failed login attempt
             login_attempt = LoginAttempt.objects.filter(

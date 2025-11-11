@@ -40,20 +40,13 @@
                     <p class="text-muted">Faça login para continuar</p>
                 </div>
 
-                <form method="post" action="{% url 'login' %}">
+                <form method="post" action="{% url 'linhas:login' %}">
                     {% csrf_token %}
                     <input type="hidden" name="login_form" value="1">
                     
                     {% if error %}
-                        <div class="alert alert-danger">
-                            {{ error }}
-                            {% if show_support %}
-                                <div class="mt-2">
-                                    <a href="https://wa.me/seu_numero_aqui" target="_blank" class="btn btn-success btn-block">
-                                        <i class="fab fa-whatsapp"></i> Contatar Suporte
-                                    </a>
-                                </div>
-                            {% endif %}
+                        <div class="alert alert-danger" style="background-color: #f8d7da; border-color: #f5c6cb; color: #dc3545;">
+                            <strong style="color: #dc3545;">{{ error }}</strong>
                         </div>
                     {% endif %}
 
