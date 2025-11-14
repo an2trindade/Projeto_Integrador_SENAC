@@ -183,6 +183,7 @@ class BuscaLinhaForm(forms.Form):
     )
 
 
+# Formulário base (mantido para compatibilidade)
 class ClienteForm(forms.ModelForm):
     # Override the date field to accept DD/MM/YYYY from the UI and require it
     data_nascimento_dono = forms.DateField(

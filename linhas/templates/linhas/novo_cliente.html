@@ -2,149 +2,566 @@
 
 {% block title %}Novo Cliente - Gestor de Linhas{% endblock %}
 
+<!-- Função JavaScript para bloquear caracteres inválidos no CPF -->
+<script>
+function somenteNumerosCPF(event) {
+    // Bloquear TUDO exceto números e teclas especiais
+    var char = String.fromCharCode(event.which || event.keyCode);
+    var campo = event.target;
+    
+    // Contar números atuais
+    var numerosAtuais = campo.value.replace(/[^0-9]/g, '');
+    
+    // Teclas especiais permitidas (backspace, delete, setas, etc.)
+    var teclasPermitidas = [8, 9, 13, 27, 35, 36, 37, 38, 39, 40, 46];
+    if (teclasPermitidas.indexOf(event.keyCode) !== -1) {
+        return true;
+    }
+    
+    // Ctrl + teclas (copiar, colar, etc.)
+    if (event.ctrlKey) {
+        return true;
+    }
+    
+    // Se é um número e não ultrapassou 11 dígitos
+    if (/[0-9]/.test(char) && numerosAtuais.length < 11) {
+        return true;
+    }
+    
+    // Bloquear tudo o resto
+    console.log('🚫 BLOQUEADO:', char, 'Atual:', numerosAtuais.length, 'dígitos');
+    event.preventDefault();
+    return false;
+}
+
+function formatarCPFLimitado(campo) {
+    if (!campo) return;
+    
+    // Salvar posição do cursor
+    var cursorPos = campo.selectionStart;
+    
+    // Remover tudo que não é número
+    var somenteNumeros = campo.value.replace(/[^0-9]/g, '');
+    
+    // Limitar a 11 dígitos
+    somenteNumeros = somenteNumeros.substring(0, 11);
+    
+    // Aplicar apenas números (sem formatação)
+    campo.value = somenteNumeros;
+    
+    // Tentar manter posição do cursor
+    try {
+        campo.setSelectionRange(cursorPos, cursorPos);
+    } catch (e) {}
+    
+    console.log('CPF apenas números:', somenteNumeros, 'Quantidade:', somenteNumeros.length);
+}
+
+function somenteNumerosContato(event) {
+    var charCode = (event.which) ? event.which : event.keyCode;
+    var campo = event.target;
+    
+    // Permitir: backspace, delete, tab, escape, enter
+    if (charCode == 8 || charCode == 9 || charCode == 27 || charCode == 13 || charCode == 46) {
+        return true;
+    }
+    
+    // Permitir: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X, Ctrl+Z
+    if (event.ctrlKey && (charCode == 65 || charCode == 67 || charCode == 86 || charCode == 88 || charCode == 90)) {
+        return true;
+    }
+    
+    // Permitir: Home, End, setas de navegação
+    if (charCode >= 35 && charCode <= 40) {
+        return true;
+    }
+    
+    // Se for um número, verificar se já tem 11 dígitos
+    if ((charCode >= 48 && charCode <= 57) || (charCode >= 96 && charCode <= 105)) {
+        var somenteNumeros = campo.value.replace(/[^0-9]/g, '');
+        if (somenteNumeros.length >= 11) {
+            console.log('Contato já tem 11 números, bloqueando entrada');
+            event.preventDefault();
+            return false;
+        }
+        return true;
+    }
+    
+    // Bloquear tudo o resto
+    event.preventDefault();
+    return false;
+}
+
+function formatarContatoLimitado(campo) {
+    if (!campo) return;
+    
+    // Salvar posição do cursor
+    var cursorPos = campo.selectionStart;
+    
+    // Remover tudo que não é número
+    var somenteNumeros = campo.value.replace(/[^0-9]/g, '');
+    
+    // Limitar a 11 dígitos
+    somenteNumeros = somenteNumeros.substring(0, 11);
+    
+    // Aplicar apenas números (sem formatação)
+    campo.value = somenteNumeros;
+    
+    // Tentar manter posição do cursor
+    try {
+        campo.setSelectionRange(cursorPos, cursorPos);
+    } catch (e) {}
+    
+    console.log('Contato apenas números:', somenteNumeros, 'Quantidade:', somenteNumeros.length);
+}
+
+function bloqueiarLetrasContato(event) {
+    var charCode = event.which || event.keyCode;
+    
+    console.log('Tecla pressionada:', charCode, 'Char:', String.fromCharCode(charCode));
+    
+    // Permitir teclas especiais (backspace, delete, tab, enter, escape, setas)
+    if (charCode == 8 || charCode == 9 || charCode == 13 || charCode == 27 || charCode == 46 ||
+        (charCode >= 35 && charCode <= 40)) {
+        return true;
+    }
+    
+    // Permitir Ctrl+comandos
+    if (event.ctrlKey) {
+        return true;
+    }
+    
+    // Permitir apenas números (0-9)
+    if (charCode >= 48 && charCode <= 57) {
+        // Verificar se já tem 11 números
+        var campo = event.target;
+        var numeros = campo.value.replace(/[^0-9]/g, '');
+        if (numeros.length >= 11) {
+            console.log('BLOQUEADO: Já tem 11 números');
+            event.preventDefault();
+            return false;
+        }
+        console.log('PERMITIDO: Número', String.fromCharCode(charCode));
+        return true;
+    }
+    
+    // Permitir números do teclado numérico
+    if (charCode >= 96 && charCode <= 105) {
+        // Verificar se já tem 11 números
+        var campo = event.target;
+        var numeros = campo.value.replace(/[^0-9]/g, '');
+        if (numeros.length >= 11) {
+            console.log('BLOQUEADO: Já tem 11 números (numpad)');
+            event.preventDefault();
+            return false;
+        }
+        console.log('PERMITIDO: Número do numpad', String.fromCharCode(charCode));
+        return true;
+    }
+    
+    // Bloquear tudo o resto (letras, símbolos, etc.)
+    console.log('BLOQUEADO: Caractere inválido', String.fromCharCode(charCode));
+    event.preventDefault();
+    return false;
+}
+
+console.log('Funções CPF e Contato carregadas');
+</script>
+
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1><i class="fas fa-user-plus"></i> Novo Cliente</h1>
     <a href="{% url 'linhas:novalinha' %}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Voltar</a>
 </div>
 
+<!-- Formulário com Abas -->
 <div class="card">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+        </div>
+        
+        <!-- Abas de Seleção -->
+        <ul class="nav nav-tabs card-header-tabs" id="tipoClienteTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="tab-pessoa-juridica" data-bs-toggle="tab" data-bs-target="#conteudo-pj" type="button" role="tab">
+                    <i class="fas fa-building me-2"></i>Pessoa Jurídica
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-pessoa-fisica" data-bs-toggle="tab" data-bs-target="#conteudo-pf" type="button" role="tab">
+                    <i class="fas fa-user me-2"></i>Pessoa Física
+                </button>
+            </li>
+        </ul>
+    </div>
+    
     <div class="card-body">
-        <form method="post">
-            {% csrf_token %}
+        <!-- Conteúdo das Abas -->
+        <div class="tab-content" id="tipoClienteContent">
             
-            {% if cliente_salvo %}
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="fas fa-check-circle"></i>
-                <strong>Operação Concluída!</strong> 
-                Cliente "{{ cliente_salvo.empresa }}" foi cadastrado com sucesso. 
-                Você pode cadastrar outro cliente ou criar uma linha para o cliente salvo.
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-            {% endif %}
+            <!-- Conteúdo Pessoa Jurídica -->
+            <div class="tab-pane fade show active" id="conteudo-pj" role="tabpanel">
+                <form method="post" id="form-cliente">
+                    {% csrf_token %}
+                    <input type="hidden" name="tipo_pessoa" value="juridica" id="input-tipo-pessoa">
+                    
+                    {% if cliente_salvo %}
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="fas fa-check-circle"></i>
+                        <strong>Operação Concluída!</strong> 
+                        Cliente "{{ cliente_salvo.empresa }}" foi cadastrado com sucesso. 
+                        Você pode cadastrar outro cliente ou criar uma linha para o cliente salvo.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    {% endif %}
 
-            <div class="mb-3 position-relative">
-                <label class="form-label small">CNPJ</label>
-                <div class="input-group">
-                    <span class="input-group-text"><i class="fas fa-id-card"></i></span>
-                    {{ form.cnpj }}
-                    <button type="button" class="btn btn-outline-secondary" id="btn-buscar-cnpj" title="Buscar dados por CNPJ">
-                        <i class="fas fa-search"></i> Buscar CNPJ
-                    </button>
-                </div>
-                <div id="cnpj-alert" class="form-text text-danger mt-1" style="display:none;"></div>
-                {% if form.cnpj.errors %}<div class="text-danger small">{{ form.cnpj.errors.0 }}</div>{% endif %}
-            </div>
+                    <!-- Campos Pessoa Jurídica -->
+                    <div id="campos-pj">
+                        <div class="mb-3 position-relative">
+                            <label class="form-label small">CNPJ *</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-id-card"></i></span>
+                                {{ form.cnpj }}
+                                <button type="button" class="btn btn-outline-secondary" id="btn-buscar-cnpj" title="Buscar dados por CNPJ">
+                                    <i class="fas fa-search"></i> Buscar CNPJ
+                                </button>
+                            </div>
+                            <div id="cnpj-alert" class="form-text text-danger mt-1" style="display:none;"></div>
+                            {% if form.cnpj.errors %}<div class="text-danger small">{{ form.cnpj.errors.0 }}</div>{% endif %}
+                        </div>
 
-            <div class="mb-3">
-                <label class="form-label small">Razão Social</label>
-                <div class="input-group">
-                    <span class="input-group-text"><i class="fas fa-id-badge"></i></span>
-                    {{ form.razao_social }}
-                </div>
-                {% if form.razao_social.errors %}<div class="text-danger small">{{ form.razao_social.errors.0 }}</div>{% endif %}
-            </div>
+                        <div class="mb-3">
+                            <label class="form-label small">Razão Social *</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-id-badge"></i></span>
+                                {{ form.razao_social }}
+                            </div>
+                            {% if form.razao_social.errors %}<div class="text-danger small">{{ form.razao_social.errors.0 }}</div>{% endif %}
+                        </div>
 
-            <div class="mb-3">
-                <label class="form-label small">Fantasia</label>
-                <div class="input-group">
-                    <span class="input-group-text"><i class="fas fa-tag"></i></span>
-                    {{ form.fantasia }}
-                </div>
-                {% if form.fantasia.errors %}<div class="text-danger small">{{ form.fantasia.errors.0 }}</div>{% endif %}
-            </div>
+                        <div class="mb-3">
+                            <label class="form-label small">Nome Fantasia</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-tag"></i></span>
+                                {{ form.fantasia }}
+                            </div>
+                            {% if form.fantasia.errors %}<div class="text-danger small">{{ form.fantasia.errors.0 }}</div>{% endif %}
+                        </div>
 
-            <div class="mb-3">
-                <label class="form-label small">Endereço</label>
-                {{ form.endereco_completo }}
-                {% if form.endereco_completo.errors %}<div class="text-danger small">{{ form.endereco_completo.errors.0 }}</div>{% endif %}
-            </div>
+                        <div class="mb-3">
+                            <label class="form-label small">Nome do Proprietário *</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-user-tie"></i></span>
+                                {{ form.nome_dono }}
+                            </div>
+                            {% if form.nome_dono.errors %}<div class="text-danger small">{{ form.nome_dono.errors.0 }}</div>{% endif %}
+                        </div>
 
-            <div class="mb-3">
-                <label class="form-label small">Contato principal</label>
-                <div class="input-group">
-                    <span class="input-group-text"><i class="fas fa-user"></i></span>
-                    {{ form.contato }}
-                </div>
-                {% if form.contato.errors %}<div class="text-danger small">{{ form.contato.errors.0 }}</div>{% endif %}
-            </div>
+                        <div class="mb-3">
+                            <label class="form-label small">CPF do Proprietário *</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-id-card"></i></span>
+                                {{ form.cpf_dono }}
+                            </div>
+                            {% if form.cpf_dono.errors %}<div class="text-danger small">{{ form.cpf_dono.errors.0 }}</div>{% endif %}
+                        </div>
 
-            <div class="mb-3">
-                <label class="form-label small">Email</label>
-                <div class="input-group">
-                    <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-                    {{ form.email }}
-                </div>
-                {% if form.email.errors %}<div class="text-danger small">{{ form.email.errors.0 }}</div>{% endif %}
-            </div>
+                        <div class="mb-3">
+                            <label class="form-label small">Data de Nascimento do Proprietário *</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
+                                {{ form.data_nascimento_dono }}
+                            </div>
+                            {% if form.data_nascimento_dono.errors %}<div class="text-danger small">{{ form.data_nascimento_dono.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+                    
 
-            <div class="mb-3">
-                <label class="form-label small">Nome proprietário</label>
-                <div class="input-group">
-                    <span class="input-group-text"><i class="fas fa-user-tie"></i></span>
-                    {{ form.nome_dono }}
-                </div>
-                {% if form.nome_dono.errors %}<div class="text-danger small">{{ form.nome_dono.errors.0 }}</div>{% endif %}
-            </div>
+                    
+                    <!-- Campos Comuns -->
+                    <div id="campos-comuns">
+                        <div class="mb-3">
+                            <label class="form-label small">Endereço Completo *</label>
+                            <textarea name="endereco_completo" id="id_endereco_completo" class="form-control" rows="3" placeholder="Rua, número, complemento, bairro, cidade, estado, CEP" required>{{ form.endereco_completo.value|default:'' }}</textarea>
+                            {% if form.endereco_completo.errors %}<div class="text-danger small">{{ form.endereco_completo.errors.0 }}</div>{% endif %}
+                        </div>
 
-            <div class="mb-3">
-                <label class="form-label small">CPF</label>
-                <div class="input-group">
-                    <span class="input-group-text"><i class="fas fa-id-card"></i></span>
-                    {{ form.cpf_dono }}
-                </div>
-                {% if form.cpf_dono.errors %}<div class="text-danger small">{{ form.cpf_dono.errors.0 }}</div>{% endif %}
-            </div>
+                        <div class="mb-3">
+                            <label class="form-label small">Contato Principal *</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                <input type="text" name="contato" id="id_contato" class="form-control" placeholder="(11) 99999-9999" required value="{{ form.contato.value|default:'' }}">
+                            </div>
+                            {% if form.contato.errors %}<div class="text-danger small">{{ form.contato.errors.0 }}</div>{% endif %}
+                        </div>
 
-            <div class="mb-3">
-                <label class="form-label small">Data de nascimento</label>
-                <div class="input-group">
-                    <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
-                    {{ form.data_nascimento_dono }}
-                </div>
-                {% if form.data_nascimento_dono.errors %}<div class="text-danger small">{{ form.data_nascimento_dono.errors.0 }}</div>{% endif %}
+                        <div class="mb-3">
+                            <label class="form-label small">E-mail</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                <input type="email" name="email" id="id_email" class="form-control" placeholder="email@exemplo.com" value="{{ form.email.value|default:'' }}">
+                            </div>
+                            {% if form.email.errors %}<div class="text-danger small">{{ form.email.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <button type="button" class="btn btn-secondary" onclick="history.back()">
+                            <i class="fas fa-arrow-left"></i> Voltar
+                        </button>
+                        
+                        <div>
+                            <button type="submit" name="next_action" value="stay" class="btn btn-success me-2">
+                                <i class="fas fa-save"></i> Salvar e Continuar
+                            </button>
+                            <button type="submit" name="next_action" value="nova_linha" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Salvar e Criar Linha
+                            </button>
+                        </div>
+                    </div>
+                </form>
             </div>
-            <div class="d-flex justify-content-between align-items-center">
-                <a href="{% url 'linhas:novalinha' %}" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left"></i> Cancelar
-                </a>
-                
-                <div>
-                    <button type="submit" name="next_action" value="stay" class="btn btn-success me-2">
-                        <i class="fas fa-save"></i> Salvar e Continuar
-                    </button>
-                    <button type="submit" name="next_action" value="nova_linha" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Salvar e Criar Linha
-                    </button>
-                </div>
-            </div>
+            
+            <!-- Conteúdo Pessoa Física -->
+            <div class="tab-pane fade" id="conteudo-pf" role="tabpanel">
+                <form method="post" id="form-cliente-pf">
+                    {% csrf_token %}
+                    <input type="hidden" name="tipo_pessoa" value="fisica">
+                    
+                    <!-- Campos Pessoa Física -->
+                    <div class="mb-3">
+                        <label class="form-label small">Nome Completo *</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-user"></i></span>
+                            <input type="text" name="nome_completo" id="id_nome_completo" class="form-control" placeholder="NOME COMPLETO" required
+                                   style="text-transform: uppercase;" 
+                                   oninput="this.value = this.value.toUpperCase()">
+                        </div>
+                    </div>
 
-            {% if cliente_salvo %}
-            <div class="mt-3 p-3 bg-success bg-opacity-10 border border-success rounded">
-                <h6 class="text-success mb-2">
-                    <i class="fas fa-check-circle"></i> Cliente Cadastrado com Sucesso!
-                </h6>
-                <p class="mb-2"><strong>Empresa:</strong> {{ cliente_salvo.empresa }}</p>
-                <p class="mb-2"><strong>CNPJ:</strong> {{ cliente_salvo.cnpj }}</p>
-                <p class="mb-0"><strong>ID:</strong> #{{ cliente_salvo.id }}</p>
-                <div class="mt-2">
-                    <a href="{% url 'linhas:novalinha' %}?empresa={{ cliente_salvo.empresa }}&cnpj={{ cliente_salvo.cnpj }}" class="btn btn-outline-primary btn-sm">
-                        <i class="fas fa-plus"></i> Criar Linha para este Cliente
-                    </a>
-                </div>
+                        <div class="mb-3">
+                        <label class="form-label small">CPF (somente números)*</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-id-card"></i></span>
+                            <input type="text" name="cpf_pf" id="id_cpf_pf" class="form-control" placeholder="12345678901" required
+                                   maxlength="11"
+                                   pattern="[0-9]{11}"
+                                   inputmode="numeric"
+                                   autocomplete="off"
+                                   onkeypress="return somenteNumerosCPF(event)"
+                                   onkeydown="return somenteNumerosCPF(event)"
+                                   oninput="formatarCPFLimitado(this); this.value = this.value.replace(/[^0-9]/g, '').substring(0, 11);"
+                                   onpaste="setTimeout(function(){ var el = document.getElementById('id_cpf_pf'); el.value = el.value.replace(/[^0-9]/g, '').substring(0, 11); }, 10)"
+                        </div>
+                    </div>                    <div class="mb-3">
+                        <label class="form-label small">Data de Nascimento *</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
+                            <input type="date" name="data_nascimento_pf" id="id_data_nascimento_pf" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small">Endereço Completo *</label>
+                        <textarea name="endereco_pf" id="id_endereco_pf" class="form-control" rows="3" placeholder="RUA - NÚMERO - COMPLEMENTO - BAIRRO - CIDADE - ESTADO - CEP" required
+                                  style="text-transform: uppercase;" 
+                                  oninput="this.value = this.value.toUpperCase()"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small">Contato Principal (somentes números) *</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                            <input type="text" name="contato_pf" id="id_contato_pf" class="form-control" placeholder="11999999999" required
+                                   maxlength="11"
+                                   autocomplete="off"
+                                   pattern="[0-9]{11}"
+                                   inputmode="numeric"
+                                   onkeypress="return bloqueiarLetrasContato(event)"
+                                   onkeydown="return bloqueiarLetrasContato(event)" 
+                                   oninput="this.value = this.value.replace(/[^0-9]/g, '').substring(0, 11)"
+                                   onpaste="setTimeout(function(){ var el = document.getElementById('id_contato_pf'); el.value = el.value.replace(/[^0-9]/g, '').substring(0, 11); }, 10)"
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small">E-mail</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                            <input type="email" name="email_pf" id="id_email_pf" class="form-control" placeholder="email@exemplo.com"
+                                   style="text-transform: lowercase;" 
+                                   oninput="this.value = this.value.toLowerCase()"
+                                   onpaste="setTimeout(function(){ var el = document.getElementById('id_email_pf'); el.value = el.value.toLowerCase(); }, 10)">
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end align-items-center">
+                        <button type="submit" name="next_action" value="nova_linha" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Salvar e Criar Linha
+                        </button>
+                    </div>
+                </form>
             </div>
-            {% endif %}
-        </form>
+        </div>
     </div>
 </div>
+
+
+<!-- Área de sucesso -->
+{% if cliente_salvo %}
+<div class="mt-3 p-3 bg-success bg-opacity-10 border border-success rounded">
+    <h6 class="text-success mb-2">
+        <i class="fas fa-check-circle"></i> Cliente Cadastrado com Sucesso!
+    </h6>
+    <p class="mb-2"><strong>Nome/Empresa:</strong> {{ cliente_salvo.empresa|default:cliente_salvo.nome_completo }}</p>
+    <p class="mb-2"><strong>CPF/CNPJ:</strong> {{ cliente_salvo.cnpj|default:cliente_salvo.cpf }}</p>
+    <p class="mb-0"><strong>ID:</strong> #{{ cliente_salvo.id }}</p>
+    <div class="mt-2">
+        <a href="{% url 'linhas:novalinha' %}?empresa={{ cliente_salvo.empresa|default:cliente_salvo.nome_completo }}&cnpj={{ cliente_salvo.cnpj|default:cliente_salvo.cpf }}" class="btn btn-outline-primary btn-sm">
+            <i class="fas fa-plus"></i> Criar Linha para este Cliente
+        </a>
+    </div>
+</div>
+{% endif %}
 
 {% endblock %}
 
 <!-- Cleave.js (masks) -->
 <script src="https://cdn.jsdelivr.net/npm/cleave.js@1.6.0/dist/cleave.min.js"></script>
+
+<!-- Script para alternar entre tipos de cliente -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize masks with multiple fallbacks to handle different rendering scenarios
+    console.log('=== SISTEMA DE ALTERNÂNCIA INICIADO ===');
+    
+    // Elementos
+    var btnPJ = document.getElementById('tab-pessoa-juridica');
+    var btnPF = document.getElementById('tab-pessoa-fisica');
+    var camposPJ = document.getElementById('campos-pj');
+    var camposPF = document.getElementById('campos-pf');
+    var inputTipo = document.getElementById('input-tipo-pessoa');
+    
+    console.log('Elementos encontrados:', {
+        btnPJ: !!btnPJ,
+        btnPF: !!btnPF,
+        camposPJ: !!camposPJ,
+        camposPF: !!camposPF,
+        inputTipo: !!inputTipo
+    });
+    
+    // Função para alternar tipo
+    function alternarTipo(tipo) {
+        console.log('=== ALTERNANDO PARA:', tipo, '===');
+        
+        if (tipo === 'juridica') {
+            // Mostrar campos PJ
+            if (camposPJ) {
+                camposPJ.style.display = 'block';
+                console.log('Campos PJ mostrados');
+            }
+            if (camposPF) {
+                camposPF.style.display = 'none';
+                console.log('Campos PF ocultados');
+            }
+            if (inputTipo) {
+                inputTipo.value = 'juridica';
+                console.log('Tipo definido como juridica');
+            }
+            
+            // Atualizar botões
+            if (btnPJ) {
+                btnPJ.className = 'btn btn-primary';
+                console.log('Botão PJ ativado');
+            }
+            if (btnPF) {
+                btnPF.className = 'btn btn-outline-primary';
+                console.log('Botão PF desativado');
+            }
+            
+        } else if (tipo === 'fisica') {
+            // Mostrar campos PF
+            if (camposPF) {
+                camposPF.style.display = 'block';
+                console.log('Campos PF mostrados');
+            }
+            if (camposPJ) {
+                camposPJ.style.display = 'none';
+                console.log('Campos PJ ocultados');
+            }
+            if (inputTipo) {
+                inputTipo.value = 'fisica';
+                console.log('Tipo definido como fisica');
+            }
+            
+            // Atualizar botões
+            if (btnPF) {
+                btnPF.className = 'btn btn-primary';
+                console.log('Botão PF ativado');
+            }
+            if (btnPJ) {
+                btnPJ.className = 'btn btn-outline-primary';
+                console.log('Botão PJ desativado');
+            }
+        }
+        
+        console.log('=== ALTERNÂNCIA CONCLUÍDA ===');
+    }
+    
+    // Event listeners
+    if (btnPJ) {
+        btnPJ.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('🔘 CLIQUE EM PESSOA JURÍDICA');
+            alternarTipo('juridica');
+        });
+        console.log('Listener PJ adicionado');
+    }
+    
+    if (btnPF) {
+        btnPF.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('🔘 CLIQUE EM PESSOA FÍSICA');
+            alternarTipo('fisica');
+        });
+        console.log('Listener PF adicionado');
+    }
+    
+    // Inicializar com Pessoa Jurídica
+    console.log('Inicializando com Pessoa Jurídica...');
+    alternarTipo('juridica');
+    
+    console.log('=== SISTEMA CONFIGURADO COM SUCESSO ===');
+    
+    // CPF PF agora usa máscara fixa do Cleave.js
+    console.log('Sistema de formatação CPF com máscara fixa ativo');
+    
+    // Teste após 2 segundos para garantir funcionamento
+    setTimeout(function() {
+        console.log('=== TESTE DE VERIFICAÇÃO ===');
+        console.log('campos-pj visível:', camposPJ ? (camposPJ.style.display !== 'none') : false);
+        console.log('campos-pf visível:', camposPF ? (camposPF.style.display === 'block') : false);
+        
+        // Adicionar onclick como backup
+        if (btnPJ) {
+            btnPJ.onclick = function() {
+                console.log('BACKUP: Clique PJ via onclick');
+                alternarTipo('juridica');
+            };
+        }
+        if (btnPF) {
+            btnPF.onclick = function() {
+                console.log('BACKUP: Clique PF via onclick');
+                alternarTipo('fisica');
+            };
+        }
+        console.log('Backups onclick adicionados');
+    }, 2000);
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize masks for Pessoa Jurídica
     function findCnpjElement() {
         return document.getElementById('id_cnpj') || document.querySelector('input[name="cnpj"]') || document.querySelector('input[id$="cnpj"]');
     }
@@ -155,12 +572,24 @@ document.addEventListener('DOMContentLoaded', function() {
         return document.getElementById('id_data_nascimento_dono') || document.querySelector('input[name="data_nascimento_dono"]') || document.querySelector('input[id$="data_nascimento_dono"]');
     }
 
+    // Initialize masks for Pessoa Física
+    function findCpfPFElement() {
+        return document.getElementById('id_cpf_pf') || 
+               document.querySelector('input[name="cpf_pf"]') || 
+               document.querySelector('input[placeholder*="000.000.000-00"]');
+    }
+    function findTelefonePFElement() {
+        return document.getElementById('id_contato_pf') || 
+               document.querySelector('input[name="contato_pf"]') || 
+               document.querySelector('input[placeholder*="99999-9999"]');
+    }
+
     try {
+        // Máscaras Pessoa Jurídica
         var cnpjEl = findCnpjElement();
         var cpfEl = findCpfElement();
         var dataEl = findDateElement();
 
-        // Apply mask when element exists. Also re-init on focus/paste to handle programmatic inserts.
         if (cnpjEl) {
             var cnpjMask = new Cleave(cnpjEl, { delimiters: ['.','.','/','-'], blocks: [2,3,3,4,2], numericOnly: true });
             cnpjEl.addEventListener('paste', function() { setTimeout(function(){ try{ cnpjMask.destroy(); cnpjMask = new Cleave(cnpjEl, { delimiters: ['.','.','/','-'], blocks: [2,3,3,4,2], numericOnly: true }); }catch(e){} }, 50); });
@@ -175,9 +604,238 @@ document.addEventListener('DOMContentLoaded', function() {
         if (dataEl) {
             var dataMask = new Cleave(dataEl, { date: true, datePattern: ['d', 'm', 'Y'] });
         }
+
+        // Máscaras Pessoa Física
+        var cpfPFEl = findCpfPFElement();
+        var telefonePFEl = findTelefonePFElement();
+
+        // CPF PF com validação completa
+        if (cpfPFEl) {
+            console.log('Aplicando máscara CPF PF com validação');
+            
+            // Função para validar CPF
+            function validarCPF(cpf) {
+                cpf = cpf.replace(/[^\d]+/g, '');
+                if (cpf.length !== 11) return false;
+                
+                // Elimina CPFs conhecidos que são inválidos
+                if (/^(.)\1+$/.test(cpf)) return false;
+                
+                // Valida 1º dígito verificador
+                var soma = 0;
+                for (var i = 0; i < 9; i++) {
+                    soma += parseInt(cpf.charAt(i)) * (10 - i);
+                }
+                var resto = 11 - (soma % 11);
+                var dv1 = (resto < 2) ? 0 : resto;
+                
+                if (dv1 !== parseInt(cpf.charAt(9))) return false;
+                
+                // Valida 2º dígito verificador
+                soma = 0;
+                for (var i = 0; i < 10; i++) {
+                    soma += parseInt(cpf.charAt(i)) * (11 - i);
+                }
+                resto = 11 - (soma % 11);
+                var dv2 = (resto < 2) ? 0 : resto;
+                
+                return dv2 === parseInt(cpf.charAt(10));
+            }
+            
+            // Aplicar apenas validação numérica (sem formatação)
+            console.log('Campo CPF configurado apenas para números');
+            
+            // Criar div para mensagem de validação
+            var msgDiv = document.createElement('div');
+            msgDiv.id = 'cpf-validation-msg';
+            msgDiv.className = 'form-text mt-1';
+            msgDiv.style.display = 'none';
+            cpfPFEl.parentNode.parentNode.appendChild(msgDiv);
+            
+            // Evento para validar quando sair do campo
+            cpfPFEl.addEventListener('blur', function() {
+                var cpfValue = this.value;
+                var msgDiv = document.getElementById('cpf-validation-msg');
+                
+                if (cpfValue.length === 11) { // CPF completo (apenas números)
+                    if (validarCPF(cpfValue)) {
+                        msgDiv.textContent = '✅ CPF válido';
+                        msgDiv.className = 'form-text mt-1 text-success';
+                        msgDiv.style.display = 'block';
+                        this.classList.remove('is-invalid');
+                        this.classList.add('is-valid');
+                    } else {
+                        msgDiv.textContent = '❌ CPF inválido';
+                        msgDiv.className = 'form-text mt-1 text-danger';
+                        msgDiv.style.display = 'block';
+                        this.classList.remove('is-valid');
+                        this.classList.add('is-invalid');
+                    }
+                } else if (cpfValue.length > 0) {
+                    msgDiv.textContent = '⚠️ CPF incompleto (' + cpfValue.length + '/11 dígitos)';
+                    msgDiv.className = 'form-text mt-1 text-warning';
+                    msgDiv.style.display = 'block';
+                    this.classList.remove('is-valid', 'is-invalid');
+                } else {
+                    msgDiv.style.display = 'none';
+                    this.classList.remove('is-valid', 'is-invalid');
+                }
+            });
+            
+            // Evento adicional para bloquear teclas não numéricas
+            cpfPFEl.addEventListener('keydown', function(e) {
+                // Permitir: backspace, delete, tab, escape, enter
+                if ([8, 9, 27, 13, 46].indexOf(e.keyCode) !== -1 ||
+                    // Permitir: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+                    (e.keyCode === 65 && e.ctrlKey === true) ||
+                    (e.keyCode === 67 && e.ctrlKey === true) ||
+                    (e.keyCode === 86 && e.ctrlKey === true) ||
+                    (e.keyCode === 88 && e.ctrlKey === true) ||
+                    // Permitir: home, end, setas
+                    (e.keyCode >= 35 && e.keyCode <= 39)) {
+                    return;
+                }
+                // Permitir apenas números (0-9)
+                if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
+                    e.preventDefault();
+                }
+            });
+            
+            console.log('✅ Máscara CPF PF com validação aplicada');
+        } else {
+            console.warn('❌ Campo CPF PF não encontrado');
+        }
+
+        if (telefonePFEl) {
+            console.log('Aplicando máscara telefone em:', telefonePFEl);
+            var telefonePFMask = new Cleave(telefonePFEl, { phone: true, phoneRegionCode: 'BR' });
+            console.log('✅ Máscara telefone aplicada com sucesso');
+        } else {
+            console.warn('❌ Campo telefone PF não encontrado para aplicar máscara');
+        }
+
     } catch (e) {
         console.warn('Cleave init failed', e);
     }
+    
+    // Tentar novamente após 2 segundos para elementos em abas ocultas
+    setTimeout(function() {
+        console.log('=== SEGUNDA TENTATIVA MÁSCARAS ===');
+        
+        // CPF PF - segunda tentativa com validação completa
+        var cpfPFEl = findCpfPFElement();
+        if (cpfPFEl && !cpfPFEl._cleave && !cpfPFEl.hasAttribute('data-cpf-configured')) {
+            console.log('Aplicando máscara CPF PF com validação (segunda tentativa)');
+            try {
+                // Função para validar CPF
+                function validarCPF(cpf) {
+                    cpf = cpf.replace(/[^\d]+/g, '');
+                    if (cpf.length !== 11) return false;
+                    
+                    // Elimina CPFs conhecidos que são inválidos
+                    if (/^(.)\1+$/.test(cpf)) return false;
+                    
+                    // Valida 1º dígito verificador
+                    var soma = 0;
+                    for (var i = 0; i < 9; i++) {
+                        soma += parseInt(cpf.charAt(i)) * (10 - i);
+                    }
+                    var resto = 11 - (soma % 11);
+                    var dv1 = (resto < 2) ? 0 : resto;
+                    
+                    if (dv1 !== parseInt(cpf.charAt(9))) return false;
+                    
+                    // Valida 2º dígito verificador
+                    soma = 0;
+                    for (var i = 0; i < 10; i++) {
+                        soma += parseInt(cpf.charAt(i)) * (11 - i);
+                    }
+                    resto = 11 - (soma % 11);
+                    var dv2 = (resto < 2) ? 0 : resto;
+                    
+                    return dv2 === parseInt(cpf.charAt(10));
+                }
+                
+                // Configurar campo apenas para números (sem formatação)
+                console.log('Campo CPF configurado para números apenas (segunda tentativa)');
+                
+                // Criar div para mensagem de validação se não existir
+                var msgDiv = document.getElementById('cpf-validation-msg');
+                if (!msgDiv) {
+                    msgDiv = document.createElement('div');
+                    msgDiv.id = 'cpf-validation-msg';
+                    msgDiv.className = 'form-text mt-1';
+                    msgDiv.style.display = 'none';
+                    cpfPFEl.parentNode.parentNode.appendChild(msgDiv);
+                }
+                
+                // Evento para validar quando sair do campo
+                cpfPFEl.addEventListener('blur', function() {
+                    var cpfValue = this.value;
+                    var msgDiv = document.getElementById('cpf-validation-msg');
+                    
+                    if (cpfValue.length === 11) { // CPF completo (apenas números)
+                        if (validarCPF(cpfValue)) {
+                            msgDiv.textContent = '✅ CPF válido';
+                            msgDiv.className = 'form-text mt-1 text-success';
+                            msgDiv.style.display = 'block';
+                            this.classList.remove('is-invalid');
+                            this.classList.add('is-valid');
+                        } else {
+                            msgDiv.textContent = '❌ CPF inválido';
+                            msgDiv.className = 'form-text mt-1 text-danger';
+                            msgDiv.style.display = 'block';
+                            this.classList.remove('is-valid');
+                            this.classList.add('is-invalid');
+                        }
+                    } else if (cpfValue.length > 0) {
+                        msgDiv.textContent = '⚠️ CPF incompleto (' + cpfValue.length + '/11 dígitos)';
+                        msgDiv.className = 'form-text mt-1 text-warning';
+                        msgDiv.style.display = 'block';
+                        this.classList.remove('is-valid', 'is-invalid');
+                    } else {
+                        msgDiv.style.display = 'none';
+                        this.classList.remove('is-valid', 'is-invalid');
+                    }
+                });
+                
+                // Evento adicional para bloquear teclas não numéricas
+                cpfPFEl.addEventListener('keydown', function(e) {
+                    // Permitir: backspace, delete, tab, escape, enter
+                    if ([8, 9, 27, 13, 46].indexOf(e.keyCode) !== -1 ||
+                        // Permitir: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+                        (e.keyCode === 65 && e.ctrlKey === true) ||
+                        (e.keyCode === 67 && e.ctrlKey === true) ||
+                        (e.keyCode === 86 && e.ctrlKey === true) ||
+                        (e.keyCode === 88 && e.ctrlKey === true) ||
+                        // Permitir: home, end, setas
+                        (e.keyCode >= 35 && e.keyCode <= 39)) {
+                        return;
+                    }
+                    // Permitir apenas números (0-9)
+                    if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
+                        e.preventDefault();
+                    }
+                });
+                
+                cpfPFEl.setAttribute('data-cpf-configured', 'true');
+                console.log('✅ Máscara CPF PF com validação aplicada na segunda tentativa');
+            } catch (e) {
+                console.warn('Erro na segunda tentativa CPF PF:', e);
+            }
+        }
+        
+        var telefonePFEl = findTelefonePFElement();
+        if (telefonePFEl && !telefonePFEl._cleave) {
+            console.log('Aplicando máscara telefone (segunda tentativa)');
+            try {
+                var telefonePFMask = new Cleave(telefonePFEl, { phone: true, phoneRegionCode: 'BR' });
+                console.log('✅ Máscara telefone aplicada na segunda tentativa');
+            } catch (e) {
+                console.warn('Erro na segunda tentativa telefone:', e);
+            }
+        }
+    }, 2000);
 });
 </script>
 
@@ -438,5 +1096,467 @@ window.addEventListener('load', function() {
             });
         }
     }, 1000); // Aguarda 1 segundo após carregamento completo
+});
+</script>
+
+<!-- Script para conversão automática para maiúsculas -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Configurando conversão automática para maiúsculas');
+    
+    // Função para aplicar maiúsculas
+    function aplicarMaiusculas(elemento) {
+        if (!elemento) return;
+        
+        // Converter valor atual
+        elemento.value = elemento.value.toUpperCase();
+        
+        // Eventos para conversão automática
+        elemento.addEventListener('input', function() {
+            var cursorPos = this.selectionStart;
+            this.value = this.value.toUpperCase();
+            this.setSelectionRange(cursorPos, cursorPos);
+        });
+        
+        elemento.addEventListener('paste', function() {
+            var self = this;
+            setTimeout(function() {
+                var cursorPos = self.selectionStart;
+                self.value = self.value.toUpperCase();
+                self.setSelectionRange(cursorPos, cursorPos);
+            }, 10);
+        });
+        
+        elemento.addEventListener('blur', function() {
+            this.value = this.value.toUpperCase();
+        });
+    }
+    
+    // Função para aplicar minúsculas
+    function aplicarMinusculas(elemento) {
+        if (!elemento) return;
+        
+        // Converter valor atual
+        elemento.value = elemento.value.toLowerCase();
+        
+        // Eventos para conversão automática
+        elemento.addEventListener('input', function() {
+            var cursorPos = this.selectionStart;
+            this.value = this.value.toLowerCase();
+            this.setSelectionRange(cursorPos, cursorPos);
+        });
+        
+        elemento.addEventListener('paste', function() {
+            var self = this;
+            setTimeout(function() {
+                var cursorPos = self.selectionStart;
+                self.value = self.value.toLowerCase();
+                self.setSelectionRange(cursorPos, cursorPos);
+            }, 10);
+        });
+        
+        elemento.addEventListener('blur', function() {
+            this.value = this.value.toLowerCase();
+        });
+    }
+    
+    // Aplicar nos campos da Pessoa Física
+    var nomeCompleto = document.getElementById('id_nome_completo');
+    var enderecoPF = document.getElementById('id_endereco_pf');
+    var emailPF = document.getElementById('id_email_pf');
+    
+    if (nomeCompleto) {
+        aplicarMaiusculas(nomeCompleto);
+        console.log('✅ Conversão maiúsculas aplicada no Nome Completo PF');
+    }
+    
+    if (enderecoPF) {
+        aplicarMaiusculas(enderecoPF);
+        console.log('✅ Conversão maiúsculas aplicada no Endereço PF');
+    }
+    
+    if (emailPF) {
+        aplicarMinusculas(emailPF);
+        console.log('✅ Conversão minúsculas aplicada no Email PF');
+    }
+    
+    // Tentar novamente após 2 segundos (para abas ocultas)
+    setTimeout(function() {
+        var nomeCompleto = document.getElementById('id_nome_completo');
+        var enderecoPF = document.getElementById('id_endereco_pf');
+        var emailPF = document.getElementById('id_email_pf');
+        
+        if (nomeCompleto && !nomeCompleto.hasAttribute('data-uppercase-configured')) {
+            aplicarMaiusculas(nomeCompleto);
+            nomeCompleto.setAttribute('data-uppercase-configured', 'true');
+            console.log('✅ Conversão maiúsculas aplicada no Nome Completo PF (segunda tentativa)');
+        }
+        
+        if (enderecoPF && !enderecoPF.hasAttribute('data-uppercase-configured')) {
+            aplicarMaiusculas(enderecoPF);
+            enderecoPF.setAttribute('data-uppercase-configured', 'true');
+            console.log('✅ Conversão maiúsculas aplicada no Endereço PF (segunda tentativa)');
+        }
+        
+        if (emailPF && !emailPF.hasAttribute('data-lowercase-configured')) {
+            aplicarMinusculas(emailPF);
+            emailPF.setAttribute('data-lowercase-configured', 'true');
+            console.log('✅ Conversão minúsculas aplicada no Email PF (segunda tentativa)');
+        }
+    }, 2000);
+});
+</script>
+
+<!-- Script adicional para proteção rigorosa do campo CPF -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Configurando proteção rigorosa do CPF');
+    
+    function protegerCampoCPF() {
+        var cpfField = document.getElementById('id_cpf_pf');
+        if (!cpfField) return;
+        
+        // Função para limpar caracteres inválidos e limitar a 11 números
+        function limparCPF(valor) {
+            // Remove tudo que não é número
+            var somenteNumeros = valor.replace(/[^0-9]/g, '');
+            
+            // Limita a 11 dígitos
+            somenteNumeros = somenteNumeros.substring(0, 11);
+            
+            console.log('CPF antes:', valor, 'Números:', somenteNumeros.length, 'CPF limpo:', somenteNumeros);
+            return somenteNumeros;
+        }
+        
+        // Evento input - limpa em tempo real
+        cpfField.addEventListener('input', function(e) {
+            var cursorPos = this.selectionStart;
+            var valorAnterior = this.value;
+            var valorLimpo = limparCPF(this.value);
+            
+            if (valorAnterior !== valorLimpo) {
+                this.value = valorLimpo;
+                console.log('CPF limpo via input:', valorLimpo);
+                
+                // Tentar manter posição do cursor
+                try {
+                    this.setSelectionRange(cursorPos, cursorPos);
+                } catch (e) {}
+            }
+        });
+        
+        // Evento paste - limpa texto colado
+        cpfField.addEventListener('paste', function(e) {
+            var self = this;
+            setTimeout(function() {
+                var valorLimpo = limparCPF(self.value);
+                if (self.value !== valorLimpo) {
+                    self.value = valorLimpo;
+                    console.log('CPF limpo via paste:', valorLimpo);
+                }
+            }, 10);
+        });
+        
+        // Evento keypress - bloqueia teclas inválidas e limita a 11 números
+        cpfField.addEventListener('keypress', function(e) {
+            var char = String.fromCharCode(e.which);
+            var keyCode = e.which || e.keyCode;
+            
+            // Contar quantos números já existem
+            var somenteNumeros = this.value.replace(/[^0-9]/g, '');
+            
+            console.log('🔍 Tecla pressionada:', char, 'Código:', keyCode, 'Números atuais:', somenteNumeros.length);
+            
+            // Teclas especiais permitidas
+            var teclasEspeciais = [8, 9, 13, 27, 35, 36, 37, 38, 39, 40, 46];
+            if (teclasEspeciais.indexOf(keyCode) !== -1) {
+                console.log('✅ Tecla especial permitida:', keyCode);
+                return true;
+            }
+            
+            // Ctrl + teclas
+            if (e.ctrlKey) {
+                console.log('✅ Ctrl + tecla permitida');
+                return true;
+            }
+            
+            // Se for um número e já tiver 11 dígitos, bloquear
+            if (/[0-9]/.test(char) && somenteNumeros.length >= 11) {
+                console.log('🚫 CPF já tem 11 números, bloqueando:', char);
+                e.preventDefault();
+                return false;
+            }
+            
+            // Permitir apenas números
+            if (!/[0-9]/.test(char)) {
+                console.log('🚫 Não é número, bloqueando:', char, 'Código:', keyCode);
+                e.preventDefault();
+                return false;
+            }
+            
+            console.log('✅ Número permitido:', char);
+        });
+        
+        // Evento blur - limpeza final
+        cpfField.addEventListener('blur', function() {
+            var valorLimpo = limparCPF(this.value);
+            if (this.value !== valorLimpo) {
+                this.value = valorLimpo;
+                console.log('CPF limpo via blur:', valorLimpo);
+            }
+        });
+        
+        console.log('✅ Proteção rigorosa aplicada no campo CPF');
+    }
+    
+    function protegerCampoContato() {
+        var contatoField = document.getElementById('id_contato_pf');
+        if (!contatoField) return;
+        
+        // Função para limpar caracteres inválidos e limitar a 11 números
+        function limparContato(valor) {
+            // Remove tudo que não é número
+            var somenteNumeros = valor.replace(/[^0-9]/g, '');
+            
+            // Limita a 11 dígitos
+            somenteNumeros = somenteNumeros.substring(0, 11);
+            
+            console.log('Contato antes:', valor, 'Números:', somenteNumeros.length, 'Contato limpo:', somenteNumeros);
+            return somenteNumeros;
+        }
+        
+        // Evento input - limpa em tempo real
+        contatoField.addEventListener('input', function(e) {
+            var cursorPos = this.selectionStart;
+            var valorAnterior = this.value;
+            var valorLimpo = limparContato(this.value);
+            
+            if (valorAnterior !== valorLimpo) {
+                this.value = valorLimpo;
+                console.log('Contato limpo via input:', valorLimpo);
+                
+                // Tentar manter posição do cursor
+                try {
+                    this.setSelectionRange(cursorPos, cursorPos);
+                } catch (e) {}
+            }
+        });
+        
+        // Evento paste - limpa texto colado
+        contatoField.addEventListener('paste', function(e) {
+            var self = this;
+            setTimeout(function() {
+                var valorLimpo = limparContato(self.value);
+                if (self.value !== valorLimpo) {
+                    self.value = valorLimpo;
+                    console.log('Contato limpo via paste:', valorLimpo);
+                }
+            }, 10);
+        });
+        
+        // Evento keypress - bloqueia teclas inválidas
+        contatoField.addEventListener('keypress', function(e) {
+            var char = String.fromCharCode(e.which);
+            
+            // Contar quantos números já existem
+            var somenteNumeros = this.value.replace(/[^0-9]/g, '');
+            
+            // Se for um número e já tiver 11 dígitos, bloquear
+            if (/[0-9]/.test(char) && somenteNumeros.length >= 11) {
+                console.log('Contato já tem 11 números, bloqueando:', char);
+                e.preventDefault();
+                return false;
+            }
+            
+            // Permitir apenas números
+            if (!/[0-9]/.test(char) && !e.ctrlKey) {
+                console.log('Tecla bloqueada:', char);
+                e.preventDefault();
+                return false;
+            }
+        });
+        
+        // Evento blur - limpeza final
+        contatoField.addEventListener('blur', function() {
+            var valorLimpo = limparContato(this.value);
+            if (this.value !== valorLimpo) {
+                this.value = valorLimpo;
+                console.log('Contato limpo via blur:', valorLimpo);
+            }
+        });
+        
+        console.log('✅ Proteção rigorosa aplicada no campo Contato');
+    }
+    
+    // Aplicar proteção imediatamente
+    protegerCampoCPF();
+    protegerCampoContato();
+    
+    // Tentar novamente após 2 segundos
+    setTimeout(function() {
+        protegerCampoCPF();
+        protegerCampoContato();
+        console.log('✅ Proteção CPF e Contato aplicada (segunda tentativa)');
+    }, 2000);
+});
+</script>
+
+<!-- Script super rigoroso para bloquear letras no contato -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Aplicando proteção super rigorosa no contato');
+    
+    function protecaoRigorosaContato() {
+        var contato = document.getElementById('id_contato_pf');
+        if (!contato) {
+            console.log('Campo contato não encontrado');
+            return;
+        }
+        
+        console.log('Campo contato encontrado, aplicando proteção');
+        
+        // Função para limpar o valor
+        function limpar(valor) {
+            var limpo = valor.replace(/[^0-9]/g, '').substring(0, 11);
+            console.log('Limpeza:', valor, '->', limpo);
+            return limpo;
+        }
+        
+        // Interceptar TODAS as tentativas de entrada
+        contato.addEventListener('input', function(e) {
+            console.log('INPUT detectado:', this.value);
+            var limpo = limpar(this.value);
+            if (this.value !== limpo) {
+                this.value = limpo;
+                console.log('Valor corrigido para:', limpo);
+            }
+        }, true);
+        
+        contato.addEventListener('keydown', function(e) {
+            var char = e.key;
+            console.log('KEYDOWN:', e.keyCode, char);
+            
+            // Permitir teclas especiais
+            if (['Backspace', 'Delete', 'Tab', 'Enter', 'Escape', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(char)) {
+                return true;
+            }
+            
+            // Permitir Ctrl+comandos
+            if (e.ctrlKey) {
+                return true;
+            }
+            
+            // Permitir apenas números se não exceder 11
+            if (/^[0-9]$/.test(char)) {
+                var numeros = this.value.replace(/[^0-9]/g, '');
+                if (numeros.length >= 11) {
+                    console.log('BLOQUEADO: Limite de 11 números atingido');
+                    e.preventDefault();
+                    return false;
+                }
+                return true;
+            }
+            
+            // Bloquear tudo o resto
+            console.log('BLOQUEADO: Caractere inválido:', char);
+            e.preventDefault();
+            return false;
+        }, true);
+        
+        contato.addEventListener('paste', function(e) {
+            console.log('PASTE detectado');
+            setTimeout(() => {
+                var limpo = limpar(this.value);
+                this.value = limpo;
+                console.log('Paste limpo:', limpo);
+            }, 1);
+        }, true);
+        
+        // Interceptar digitação direta
+        contato.addEventListener('beforeinput', function(e) {
+            console.log('BEFOREINPUT:', e.inputType, e.data);
+            if (e.inputType === 'insertText' && e.data) {
+                if (!/^[0-9]$/.test(e.data)) {
+                    console.log('BLOQUEADO via beforeinput:', e.data);
+                    e.preventDefault();
+                    return false;
+                }
+                
+                var numeros = this.value.replace(/[^0-9]/g, '');
+                if (numeros.length >= 11) {
+                    console.log('BLOQUEADO via beforeinput: Limite atingido');
+                    e.preventDefault();
+                    return false;
+                }
+            }
+        }, true);
+        
+        console.log('✅ Proteção super rigorosa aplicada no contato');
+    }
+    
+    // Aplicar imediatamente
+    protecaoRigorosaContato();
+    
+    // Tentar novamente após delay
+    setTimeout(protecaoRigorosaContato, 1000);
+    setTimeout(protecaoRigorosaContato, 3000);
+    
+    // Função para forçar minúsculas no email
+    function forcaMinusculasEmail() {
+        var emailField = document.getElementById('id_email_pf');
+        if (!emailField) {
+            console.log('Campo email não encontrado');
+            return;
+        }
+        
+        console.log('Aplicando conversão automática para minúsculas no email');
+        
+        // Função para aplicar minúsculas
+        function aplicarMinusculas(elemento) {
+            if (!elemento) return;
+            
+            // Converter valor atual
+            elemento.value = elemento.value.toLowerCase();
+            
+            // Eventos para conversão automática
+            elemento.addEventListener('input', function() {
+                var cursorPos = this.selectionStart;
+                this.value = this.value.toLowerCase();
+                this.setSelectionRange(cursorPos, cursorPos);
+            });
+            
+            elemento.addEventListener('paste', function() {
+                var self = this;
+                setTimeout(function() {
+                    var cursorPos = self.selectionStart;
+                    self.value = self.value.toLowerCase();
+                    self.setSelectionRange(cursorPos, cursorPos);
+                }, 10);
+            });
+            
+            elemento.addEventListener('blur', function() {
+                this.value = this.value.toLowerCase();
+            });
+            
+            elemento.addEventListener('keydown', function(e) {
+                // Para teclas que inserem texto, converter imediatamente
+                setTimeout(() => {
+                    if (this.value !== this.value.toLowerCase()) {
+                        var cursorPos = this.selectionStart;
+                        this.value = this.value.toLowerCase();
+                        this.setSelectionRange(cursorPos, cursorPos);
+                    }
+                }, 1);
+            });
+        }
+        
+        aplicarMinusculas(emailField);
+        console.log('✅ Conversão minúsculas aplicada no email');
+    }
+    
+    // Aplicar conversão de minúsculas
+    forcaMinusculasEmail();
+    setTimeout(forcaMinusculasEmail, 1000);
+    setTimeout(forcaMinusculasEmail, 3000);
 });
 </script>

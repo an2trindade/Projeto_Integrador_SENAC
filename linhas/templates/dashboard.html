@@ -39,7 +39,7 @@
 
 <div class="row mb-3">
     <div class="col-12">
-        <div class="alert alert-light text-dark">
+        <div class="alert alert-light" style="color: #ffffff !important; background: rgba(0, 191, 174, 0.2) !important; border-color: rgba(0, 191, 174, 0.5) !important;">
             Período de análise do ciclo: <strong>{{ ciclo_start }}</strong> até <strong>{{ ciclo_end }}</strong>
         </div>
     </div>
@@ -79,12 +79,12 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-    // Ajustes globais para tema escuro (texto branco)
+    // Ajustes globais para tema claro (texto preto)
     if (window.Chart && Chart.defaults){
-        Chart.defaults.color = '#ffffff';
-        Chart.defaults.borderColor = 'rgba(255,255,255,0.15)';
+        Chart.defaults.color = '#000000';
+        Chart.defaults.borderColor = 'rgba(0,0,0,0.15)';
         if (Chart.defaults.plugins && Chart.defaults.plugins.legend && Chart.defaults.plugins.legend.labels){
-            Chart.defaults.plugins.legend.labels.color = '#ffffff';
+            Chart.defaults.plugins.legend.labels.color = '#000000';
         }
     }
     const tipoLabels = JSON.parse('{{ tipo_plano_labels_json|escapejs }}');
@@ -109,8 +109,8 @@
             plugins: {
                 legend: { display: false },
                 tooltip: {
-                    titleColor: '#ffffff',
-                    bodyColor: '#ffffff',
+                    titleColor: '#000000',
+                    bodyColor: '#000000',
                     callbacks: {
                         title: function(items) {
                             // show full label in tooltip
@@ -121,8 +121,8 @@
                 }
             },
             scales: {
-                x: { ticks: { autoSkip: false, color: '#ffffff' }, grid: { display: false } },
-                y: { beginAtZero: true, ticks: { color: '#ffffff' }, grid: { color: 'rgba(255,255,255,0.15)' } }
+                x: { ticks: { autoSkip: false, color: '#000000' }, grid: { display: false } },
+                y: { beginAtZero: true, ticks: { color: '#000000' }, grid: { color: 'rgba(0,0,0,0.15)' } }
             }
         }
     });
@@ -162,15 +162,15 @@
             responsive: true,
             maintainAspectRatio: false,
             plugins: { 
-                legend: { display: true, labels: { color: '#ffffff' } },
-                tooltip: { titleColor: '#ffffff', bodyColor: '#ffffff' }
+                legend: { display: true, labels: { color: '#000000' } },
+                tooltip: { titleColor: '#000000', bodyColor: '#000000' }
             },
             scales: {
                 x: {
-                    ticks: { maxRotation: 45, minRotation: 0, autoSkip: true, maxTicksLimit: 12, color: '#ffffff' },
+                    ticks: { maxRotation: 45, minRotation: 0, autoSkip: true, maxTicksLimit: 12, color: '#000000' },
                     grid: { display: false }
                 },
-                y: { beginAtZero: true, ticks: { color: '#ffffff' }, grid: { color: 'rgba(255,255,255,0.15)' } }
+                y: { beginAtZero: true, ticks: { color: '#000000' }, grid: { color: 'rgba(0,0,0,0.15)' } }
             }
         }
     });

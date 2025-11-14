@@ -54,8 +54,8 @@
             color: #00bfae !important;
         }
         .card, .card-body, .card-header {
-            background: linear-gradient(135deg, rgba(26, 20, 60, 0.7) 0%, rgba(15, 30, 65, 0.65) 100%) !important;
-            color: #ffffff !important;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(245, 245, 245, 0.9) 100%) !important;
+            color: #000000 !important;
             border: 1px solid rgba(0, 191, 174, 0.3) !important;
             backdrop-filter: blur(10px);
         }
@@ -66,6 +66,7 @@
         
         .card-header {
             border-bottom: 1px solid rgba(0, 191, 174, 0.3) !important;
+            color: #000000 !important;
         }
         
         .form-control {
@@ -78,6 +79,27 @@
             color: #000000;
             border-color: #00bfae;
             box-shadow: 0 0 0 0.2rem rgba(0, 191, 174, 0.25);
+        }
+        
+        /* Ícones nos campos de busca e input groups */
+        .input-group-text {
+            background-color: rgba(255, 255, 255, 0.9) !important;
+            color: #000000 !important;
+            border: 1px solid rgba(0, 191, 174, 0.5) !important;
+        }
+        
+        .input-group-text i {
+            color: #000000 !important;
+        }
+        
+        /* Ícones em labels e outros elementos do card */
+        .card label i, .card .form-label i {
+            color: #000000 !important;
+        }
+        
+        /* Ícones em botões dentro dos cards */
+        .card .btn i {
+            color: inherit !important;
         }
         .btn-primary {
             background-color: #00bfae;
@@ -128,29 +150,80 @@
         .navbar-brand i {
             margin-right: 8px;
         }
-        /* Forçar textos em branco / cinza claro no conteúdo */
-        .content-area, .content-area h1, .content-area h2, .content-area h3, .content-area h4, .content-area h5, .content-area h6,
-        .content-area p, .content-area span, .content-area small, .content-area strong, .content-area label,
-        .content-area .card, .content-area .card *:not(.form-control):not(input):not(textarea):not(select) {
+        /* Textos no conteúdo - cards com fundo claro usam texto escuro */
+        .content-area h1, .content-area h2, .content-area h3, .content-area h4, .content-area h5, .content-area h6 {
             color: #ffffff !important;
         }
-        .content-area .text-muted, .content-area .card .text-muted { color: #d2d6dc !important; }
-        /* Títulos dos cards maiores e brancos */
-        .content-area .card h5, .content-area .card h4, .content-area .card h3 { color:#ffffff !important; }
-        /* Número/estatísticas destaque */
-        .content-area .stat-number, .content-area .kpi, .content-area .card .display-4 { color:#ffffff !important; }
+        .content-area .card, .content-area .card *:not(.form-control):not(input):not(textarea):not(select) {
+            color: #000000 !important;
+        }
+        .content-area .text-muted, .content-area .card .text-muted { color: #666666 !important; }
+        /* Títulos dos cards em preto para contraste */
+        .content-area .card h5, .content-area .card h4, .content-area .card h3 { color:#000000 !important; }
+        /* Número/estatísticas destaque em azul escuro */
+        .content-area .stat-number, .content-area .kpi, .content-area .card .display-4 { color:#004d66 !important; }
         /* Tabelas */
-        .content-area table { color:#ffffff !important; }
-        .content-area table thead th { color:#ffffff !important; border-color:rgba(255,255,255,0.25)!important; }
-        .content-area table tbody td { color:#ffffff !important; border-color:rgba(255,255,255,0.15)!important; }
+        .content-area table { color:#000000 !important; }
+        .content-area table thead th { color:#000000 !important; border-color:rgba(0,0,0,0.25)!important; }
+        .content-area table tbody td { color:#000000 !important; border-color:rgba(0,0,0,0.15)!important; }
         /* Links dentro do conteúdo */
         .content-area a { color:#54ffe9 !important; }
         .content-area a:hover { color:#00bfae !important; }
         /* Botões secundários / outlines adaptados */
         .btn-outline-secondary, .btn-light { color:#ffffff !important; border-color:#00bfae !important; background:rgba(0,191,174,0.15)!important; }
         .btn-outline-secondary:hover, .btn-light:hover { background:#00bfae !important; color:#ffffff !important; }
-        /* Corrigir possíveis textos herdando preto de utilitários */
-        .text-dark, .card .text-dark { color:#ffffff !important; }
+        /* Manter textos escuros como escuros nos cards */
+        .card .text-dark { color:#000000 !important; }
+        
+        /* Forçar ícones FontAwesome nos cards para preto */
+        .card .fas, .card .far, .card .fal, .card .fab {
+            color: #000000 !important;
+        }
+        
+        /* Ícones em elementos específicos dos cards */
+        .card .fa, .card [class*="fa-"] {
+            color: #000000 !important;
+        }
+        
+        /* Gráficos e canvas no dashboard */
+        .card canvas {
+            background-color: rgba(255, 255, 255, 0.9) !important;
+        }
+        
+        /* Textos dos gráficos Chart.js */
+        .chart-container, .chart-container * {
+            color: #000000 !important;
+        }
+        
+        /* Labels e legendas dos gráficos */
+        .chart-legend, .chart-legend * {
+            color: #000000 !important;
+        }
+        
+        /* Títulos dos gráficos */
+        .chart-title {
+            color: #000000 !important;
+        }
+        
+        /* Elementos específicos do dashboard */
+        .dashboard-stats, .dashboard-stats * {
+            color: #000000 !important;
+        }
+        
+        /* Textos em elementos de estatísticas */
+        .stat-card, .stat-card * {
+            color: #000000 !important;
+        }
+        
+        /* Forçar cor preta em todos os textos SVG dos gráficos */
+        .card svg text {
+            fill: #000000 !important;
+        }
+        
+        /* Elementos de dados dos gráficos */
+        .chart-data, .chart-label {
+            color: #000000 !important;
+        }
         /* Inputs permanecem com texto escuro para legibilidade */
         .form-control, .form-select { color:#000000 !important; }
         .form-control::placeholder { color:#555 !important; }
