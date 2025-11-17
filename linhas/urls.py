@@ -33,4 +33,9 @@ urlpatterns = [
     path("fidelidade/", views.fidelidade, name="fidelidade"),
     path("buscar-linha-dados/", views.buscar_linha_dados, name="buscar_linha_dados"),
     path("configuracoes/criar-usuario/", views.criar_usuario_empresa, name="criar_usuario_empresa"),
+    path("configuracoes/listar-usuarios/", views.listar_usuarios_empresa, name="listar_usuarios_empresa"),
+    path("configuracoes/toggle-usuario-status/", views.toggle_usuario_status, name="toggle_usuario_status"),
+    path("configuracoes/visualizar-usuario/<int:user_id>/", views.visualizar_usuario, name="visualizar_usuario"),
+    path("configuracoes/editar-usuario/<int:user_id>/", views.editar_usuario, name="editar_usuario"),
+    path("configuracoes/excluir-usuario/<int:user_id>/", views.excluir_usuario, name="excluir_usuario"),
 ]

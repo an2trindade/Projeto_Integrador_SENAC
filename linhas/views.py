@@ -1010,13 +1010,17 @@ def criar_usuario_empresa(request):
     """
     View para criar usuário empresa com dados completos
     """
+    from django.contrib.auth.models import User
+    from django.db import transaction
+    from django.http import JsonResponse
+    import re
+    
     if request.method == 'POST':
-        from .models import UsuarioEmpresa
-        from django.contrib.auth.models import User
-        from django.db import transaction
-        import re
         
         try:
+            # Importar o modelo dentro do try para capturar possíveis erros
+            from .models import UsuarioEmpresa
+            
             with transaction.atomic():
                 # Coletar dados do formulário
                 cnpj = request.POST.get('cnpj', '').strip()
@@ -1103,7 +1107,15 @@ def criar_usuario_empresa(request):
                     }
                 })
                 
+        except ImportError as e:
+            return JsonResponse({
+                'success': False,
+                'error': 'Erro de configuração do sistema. Contate o administrador.'
+            })
         except Exception as e:
+            import traceback
+            error_details = traceback.format_exc()
+            print(f"Erro detalhado: {error_details}")  # Para debug no console
             return JsonResponse({
                 'success': False,
                 'error': f'Erro ao criar usuário: {str(e)}'
@@ -1113,4 +1125,235 @@ def criar_usuario_empresa(request):
         'success': False,
         'error': 'Método não permitido'
     })
+
+
+@login_required
+def listar_usuarios_empresa(request):
+    """
+    View para listar todos os usuários empresa cadastrados
+    """
+    from django.core.paginator import Paginator
+    from django.db.models import Q
+    from .models import UsuarioEmpresa
+    
+    # Buscar todos os usuários empresa
+    usuarios_qs = UsuarioEmpresa.objects.select_related('user', 'criado_por').all()
+    
+    # Filtros opcionais
+    search = request.GET.get('search', '').strip()
+    if search:
+        usuarios_qs = usuarios_qs.filter(
+            Q(razao_social__icontains=search) |
+            Q(nome_fantasia__icontains=search) |
+            Q(cnpj__icontains=search) |
+            Q(user__username__icontains=search) |
+            Q(user__email__icontains=search)
+        )
+    
+    # Filtro por status
+    status = request.GET.get('status', '')
+    if status == 'ativo':
+        usuarios_qs = usuarios_qs.filter(user__is_active=True)
+    elif status == 'inativo':
+        usuarios_qs = usuarios_qs.filter(user__is_active=False)
+    elif status == 'admin':
+        usuarios_qs = usuarios_qs.filter(user__is_staff=True)
+    
+    # Ordenação
+    usuarios_qs = usuarios_qs.order_by('-criado_em')
+    
+    # Paginação
+    paginator = Paginator(usuarios_qs, 10)  # 10 usuários por página
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    # Estatísticas
+    total_usuarios = UsuarioEmpresa.objects.count()
+    usuarios_ativos = UsuarioEmpresa.objects.filter(user__is_active=True).count()
+    usuarios_admin = UsuarioEmpresa.objects.filter(user__is_staff=True).count()
+    
+    context = {
+        'page_obj': page_obj,
+        'search': search,
+        'status_filter': status,
+        'total_usuarios': total_usuarios,
+        'usuarios_ativos': usuarios_ativos,
+        'usuarios_admin': usuarios_admin,
+        'usuarios_inativos': total_usuarios - usuarios_ativos,
+    }
+    
+    return render(request, 'linhas/listar_usuarios.html', context)
+
+
+@login_required
+def toggle_usuario_status(request):
+    """
+    AJAX view para ativar/desativar usuário
+    """
+    if request.method == 'POST':
+        from django.contrib.auth.models import User
+        
+        user_id = request.POST.get('user_id')
+        if not user_id:
+            return JsonResponse({
+                'success': False,
+                'error': 'ID do usuário não informado'
+            })
+        
+        try:
+            user = User.objects.get(id=user_id)
+            user.is_active = not user.is_active
+            user.save()
+            
+            status_text = 'ativado' if user.is_active else 'desativado'
+            
+            return JsonResponse({
+                'success': True,
+                'message': f'Usuário "{user.username}" {status_text} com sucesso!',
+                'new_status': user.is_active
+            })
+            
+        except User.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'error': 'Usuário não encontrado'
+            })
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': f'Erro ao alterar status: {str(e)}'
+            })
+    
+    return JsonResponse({
+        'success': False,
+        'error': 'Método não permitido'
+    })
+
+
+@login_required
+def visualizar_usuario(request, user_id):
+    """
+    AJAX view para buscar detalhes completos do usuário
+    """
+    try:
+        from .models import UsuarioEmpresa
+        usuario_empresa = UsuarioEmpresa.objects.select_related('user', 'criado_por').get(user__id=user_id)
+        
+        dados = {
+            'id': usuario_empresa.id,
+            'username': usuario_empresa.user.username,
+            'email': usuario_empresa.user.email,
+            'first_name': usuario_empresa.user.first_name,
+            'is_active': usuario_empresa.user.is_active,
+            'is_staff': usuario_empresa.user.is_staff,
+            'date_joined': usuario_empresa.user.date_joined.strftime('%d/%m/%Y %H:%M'),
+            'last_login': usuario_empresa.user.last_login.strftime('%d/%m/%Y %H:%M') if usuario_empresa.user.last_login else 'Nunca',
+            'cnpj': usuario_empresa.cnpj,
+            'razao_social': usuario_empresa.razao_social,
+            'nome_fantasia': usuario_empresa.nome_fantasia,
+            'endereco': usuario_empresa.endereco,
+            'telefone': usuario_empresa.telefone,
+            'cpf_agente': usuario_empresa.cpf_agente,
+            'data_nascimento_agente': usuario_empresa.data_nascimento_agente.strftime('%d/%m/%Y'),
+            'criado_em': usuario_empresa.criado_em.strftime('%d/%m/%Y %H:%M'),
+            'criado_por': usuario_empresa.criado_por.username if usuario_empresa.criado_por else 'Sistema',
+            'atualizado_em': usuario_empresa.atualizado_em.strftime('%d/%m/%Y %H:%M'),
+        }
+        
+        return JsonResponse({
+            'success': True,
+            'usuario': dados
+        })
+        
+    except UsuarioEmpresa.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'Usuário não encontrado'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'Erro ao buscar dados: {str(e)}'
+        })
+
+
+@login_required
+def editar_usuario(request, user_id):
+    """
+    View para editar dados do usuário empresa
+    """
+    from .models import UsuarioEmpresa
+    from django.contrib.auth.models import User
+    from django.shortcuts import get_object_or_404
+    from django.db import transaction
+    
+    usuario_empresa = get_object_or_404(UsuarioEmpresa, user__id=user_id)
+    
+    if request.method == 'POST':
+        try:
+            with transaction.atomic():
+                # Atualizar dados do User
+                user = usuario_empresa.user
+                user.email = request.POST.get('email', '').strip()
+                user.first_name = request.POST.get('razao_social', '')[:30]
+                user.is_staff = request.POST.get('is_administrador') == 'on'
+                user.is_superuser = user.is_staff
+                
+                # Verificar se email não está em uso por outro usuário
+                if User.objects.filter(email=user.email).exclude(id=user.id).exists():
+                    messages.error(request, f'Email "{user.email}" já está em uso por outro usuário.')
+                    return render(request, 'linhas/editar_usuario.html', {'usuario_empresa': usuario_empresa})
+                
+                user.save()
+                
+                # Atualizar dados da UsuarioEmpresa
+                usuario_empresa.cnpj = request.POST.get('cnpj', '').strip()
+                usuario_empresa.razao_social = request.POST.get('razao_social', '').strip()
+                usuario_empresa.nome_fantasia = request.POST.get('nome_fantasia', '').strip()
+                usuario_empresa.endereco = request.POST.get('endereco', '').strip()
+                usuario_empresa.telefone = request.POST.get('telefone', '').strip()
+                usuario_empresa.cpf_agente = request.POST.get('cpf_agente', '').strip()
+                usuario_empresa.data_nascimento_agente = request.POST.get('data_nascimento_agente', '')
+                
+                usuario_empresa.save()
+                
+                messages.success(request, f'Usuário "{usuario_empresa.razao_social}" atualizado com sucesso!')
+                return redirect('linhas:listar_usuarios_empresa')
+                
+        except Exception as e:
+            messages.error(request, f'Erro ao atualizar usuário: {str(e)}')
+    
+    return render(request, 'linhas/editar_usuario.html', {'usuario_empresa': usuario_empresa})
+
+
+@login_required
+def excluir_usuario(request, user_id):
+    """
+    View para excluir usuário empresa
+    """
+    from .models import UsuarioEmpresa
+    from django.shortcuts import get_object_or_404
+    
+    usuario_empresa = get_object_or_404(UsuarioEmpresa, user__id=user_id)
+    
+    if request.method == 'POST':
+        try:
+            razao_social = usuario_empresa.razao_social
+            username = usuario_empresa.user.username
+            
+            # Verificar se não é o próprio usuário logado
+            if usuario_empresa.user == request.user:
+                messages.error(request, 'Você não pode excluir sua própria conta.')
+                return redirect('linhas:listar_usuarios_empresa')
+            
+            # Excluir usuário (cascata excluirá UsuarioEmpresa)
+            usuario_empresa.user.delete()
+            
+            messages.success(request, f'Usuário "{razao_social}" ({username}) excluído com sucesso!')
+            return redirect('linhas:listar_usuarios_empresa')
+            
+        except Exception as e:
+            messages.error(request, f'Erro ao excluir usuário: {str(e)}')
+    
+    return render(request, 'linhas/excluir_usuario.html', {'usuario_empresa': usuario_empresa})
 
