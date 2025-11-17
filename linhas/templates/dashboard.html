@@ -45,13 +45,34 @@
     </div>
 </div>
 
-<!-- Protocols pendentes -->
+<!-- Protocolos pendentes e concluídos -->
 <div class="row mb-3">
     <div class="col-md-6">
-        <div class="card p-3">
-            <h5><i class="fas fa-file-alt"></i> Protocolos Pendentes</h5>
-            <h2>{{ protocolos_pendentes_count }}</h2>
-            <small class="text-muted">Protocolos com status pendente</small>
+        <div class="card p-3 border-warning shadow-sm">
+            <div class="d-flex align-items-center">
+                <div class="flex-grow-1">
+                    <h5 class="mb-1"><i class="fas fa-clock text-warning"></i> Protocolos Pendentes</h5>
+                    <h2 class="text-warning mb-0 fw-bold">{{ protocolos_pendentes_count }}</h2>
+                    <small class="text-muted">Aguardando resolução</small>
+                </div>
+                <div class="bg-warning bg-opacity-10 rounded-circle p-3">
+                    <i class="fas fa-hourglass-half fa-2x text-warning"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card p-3 border-success shadow-sm">
+            <div class="d-flex align-items-center">
+                <div class="flex-grow-1">
+                    <h5 class="mb-1"><i class="fas fa-check-circle text-success"></i> Protocolos Concluídos</h5>
+                    <h2 class="text-success mb-0 fw-bold">{{ protocolos_concluidos_count }}</h2>
+                    <small class="text-muted">Finalizados com sucesso</small>
+                </div>
+                <div class="bg-success bg-opacity-10 rounded-circle p-3">
+                    <i class="fas fa-check-double fa-2x text-success"></i>
+                </div>
+            </div>
         </div>
     </div>
 </div>

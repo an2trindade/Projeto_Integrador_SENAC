@@ -1,0 +1,257 @@
+{% extends 'base.html' %}
+
+{% block title %}Excluir Usuário - Gestor de Linhas{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1><i class="fas fa-user-times text-danger"></i> Excluir Usuário</h1>
+                <p class="text-muted">Confirmar exclusão do usuário empresa</p>
+            </div>
+            <a href="{% url 'linhas:listar_usuarios_empresa' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Voltar à Lista
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Aviso de Exclusão -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="alert alert-danger border-danger">
+            <div class="row align-items-center">
+                <div class="col-md-1 text-center">
+                    <i class="fas fa-exclamation-triangle fa-3x text-danger"></i>
+                </div>
+                <div class="col-md-11">
+                    <h5 class="alert-heading text-danger">
+                        <i class="fas fa-warning"></i> ATENÇÃO: Exclusão Permanente
+                    </h5>
+                    <p class="mb-2">
+                        Você está prestes a excluir permanentemente o usuário abaixo. 
+                        <strong>Esta ação não pode ser desfeita!</strong>
+                    </p>
+                    <p class="mb-0 small">
+                        <i class="fas fa-info-circle"></i> 
+                        Todos os dados relacionados a este usuário serão removidos do sistema.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Dados do Usuário a ser Excluído -->
+<div class="card border-danger">
+    <div class="card-header bg-danger bg-opacity-10 border-danger">
+        <h6 class="card-title text-danger mb-0">
+            <i class="fas fa-user"></i> Dados do Usuário que será Excluído
+        </h6>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <!-- Dados da Empresa -->
+            <div class="col-md-6 mb-4">
+                <h6 class="text-primary border-bottom pb-2 mb-3">
+                    <i class="fas fa-building"></i> Dados da Empresa
+                </h6>
+                <div class="mb-2">
+                    <strong>Razão Social:</strong><br>
+                    <span class="text-dark">{{ usuario_empresa.razao_social }}</span>
+                </div>
+                {% if usuario_empresa.nome_fantasia %}
+                <div class="mb-2">
+                    <strong>Nome Fantasia:</strong><br>
+                    <span class="text-muted">{{ usuario_empresa.nome_fantasia }}</span>
+                </div>
+                {% endif %}
+                <div class="mb-2">
+                    <strong>CNPJ:</strong><br>
+                    <span class="font-monospace text-dark">{{ usuario_empresa.cnpj }}</span>
+                </div>
+                <div class="mb-2">
+                    <strong>Endereço:</strong><br>
+                    <span class="text-muted">{{ usuario_empresa.endereco }}</span>
+                </div>
+                <div class="mb-2">
+                    <strong>Telefone:</strong><br>
+                    <span class="text-muted">{{ usuario_empresa.telefone }}</span>
+                </div>
+            </div>
+
+            <!-- Dados do Usuário -->
+            <div class="col-md-6 mb-4">
+                <h6 class="text-primary border-bottom pb-2 mb-3">
+                    <i class="fas fa-user"></i> Dados do Usuário
+                </h6>
+                <div class="mb-2">
+                    <strong>Nome de Usuário:</strong><br>
+                    <span class="text-dark">{{ usuario_empresa.user.username }}</span>
+                </div>
+                <div class="mb-2">
+                    <strong>Email:</strong><br>
+                    <span class="text-muted">{{ usuario_empresa.user.email }}</span>
+                </div>
+                <div class="mb-2">
+                    <strong>Status Atual:</strong><br>
+                    {% if usuario_empresa.user.is_active %}
+                        <span class="badge bg-success">
+                            <i class="fas fa-check-circle"></i> Ativo
+                        </span>
+                    {% else %}
+                        <span class="badge bg-danger">
+                            <i class="fas fa-times-circle"></i> Inativo
+                        </span>
+                    {% endif %}
+                    {% if usuario_empresa.user.is_staff %}
+                        <span class="badge bg-warning text-dark ms-1">
+                            <i class="fas fa-shield-alt"></i> Administrador
+                        </span>
+                    {% endif %}
+                </div>
+                <div class="mb-2">
+                    <strong>Cadastrado em:</strong><br>
+                    <span class="text-muted">{{ usuario_empresa.criado_em|date:"d/m/Y H:i" }}</span>
+                    {% if usuario_empresa.criado_por %}
+                        <br><small class="text-muted">por {{ usuario_empresa.criado_por.username }}</small>
+                    {% endif %}
+                </div>
+                <div class="mb-2">
+                    <strong>Último Login:</strong><br>
+                    <span class="text-muted">
+                        {% if usuario_empresa.user.last_login %}
+                            {{ usuario_empresa.user.last_login|date:"d/m/Y H:i" }}
+                        {% else %}
+                            Nunca fez login
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dados do Agente -->
+        <div class="row">
+            <div class="col-12">
+                <h6 class="text-primary border-bottom pb-2 mb-3">
+                    <i class="fas fa-id-card"></i> Dados do Agente
+                </h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-2">
+                            <strong>CPF:</strong><br>
+                            <span class="font-monospace text-dark">{{ usuario_empresa.cpf_agente }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-2">
+                            <strong>Data de Nascimento:</strong><br>
+                            <span class="text-muted">{{ usuario_empresa.data_nascimento_agente|date:"d/m/Y" }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Consequências da Exclusão -->
+<div class="card border-warning mt-4">
+    <div class="card-header bg-warning bg-opacity-10">
+        <h6 class="card-title text-warning mb-0">
+            <i class="fas fa-exclamation-triangle"></i> Consequências desta Ação
+        </h6>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <h6 class="text-danger">O que será removido:</h6>
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-times text-danger"></i> Conta de usuário e credenciais de login</li>
+                    <li><i class="fas fa-times text-danger"></i> Todos os dados empresariais cadastrados</li>
+                    <li><i class="fas fa-times text-danger"></i> Histórico de criação e modificações</li>
+                    <li><i class="fas fa-times text-danger"></i> Associação com registros do sistema</li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h6 class="text-info">O que será mantido:</h6>
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-check text-success"></i> Logs de auditoria do sistema</li>
+                    <li><i class="fas fa-check text-success"></i> Registros criados por este usuário*</li>
+                </ul>
+                <small class="text-muted">
+                    * Os registros criados pelo usuário permanecerão no sistema, 
+                    mas a referência ao criador será marcada como "usuário excluído".
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmação de Exclusão -->
+<form method="post" class="mt-4">
+    {% csrf_token %}
+    
+    <div class="card border-danger">
+        <div class="card-header bg-danger bg-opacity-10">
+            <h6 class="card-title text-danger mb-0">
+                <i class="fas fa-check-square"></i> Confirmação de Exclusão
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" id="confirmaExclusao" required>
+                <label class="form-check-label text-danger" for="confirmaExclusao">
+                    <strong>
+                        Eu entendo que esta ação é irreversível e confirmo a exclusão do usuário 
+                        "{{ usuario_empresa.razao_social }}" ({{ usuario_empresa.user.username }})
+                    </strong>
+                </label>
+            </div>
+            
+            <div class="alert alert-danger" role="alert">
+                <i class="fas fa-exclamation-triangle"></i>
+                <strong>Última chance!</strong> 
+                Após clicar em "Confirmar Exclusão", não será possível recuperar este usuário.
+            </div>
+            
+            <div class="d-flex gap-2 justify-content-end">
+                <a href="{% url 'linhas:listar_usuarios_empresa' %}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancelar
+                </a>
+                <button type="submit" class="btn btn-danger" id="btnExcluir" disabled>
+                    <i class="fas fa-trash"></i> Confirmar Exclusão
+                </button>
+            </div>
+        </div>
+    </div>
+</form>
+
+<script>
+// Habilitar botão apenas quando checkbox estiver marcado
+document.addEventListener('DOMContentLoaded', function() {
+    const checkbox = document.getElementById('confirmaExclusao');
+    const btnExcluir = document.getElementById('btnExcluir');
+    
+    checkbox.addEventListener('change', function() {
+        btnExcluir.disabled = !this.checked;
+        
+        if (this.checked) {
+            btnExcluir.classList.remove('btn-danger');
+            btnExcluir.classList.add('btn-outline-danger');
+        } else {
+            btnExcluir.classList.remove('btn-outline-danger');
+            btnExcluir.classList.add('btn-danger');
+        }
+    });
+    
+    // Confirmação adicional no submit
+    document.querySelector('form').addEventListener('submit', function(e) {
+        if (!confirm('ÚLTIMA CONFIRMAÇÃO: Tem absoluta certeza que deseja excluir este usuário? Esta ação NÃO PODE SER DESFEITA!')) {
+            e.preventDefault();
+        }
+    });
+});
+</script>
+{% endblock %}

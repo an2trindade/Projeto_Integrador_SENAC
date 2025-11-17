@@ -1,0 +1,262 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar Usuário - Gestor de Linhas{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1><i class="fas fa-user-edit"></i> Editar Usuário</h1>
+                <p class="text-muted">Alterar dados do usuário empresa</p>
+            </div>
+            <a href="{% url 'linhas:listar_usuarios_empresa' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Voltar à Lista
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Informações do Usuário -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="alert alert-info">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h6 class="alert-heading mb-2">
+                        <i class="fas fa-info-circle"></i> Editando Usuário
+                    </h6>
+                    <p class="mb-0">
+                        <strong>Usuário:</strong> {{ usuario_empresa.user.username }} | 
+                        <strong>Empresa:</strong> {{ usuario_empresa.razao_social }} | 
+                        <strong>Criado em:</strong> {{ usuario_empresa.criado_em|date:"d/m/Y H:i" }}
+                    </p>
+                </div>
+                <div class="col-md-4 text-end">
+                    {% if usuario_empresa.user.is_active %}
+                        <span class="badge bg-success fs-6">
+                            <i class="fas fa-check-circle"></i> Ativo
+                        </span>
+                    {% else %}
+                        <span class="badge bg-danger fs-6">
+                            <i class="fas fa-times-circle"></i> Inativo
+                        </span>
+                    {% endif %}
+                    {% if usuario_empresa.user.is_staff %}
+                        <span class="badge bg-warning text-dark fs-6 ms-1">
+                            <i class="fas fa-shield-alt"></i> Admin
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Formulário de Edição -->
+<form method="post" class="needs-validation" novalidate>
+    {% csrf_token %}
+    
+    <div class="card">
+        <div class="card-body">
+            <!-- Dados da Empresa -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h6 class="text-primary border-bottom pb-2 mb-3">
+                        <i class="fas fa-building"></i> Dados da Empresa
+                    </h6>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label for="cnpj" class="form-label">
+                        <i class="fas fa-id-card"></i> CNPJ *
+                    </label>
+                    <input type="text" class="form-control" id="cnpj" name="cnpj" 
+                           value="{{ usuario_empresa.cnpj }}" maxlength="18" required>
+                    <div class="invalid-feedback">Por favor, insira um CNPJ válido.</div>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label for="razao_social" class="form-label">
+                        <i class="fas fa-building"></i> Razão Social *
+                    </label>
+                    <input type="text" class="form-control" id="razao_social" name="razao_social" 
+                           value="{{ usuario_empresa.razao_social }}" required>
+                    <div class="invalid-feedback">Por favor, insira a razão social.</div>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label for="nome_fantasia" class="form-label">
+                        <i class="fas fa-store"></i> Nome Fantasia
+                    </label>
+                    <input type="text" class="form-control" id="nome_fantasia" name="nome_fantasia" 
+                           value="{{ usuario_empresa.nome_fantasia }}">
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label for="endereco" class="form-label">
+                        <i class="fas fa-map-marker-alt"></i> Endereço *
+                    </label>
+                    <input type="text" class="form-control" id="endereco" name="endereco" 
+                           value="{{ usuario_empresa.endereco }}" required>
+                    <div class="invalid-feedback">Por favor, insira o endereço.</div>
+                </div>
+            </div>
+
+            <!-- Dados de Contato -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h6 class="text-primary border-bottom pb-2 mb-3">
+                        <i class="fas fa-phone"></i> Dados de Contato
+                    </h6>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label for="email" class="form-label">
+                        <i class="fas fa-envelope"></i> Email *
+                    </label>
+                    <input type="email" class="form-control" id="email" name="email" 
+                           value="{{ usuario_empresa.user.email }}" required>
+                    <div class="invalid-feedback">Por favor, insira um email válido.</div>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label for="telefone" class="form-label">
+                        <i class="fas fa-phone"></i> Telefone *
+                    </label>
+                    <input type="text" class="form-control" id="telefone" name="telefone" 
+                           value="{{ usuario_empresa.telefone }}" maxlength="15" required>
+                    <div class="invalid-feedback">Por favor, insira um telefone válido.</div>
+                </div>
+            </div>
+
+            <!-- Dados do Agente -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h6 class="text-primary border-bottom pb-2 mb-3">
+                        <i class="fas fa-user"></i> Dados do Agente
+                    </h6>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label for="cpf_agente" class="form-label">
+                        <i class="fas fa-id-badge"></i> CPF do Agente *
+                    </label>
+                    <input type="text" class="form-control" id="cpf_agente" name="cpf_agente" 
+                           value="{{ usuario_empresa.cpf_agente }}" maxlength="14" required>
+                    <div class="invalid-feedback">Por favor, insira um CPF válido.</div>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label for="data_nascimento_agente" class="form-label">
+                        <i class="fas fa-calendar"></i> Data de Nascimento *
+                    </label>
+                    <input type="date" class="form-control" id="data_nascimento_agente" name="data_nascimento_agente" 
+                           value="{{ usuario_empresa.data_nascimento_agente|date:'Y-m-d' }}" required>
+                    <div class="invalid-feedback">Por favor, selecione a data de nascimento.</div>
+                </div>
+            </div>
+
+            <!-- Configurações de Acesso -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h6 class="text-primary border-bottom pb-2 mb-3">
+                        <i class="fas fa-key"></i> Configurações de Acesso
+                    </h6>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label for="username" class="form-label">
+                        <i class="fas fa-user"></i> Nome de Usuário
+                    </label>
+                    <input type="text" class="form-control" id="username" 
+                           value="{{ usuario_empresa.user.username }}" readonly>
+                    <div class="form-text">O nome de usuário não pode ser alterado.</div>
+                </div>
+                
+                <div class="col-12 mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="is_administrador" name="is_administrador"
+                               {% if usuario_empresa.user.is_staff %}checked{% endif %}>
+                        <label class="form-check-label" for="is_administrador">
+                            <i class="fas fa-shield-alt text-warning"></i> 
+                            <strong>Usuário Administrador</strong>
+                            <small class="text-muted d-block">Concede acesso total ao sistema</small>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aviso sobre senha -->
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle"></i>
+                <strong>Importante:</strong> Para alterar a senha do usuário, use a opção "Alterar Senhas" na página de configurações.
+            </div>
+        </div>
+    </div>
+
+    <!-- Botões de Ação -->
+    <div class="row mt-4">
+        <div class="col-12 d-flex gap-2 justify-content-end">
+            <a href="{% url 'linhas:listar_usuarios_empresa' %}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Cancelar
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Salvar Alterações
+            </button>
+        </div>
+    </div>
+</form>
+
+<script>
+// Aplicar máscaras
+document.addEventListener('DOMContentLoaded', function() {
+    // Máscara CNPJ
+    const cnpjInput = document.getElementById('cnpj');
+    if (cnpjInput) {
+        cnpjInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length <= 14) {
+                value = value.replace(/^(\d{2})(\d)/, '$1.$2');
+                value = value.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+                value = value.replace(/\.(\d{3})(\d)/, '.$1/$2');
+                value = value.replace(/(\d{4})(\d)/, '$1-$2');
+            }
+            e.target.value = value;
+        });
+    }
+
+    // Máscara CPF
+    const cpfInput = document.getElementById('cpf_agente');
+    if (cpfInput) {
+        cpfInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length <= 11) {
+                value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                value = value.replace(/(\d{3})(\d)/, '$1.$2');
+                value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+            }
+            e.target.value = value;
+        });
+    }
+
+    // Máscara Telefone
+    const telefoneInput = document.getElementById('telefone');
+    if (telefoneInput) {
+        telefoneInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length <= 11) {
+                if (value.length <= 10) {
+                    value = value.replace(/(\d{2})(\d)/, '($1) $2');
+                    value = value.replace(/(\d{4})(\d)/, '$1-$2');
+                } else {
+                    value = value.replace(/(\d{2})(\d)/, '($1) $2');
+                    value = value.replace(/(\d{5})(\d)/, '$1-$2');
+                }
+            }
+            e.target.value = value;
+        });
+    }
+});
+</script>
+{% endblock %}

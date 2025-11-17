@@ -136,3 +136,28 @@ class Fidelidade(models.Model):
     
     def __str__(self):
         return f"Fidelidade - Linha {self.linha.numero} ({self.criado_em.strftime('%d/%m/%Y')})"
+
+
+class UsuarioEmpresa(models.Model):
+    """
+    Modelo para armazenar dados empresariais dos usuários do sistema
+    """
+    user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name='Usuário', related_name='usuario_empresa')
+    cnpj = models.CharField(max_length=18, verbose_name='CNPJ')
+    razao_social = models.CharField(max_length=200, verbose_name='Razão Social')
+    nome_fantasia = models.CharField(max_length=200, verbose_name='Nome Fantasia', blank=True, default='')
+    endereco = models.CharField(max_length=500, verbose_name='Endereço')
+    telefone = models.CharField(max_length=15, verbose_name='Telefone')
+    cpf_agente = models.CharField(max_length=14, verbose_name='CPF do Agente')
+    data_nascimento_agente = models.DateField(verbose_name='Data de Nascimento do Agente')
+    criado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Criado por', related_name='usuarios_empresas_criados')
+    criado_em = models.DateTimeField(auto_now_add=True, verbose_name='Criado em')
+    atualizado_em = models.DateTimeField(auto_now=True, verbose_name='Atualizado em')
+    
+    class Meta:
+        ordering = ['razao_social']
+        verbose_name = 'Usuário Empresa'
+        verbose_name_plural = 'Usuários Empresas'
+    
+    def __str__(self):
+        return f"{self.razao_social} ({self.user.username})"
