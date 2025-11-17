@@ -32,4 +32,5 @@ urlpatterns = [
     path("listar-rps-cliente/", views.listar_rps_cliente, name="listar_rps_cliente"),
     path("fidelidade/", views.fidelidade, name="fidelidade"),
     path("buscar-linha-dados/", views.buscar_linha_dados, name="buscar_linha_dados"),
+    path("configuracoes/criar-usuario/", views.criar_usuario_empresa, name="criar_usuario_empresa"),
 ]

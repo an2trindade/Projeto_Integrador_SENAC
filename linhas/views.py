@@ -553,6 +553,10 @@ def dashboard(request):
     # Pending protocols
     protocolos_pendentes_qs = Protocolo.objects.filter(status='pendente').order_by('-criado_em')
     protocolos_pendentes_count = protocolos_pendentes_qs.count()
+    
+    # Completed protocols (resolvido status)
+    protocolos_concluidos_qs = Protocolo.objects.filter(status='resolvido').order_by('-criado_em')
+    protocolos_concluidos_count = protocolos_concluidos_qs.count()
 
     import json
 
@@ -578,6 +582,7 @@ def dashboard(request):
         'dias_json': json.dumps(dias, ensure_ascii=False),
         'contagens_dias_json': json.dumps(contagens_dias),
     'protocolos_pendentes_count': protocolos_pendentes_count,
+    'protocolos_concluidos_count': protocolos_concluidos_count,
     # protocol time series for charts
     'protocolos_dias_labels_json': json.dumps(dias, ensure_ascii=False),
     'protocolos_pendente_series_json': json.dumps(protocolos_por_status['pendente']),
@@ -998,4 +1003,114 @@ def buscar_linha_dados(request):
             'success': False,
             'error': f'Erro ao buscar dados da linha: {str(e)}'
         })
+
+
+@login_required
+def criar_usuario_empresa(request):
+    """
+    View para criar usuário empresa com dados completos
+    """
+    if request.method == 'POST':
+        from .models import UsuarioEmpresa
+        from django.contrib.auth.models import User
+        from django.db import transaction
+        import re
+        
+        try:
+            with transaction.atomic():
+                # Coletar dados do formulário
+                cnpj = request.POST.get('cnpj', '').strip()
+                razao_social = request.POST.get('razao_social', '').strip()
+                nome_fantasia = request.POST.get('nome_fantasia', '').strip()
+                endereco = request.POST.get('endereco', '').strip()
+                email = request.POST.get('email', '').strip()
+                telefone = request.POST.get('telefone', '').strip()
+                cpf_responsavel = request.POST.get('cpf_responsavel', '').strip()
+                data_nascimento = request.POST.get('data_nascimento', '').strip()
+                username = request.POST.get('username', '').strip()
+                senha = request.POST.get('senha', '').strip()
+                is_administrador = request.POST.get('is_administrador') == 'on'
+                
+                # Validações básicas
+                if not all([cnpj, razao_social, endereco, email, telefone, cpf_responsavel, data_nascimento, username, senha]):
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'Todos os campos obrigatórios devem ser preenchidos.'
+                    })
+                
+                # Validar se usuário já existe
+                if User.objects.filter(username=username).exists():
+                    return JsonResponse({
+                        'success': False,
+                        'error': f'Nome de usuário "{username}" já existe. Escolha outro.'
+                    })
+                
+                # Validar se email já existe
+                if User.objects.filter(email=email).exists():
+                    return JsonResponse({
+                        'success': False,
+                        'error': f'Email "{email}" já está em uso. Use outro email.'
+                    })
+                
+                # Validar CNPJ (básico - apenas dígitos)
+                cnpj_digits = re.sub(r'\D', '', cnpj)
+                if len(cnpj_digits) != 14:
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'CNPJ deve ter 14 dígitos válidos.'
+                    })
+                
+                # Validar CPF (básico - apenas dígitos)
+                cpf_digits = re.sub(r'\D', '', cpf_responsavel)
+                if len(cpf_digits) != 11:
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'CPF deve ter 11 dígitos válidos.'
+                    })
+                
+                # Criar usuário Django
+                user = User.objects.create_user(
+                    username=username,
+                    email=email,
+                    password=senha,
+                    first_name=razao_social[:30],  # Limita para o campo first_name
+                    is_staff=is_administrador,
+                    is_superuser=is_administrador
+                )
+                
+                # Criar perfil empresarial
+                usuario_empresa = UsuarioEmpresa.objects.create(
+                    user=user,
+                    cnpj=cnpj,
+                    razao_social=razao_social,
+                    nome_fantasia=nome_fantasia,
+                    endereco=endereco,
+                    telefone=telefone,
+                    cpf_agente=cpf_responsavel,
+                    data_nascimento_agente=data_nascimento,
+                    criado_por=request.user
+                )
+                
+                return JsonResponse({
+                    'success': True,
+                    'message': f'Usuário "{razao_social}" ({username}) criado com sucesso!',
+                    'usuario': {
+                        'id': user.id,
+                        'username': username,
+                        'razao_social': razao_social,
+                        'cnpj': cnpj,
+                        'is_administrador': is_administrador
+                    }
+                })
+                
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': f'Erro ao criar usuário: {str(e)}'
+            })
+    
+    return JsonResponse({
+        'success': False,
+        'error': 'Método não permitido'
+    })
 
