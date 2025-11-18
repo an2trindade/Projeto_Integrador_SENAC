@@ -4,54 +4,50 @@
 
 {% block extra_css %}
 <style>
-    /* Layout com Cards de Fundo */
+    /* Layout conforme print - fundo escuro */
     body {
-        background-color: #f8f9fa;
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        min-height: 100vh;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        margin: 0;
+        padding: 0;
     }
     
-    /* Header com Gradient */
-    .config-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    /* Header principal - fundo escuro */
+    .config-main-header {
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
         color: white;
-        border-radius: 12px;
-        margin-bottom: 2rem;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-    }
-    
-    .config-header-content {
         padding: 2rem;
+        margin: 0;
     }
     
     .config-title {
-        font-size: 1.75rem;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
+        font-size: 2rem;
+        font-weight: 400;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .config-title i {
+        font-size: 1.8rem;
     }
     
     .config-subtitle {
-        opacity: 0.9;
-        margin: 0;
+        opacity: 0.8;
+        margin: 0.5rem 0 0 0;
         font-size: 1rem;
+        font-weight: 300;
     }
     
-    .admin-badge {
-        background: rgba(255, 255, 255, 0.2);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        color: white;
-        padding: 0.5rem 1rem;
-        border-radius: 20px;
-        font-size: 0.875rem;
-        font-weight: 500;
-    }
-    
-    /* Container Principal com Card */
-    .config-container {
+    /* Container branco com abas */
+    /* Container branco com abas */
+    .config-white-container {
         background: white;
+        margin: 0 2rem 2rem 2rem;
         border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-        border: 1px solid #e5e7eb;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         overflow: hidden;
     }
     
@@ -196,22 +192,51 @@
     
 
 
-    /* Cards com Background */
-    .feature-card {
-        background: white;
+    /* Cards de funcionalidades conforme print */
+    .config-card {
+        background: #f8f9fa;
         border: 1px solid #e9ecef;
-        border-radius: 12px;
-        padding: 2rem;
-        margin-bottom: 1.5rem;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
         transition: all 0.3s ease;
-        height: auto;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
     
-    .feature-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-        border-color: #667eea;
+    .config-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+    }
+    
+    .config-card-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .config-card-description {
+        color: #666;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+    
+    /* Alert de desenvolvimento conforme print */
+    .development-alert {
+        background: #f8d7da;
+        border: 1px solid #f5c6cb;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        color: #721c24;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .development-alert i {
+        color: #721c24;
     }
     
     .feature-card.active {
@@ -483,29 +508,18 @@
 
 {% block content %}
 <!-- Header Principal -->
-<div class="container">
-    <div class="config-header">
-        <div class="config-header-content">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h1 class="config-title">
-                        <i class="fas fa-cog me-2"></i>Configurações do Sistema
-                    </h1>
-                    <p class="config-subtitle">Central de administração e configurações avançadas</p>
-                </div>
-                <div class="admin-badge">
-                    <i class="fas fa-shield-alt me-2"></i>Admin Panel
-                </div>
-            </div>
-            
+<div class="config-main-header">
+    <h1 class="config-title">
+        <i class="fas fa-cogs"></i>
+        Configurações
+    </h1>
+    <p class="config-subtitle">Gerencie configurações do sistema, usuários e associados</p>
+</div>
 
-        </div>
-    </div>
-
-    <!-- Container Principal -->
-    <div class="config-container">
-        <div class="config-nav">
-            <ul class="nav nav-tabs-custom" id="configTabs" role="tablist">
+<!-- Container Branco com Abas -->
+<div class="config-white-container">
+    <!-- Navegação das Abas -->
+    <ul class="nav nav-tabs-custom" id="configTabs" role="tablist">
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active" id="linhas-tab" data-bs-toggle="tab" data-bs-target="#linhas-content" type="button" role="tab">
                         <i class="fas fa-phone me-2"></i>Linhas
@@ -539,39 +553,41 @@
                 </div>
                 
                 <p class="section-description">
-                    Configure parâmetros relacionados ao gerenciamento de linhas telefônicas e planos.
+                    Configure parâmetros relacionados ao gerenciamento de linhas telefônicas
                 </p>
                 
-                <span class="status-badge development">Em Desenvolvimento</span>
-                
-                <div class="alert alert-info mt-3 mb-4">
-                    <i class="fas fa-info-circle me-2"></i>
-                    <strong>Em desenvolvimento:</strong> Configurações de linhas serão implementadas em breve.
+                <div class="development-alert">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span><strong>Em desenvolvimento:</strong> Configurações de linhas serão implementadas em breve.</span>
                 </div>
                 
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <div class="feature-card development">
-                            <div class="feature-icon warning">
+                        <div class="config-card">
+                            <div class="config-card-title">
                                 <i class="fas fa-cogs"></i>
+                                Parâmetros Gerais
                             </div>
-                            <h4 class="feature-title">Parâmetros Gerais</h4>
-                            <p class="feature-description">Configurações globais do sistema de linhas, operadoras e tipos de planos</p>
-                            <button class="btn-clean outline" disabled>
-                                <i class="fas fa-edit"></i> Configurar
+                            <div class="config-card-description">
+                                Configurações globais do sistema de linhas
+                            </div>
+                            <button class="btn btn-outline-secondary btn-sm" disabled>
+                                <i class="fas fa-edit me-1"></i> Configurar
                             </button>
                         </div>
                     </div>
                     
                     <div class="col-md-6 mb-3">
-                        <div class="feature-card development">
-                            <div class="feature-icon info">
+                        <div class="config-card">
+                            <div class="config-card-title">
                                 <i class="fas fa-chart-line"></i>
+                                Relatórios
                             </div>
-                            <h4 class="feature-title">Relatórios</h4>
-                            <p class="feature-description">Configurações de relatórios e exportações</p>
-                            <button class="btn-clean outline" disabled>
-                                <i class="fas fa-chart-bar"></i> Configurar
+                            <div class="config-card-description">
+                                Configurações de relatórios e exportações
+                            </div>
+                            <button class="btn btn-outline-secondary btn-sm" disabled>
+                                <i class="fas fa-chart-bar me-1"></i> Configurar
                             </button>
                         </div>
                     </div>
