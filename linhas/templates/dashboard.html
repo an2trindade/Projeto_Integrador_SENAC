@@ -4,93 +4,290 @@
 
 {% load static %}
 {% block content %}
-<div class="row mb-4">
-    <div class="col-12">
-        <h1>Dashboard</h1>
-    </div>
+<style>
+    /* Dashboard Tecnológico */
+    .dashboard-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 25px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+    }
+    
+    .dashboard-header h1 {
+        color: #ffffff;
+        font-weight: 700;
+        font-size: 2rem;
+        margin: 0;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    /* Cards Estatísticos Modernos */
+    .stat-card {
+        background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 20px;
+        padding: 25px;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(102, 126, 234, 0.4);
+        border-color: rgba(102, 126, 234, 0.5);
+    }
+    
+    .stat-card .icon-wrapper {
+        width: 60px;
+        height: 60px;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        margin-bottom: 15px;
+        transition: all 0.3s ease;
+    }
+    
+    .stat-card:hover .icon-wrapper {
+        transform: scale(1.1) rotate(5deg);
+    }
+    
+    .stat-card.total .icon-wrapper {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: #ffffff;
+    }
+    
+    .stat-card.ativas .icon-wrapper {
+        background: linear-gradient(135deg, #11998e, #38ef7d);
+        color: #ffffff;
+    }
+    
+    .stat-card.canceladas .icon-wrapper {
+        background: linear-gradient(135deg, #ee0979, #ff6a00);
+        color: #ffffff;
+    }
+    
+    .stat-card.novas .icon-wrapper {
+        background: linear-gradient(135deg, #f093fb, #f5576c);
+        color: #ffffff;
+    }
+    
+    .stat-card h5 {
+        color: rgba(255,255,255,0.8);
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin: 0 0 10px 0;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .stat-card h2 {
+        color: #ffffff;
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin: 0;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    /* Período Card */
+    .periodo-card {
+        background: linear-gradient(135deg, rgba(0, 191, 174, 0.2), rgba(0, 150, 136, 0.2));
+        border: 1px solid rgba(0, 191, 174, 0.3);
+        border-radius: 15px;
+        padding: 20px;
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    
+    .periodo-card strong {
+        color: #00bfae;
+        font-weight: 700;
+    }
+    
+    /* Protocol Cards */
+    .protocol-card {
+        background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 20px;
+        padding: 25px;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .protocol-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+    }
+    
+    .protocol-card.pendente::before {
+        background: linear-gradient(90deg, #f093fb, #f5576c);
+    }
+    
+    .protocol-card.concluido::before {
+        background: linear-gradient(90deg, #11998e, #38ef7d);
+    }
+    
+    .protocol-card h5 {
+        color: #ffffff;
+        font-weight: 600;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .protocol-card .protocol-number {
+        font-size: 3rem;
+        font-weight: 700;
+        color: #ffffff;
+        text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    
+    .protocol-card .protocol-icon {
+        font-size: 50px;
+        position: absolute;
+        right: 20px;
+        bottom: 20px;
+        opacity: 0.1;
+    }
+    
+    .protocol-status {
+        font-size: 0.9rem;
+        color: rgba(255,255,255,0.7);
+        margin-top: 10px;
+    }
+    
+    /* Chart Cards */
+    .chart-card {
+        background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 20px;
+        padding: 25px;
+        margin-bottom: 20px;
+    }
+    
+    .chart-card h5 {
+        color: #ffffff;
+        font-weight: 600;
+        margin-bottom: 20px;
+        font-size: 1.1rem;
+    }
+    
+    .chart-wrapper {
+        position: relative;
+        height: 300px;
+        width: 100%;
+    }
+</style>
+
+<div class="dashboard-header">
+    <h1><i class="fas fa-chart-line me-2"></i>Dashboard</h1>
 </div>
 
-<div class="row g-3">
+<div class="row g-4 mb-4">
     <div class="col-md-3">
-        <div class="card p-3 card-stats">
-            <h5><i class="fas fa-sitemap"></i> Total de Linhas</h5>
+        <div class="stat-card total">
+            <div class="icon-wrapper">
+                <i class="fas fa-sitemap"></i>
+            </div>
+            <h5>Total de Linhas</h5>
             <h2>{{ total_linhas }}</h2>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card p-3 card-stats">
-            <h5><i class="fas fa-check-circle"></i> Ativas</h5>
-            <h2 class="status-ativo">{{ linhas_ativas }}</h2>
+        <div class="stat-card ativas">
+            <div class="icon-wrapper">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h5>Ativas</h5>
+            <h2>{{ linhas_ativas }}</h2>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card p-3 card-stats">
-            <h5><i class="fas fa-times-circle"></i> Canceladas</h5>
-            <h2 class="status-inativo">{{ linhas_canceladas }}</h2>
+        <div class="stat-card canceladas">
+            <div class="icon-wrapper">
+                <i class="fas fa-times-circle"></i>
+            </div>
+            <h5>Canceladas</h5>
+            <h2>{{ linhas_canceladas }}</h2>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card p-3 card-stats">
-            <h5><i class="fas fa-calendar-plus"></i> Novas (Estoque / Portabilidade)</h5>
+        <div class="stat-card novas">
+            <div class="icon-wrapper">
+                <i class="fas fa-calendar-plus"></i>
+            </div>
+            <h5>Novas</h5>
             <h2>{{ novas_30 }}</h2>
         </div>
     </div>
 </div>
 
-<div class="row mb-3">
+<div class="row mb-4">
     <div class="col-12">
-        <div class="alert alert-light" style="color: #ffffff !important; background: rgba(0, 191, 174, 0.2) !important; border-color: rgba(0, 191, 174, 0.5) !important;">
+        <div class="periodo-card">
+            <i class="fas fa-calendar-alt me-2"></i>
             Período de análise do ciclo: <strong>{{ ciclo_start }}</strong> até <strong>{{ ciclo_end }}</strong>
         </div>
     </div>
 </div>
 
 <!-- Protocolos pendentes e concluídos -->
-<div class="row mb-3">
+<div class="row g-4 mb-4">
     <div class="col-md-6">
-        <div class="card p-3 border-warning shadow-sm">
-            <div class="d-flex align-items-center">
-                <div class="flex-grow-1">
-                    <h5 class="mb-1"><i class="fas fa-clock text-warning"></i> Protocolos Pendentes</h5>
-                    <h2 class="text-warning mb-0 fw-bold">{{ protocolos_pendentes_count }}</h2>
-                    <small class="text-muted">Aguardando resolução</small>
-                </div>
-                <div class="bg-warning bg-opacity-10 rounded-circle p-3">
-                    <i class="fas fa-hourglass-half fa-2x text-warning"></i>
-                </div>
-            </div>
+        <div class="protocol-card pendente">
+            <h5><i class="fas fa-hourglass-half"></i> Protocolos Pendentes</h5>
+            <div class="protocol-number">{{ protocolos_pendentes_count|default:0 }}</div>
+            <div class="protocol-status">Aguardando resolução</div>
+            <i class="fas fa-hourglass-half protocol-icon"></i>
         </div>
     </div>
     <div class="col-md-6">
-        <div class="card p-3 border-success shadow-sm">
-            <div class="d-flex align-items-center">
-                <div class="flex-grow-1">
-                    <h5 class="mb-1"><i class="fas fa-check-circle text-success"></i> Protocolos Concluídos</h5>
-                    <h2 class="text-success mb-0 fw-bold">{{ protocolos_concluidos_count }}</h2>
-                    <small class="text-muted">Finalizados com sucesso</small>
-                </div>
-                <div class="bg-success bg-opacity-10 rounded-circle p-3">
-                    <i class="fas fa-check-double fa-2x text-success"></i>
-                </div>
-            </div>
+        <div class="protocol-card concluido">
+            <h5><i class="fas fa-check-double"></i> Protocolos Concluídos</h5>
+            <div class="protocol-number">{{ protocolos_concluidos_count|default:0 }}</div>
+            <div class="protocol-status">Finalizados com sucesso</div>
+            <i class="fas fa-check-double protocol-icon"></i>
         </div>
     </div>
 </div>
 
-<div class="row mt-4">
-    <div class="col-lg-6">
-        <div class="card p-3">
-            <h5>Distribuição por Tipo de Plano</h5>
-            <div class="chart-wrapper" style="position:relative; height:320px;">
+<!-- Gráficos -->
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="chart-card">
+            <h5><i class="fas fa-chart-pie me-2"></i>Distribuição por Tipo de Plano</h5>
+            <div class="chart-wrapper">
                 <canvas id="tipoPlanoChart"></canvas>
             </div>
         </div>
     </div>
-    <div class="col-lg-6">
-        <div class="card p-3">
-            <h5>Protocolos por Status (ciclo 19→18)</h5>
-            <div class="chart-wrapper" style="position:relative; height:320px;">
-                <canvas id="protocolosChart"></canvas>
+    <div class="col-md-6">
+        <div class="chart-card">
+            <h5><i class="fas fa-chart-area me-2"></i>Protocolos por Status (ciclo {{ ciclo_start }} → {{ ciclo_end }})</h5>
+            <div class="chart-wrapper">
+                <canvas id="protocoloStatusChart"></canvas>
             </div>
         </div>
     </div>
