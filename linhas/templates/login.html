@@ -14,7 +14,7 @@
         margin: 0 !important;
         width: 100vw !important;
         left: 0 !important;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        background: linear-gradient(135deg, #1a1438 0%, #2d1b4e 50%, #1e2340 100%) !important;
     }
     
     .login-container {
@@ -22,110 +22,129 @@
         align-items: center;
         justify-content: center;
         width: 100%;
-        max-width: 480px;
+        max-width: 420px;
         padding: 20px;
         margin: 0 auto;
     }
     
     .login-container .card {
         width: 100%;
-        background: rgba(255, 255, 255, 0.95) !important;
-        border: none;
-        border-radius: 20px;
-        backdrop-filter: blur(15px);
-        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1), 0 5px 15px rgba(0, 0, 0, 0.05);
+        background: rgba(20, 25, 50, 0.85) !important;
+        border: 2px solid #00d4ff;
+        border-radius: 12px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 8px 32px rgba(0, 212, 255, 0.2);
         overflow: hidden;
     }
     
     .login-container .card-body {
         background: transparent !important;
-        color: #2c3e50 !important;
+        color: #ffffff !important;
         padding: 40px 35px;
     }
     
     /* Títulos e textos principais */
     .login-container h3 {
-        color: #2c3e50 !important;
-        font-weight: 700;
-        font-size: 1.8rem;
-        margin-bottom: 10px;
+        color: #ffffff !important;
+        font-weight: 600;
+        font-size: 1.6rem;
+        margin-bottom: 8px;
         text-shadow: none;
+        background: transparent !important;
     }
     
     .login-container p {
-        color: #7f8c8d !important;
-        font-weight: 500;
-        font-size: 1rem;
+        color: #ffffff !important;
+        font-weight: 400;
+        font-size: 0.95rem;
+        margin-bottom: 30px;
+        background: transparent !important;
     }
     
     .login-container label {
-        color: #34495e !important;
-        font-weight: 600;
-        font-size: 0.95rem;
+        color: #ffffff !important;
+        font-weight: 500;
+        font-size: 0.9rem;
         margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: transparent !important;
     }
     
     .login-container .text-muted {
-        color: #95a5a6 !important;
-        font-weight: 400;
+        color: #ffffff !important;
+        background: transparent !important;
+        background-color: transparent !important;
+    }
+    
+    .login-container h3,
+    .login-container p,
+    .login-container label,
+    .login-container .text-muted {
+        background-image: none !important;
+        box-shadow: none !important;
+        text-decoration: none !important;
     }
     
     /* Ícone principal */
     .login-container .text-primary {
-        color: #3498db !important;
-        filter: drop-shadow(0 2px 4px rgba(52, 152, 219, 0.3));
+        color: #ffffff !important;
+        filter: drop-shadow(0 2px 8px rgba(255, 255, 255, 0.3));
     }
     
     /* Campos de input */
     .login-container .form-control {
-        background: #ffffff !important;
-        border: 2px solid #ecf0f1;
-        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.95) !important;
+        border: none;
+        border-radius: 8px;
         color: #2c3e50 !important;
-        font-size: 1rem;
-        padding: 15px 18px;
+        font-size: 0.95rem;
+        padding: 12px 16px;
         transition: all 0.3s ease;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
     
     .login-container .form-control:focus {
-        border-color: #3498db;
-        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        border: none;
+        box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.3);
         background: #ffffff !important;
         color: #2c3e50 !important;
+        outline: none;
     }
     
     .login-container .form-control::placeholder {
-        color: #bdc3c7 !important;
+        color: #95a5a6 !important;
     }
     
     /* Botão de login */
     .login-container .btn-primary {
-        background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        background: linear-gradient(135deg, #00d4ff 0%, #00a8cc 100%);
         border: none;
-        border-radius: 12px;
-        padding: 15px 20px;
-        font-size: 1.1rem;
+        border-radius: 8px;
+        padding: 12px 20px;
+        font-size: 1rem;
         font-weight: 600;
+        color: #ffffff;
         transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+        box-shadow: 0 4px 15px rgba(0, 212, 255, 0.4);
     }
     
     .login-container .btn-primary:hover {
-        background: linear-gradient(135deg, #2980b9 0%, #1f5f8b 100%);
+        background: linear-gradient(135deg, #00a8cc 0%, #008299 100%);
         transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+        box-shadow: 0 6px 20px rgba(0, 212, 255, 0.5);
     }
     
     /* Alertas de erro */
     .login-container .alert-danger {
-        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%) !important;
-        border: none;
-        border-radius: 12px;
+        background: rgba(231, 76, 60, 0.9) !important;
+        border: 1px solid rgba(231, 76, 60, 0.5);
+        border-radius: 8px;
         color: #ffffff !important;
-        padding: 15px 20px;
-        margin-bottom: 25px;
-        box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        padding: 12px 16px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
     }
     
     .login-container .alert-danger strong {
@@ -135,36 +154,33 @@
     
     /* Ícones nos labels */
     .login-container label i {
-        color: #3498db !important;
-        margin-right: 8px;
-        width: 16px;
-        text-align: center;
+        color: #00d4ff !important;
+        font-size: 1rem;
     }
     
-    /* WhatsApp button melhorado */
+    /* WhatsApp button */
     .whatsapp-btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 60px;
-        height: 60px;
-        background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, #25D366 0%, #20b858 100%);
         color: #ffffff;
         border-radius: 50%;
-        box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4);
+        box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4);
         text-decoration: none;
         transition: all 0.3s ease;
-        border: 3px solid rgba(255, 255, 255, 0.2);
     }
     
     .whatsapp-btn:hover {
-        transform: translateY(-3px) scale(1.05);
-        box-shadow: 0 8px 25px rgba(37, 211, 102, 0.6);
+        transform: translateY(-2px) scale(1.05);
+        box-shadow: 0 6px 20px rgba(37, 211, 102, 0.6);
         color: #ffffff;
     }
     
     .whatsapp-btn i {
-        font-size: 1.7rem;
+        font-size: 1.5rem;
     }
 </style>
 
@@ -172,9 +188,9 @@
     <div class="card shadow">
         <div class="card-body">
                     <div class="text-center mb-4">
-                        <i class="fas fa-phone fa-3x text-primary"></i>
-                        <h3 class="mt-2">Gestor de Linhas</h3>
-                        <p class="text-muted">Faça seu acesso para continuar</p>
+                        <i class="fas fa-mobile-alt fa-3x text-primary"></i>
+                        <h3 class="mt-2" style="color: #ffffff !important; background: transparent !important;">Gestor de Linhas</h3>
+                        <p style="color: #ffffff !important; background: transparent !important;">Faça seu acesso para continuar</p>
                     </div>                <form method="post" action="{% url 'linhas:login' %}">
                     {% csrf_token %}
                     <input type="hidden" name="login_form" value="1">
@@ -186,7 +202,7 @@
                     {% endif %}
 
                     <div class="mb-3">
-                        <label for="username" class="form-label">
+                        <label for="username" class="form-label" style="color: #ffffff !important; background: transparent !important;">
                             <i class="fas fa-user"></i> Nome de Usuário
                         </label>
                         <input type="text" class="form-control" name="username" 
@@ -194,7 +210,7 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="password" class="form-label">
+                        <label for="password" class="form-label" style="color: #ffffff !important; background: transparent !important;">
                             <i class="fas fa-lock"></i> Senha
                         </label>
                         <input type="password" class="form-control" name="password" 
@@ -205,10 +221,10 @@
                         <i class="fas fa-sign-in-alt"></i> Acessar
                     </button>
                 </form>
-
-                <!-- Ícone do WhatsApp estilizado -->
-                <div class="text-center" style="margin-top: 2cm;">
-                    <a href="https://wa.me/5549999641215" target="_blank" aria-label="WhatsApp" class="whatsapp-btn">
+                
+                <!-- WhatsApp Button -->
+                <div class="text-center mt-4">
+                    <a href="https://wa.me/5511999999999" target="_blank" class="whatsapp-btn" title="Contato via WhatsApp">
                         <i class="fab fa-whatsapp"></i>
                     </a>
                 </div>

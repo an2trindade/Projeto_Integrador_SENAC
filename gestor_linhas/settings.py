@@ -81,26 +81,25 @@ WSGI_APPLICATION = 'gestor_linhas.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# Prefer local SQLite when a db.sqlite3 file exists (convenient for development).
-if (BASE_DIR / 'db.sqlite3').exists():
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
+# Development: use SQLite (default)
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
-else:
-    # Production / explicit PostgreSQL configuration
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql_psycopg2',
-            'NAME': 'gestor_linhas',
-            'USER': 'ana.trindade',
-            'PASSWORD': '9kE4(35yLLgWdxE+2CAO£MflrogMc~8:QK8cSD~N1,&CTLF`YI',
-            'HOST': 'localhost',
-            'PORT': '5432',
-        }
-    }
+}
+
+# Production: uncomment below and comment SQLite config above
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#         'NAME': 'gestor_linhas',
+#         'USER': 'ana.trindade',
+#         'PASSWORD': '9kE4(35yLLgWdxE+2CAO£MflrogMc~8:QK8cSD~N1,&CTLF`YI',
+#         'HOST': 'localhost',
+#         'PORT': '5432',
+#     }
+# }
 
 
 # Password validation
