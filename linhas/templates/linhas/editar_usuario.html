@@ -138,6 +138,15 @@
                     </h6>
                 </div>
                 
+                <div class="col-md-12 mb-3">
+                    <label for="nome_completo_agente" class="form-label">
+                        <i class="fas fa-user"></i> Nome Completo do Agente *
+                    </label>
+                    <input type="text" class="form-control" id="nome_completo_agente" name="nome_completo_agente" 
+                           value="{{ usuario_empresa.nome_completo_agente }}" required>
+                    <div class="invalid-feedback">Por favor, insira o nome completo do agente.</div>
+                </div>
+                
                 <div class="col-md-6 mb-3">
                     <label for="cpf_agente" class="form-label">
                         <i class="fas fa-id-badge"></i> CPF do Agente *
@@ -187,23 +196,51 @@
                 </div>
             </div>
 
-            <!-- Aviso sobre senha -->
-            <div class="alert alert-warning">
+            <!-- Avisos importantes -->
+            <div class="alert alert-warning mb-3">
                 <i class="fas fa-exclamation-triangle"></i>
                 <strong>Importante:</strong> Para alterar a senha do usuário, use a opção "Alterar Senhas" na página de configurações.
+            </div>
+            
+            <div class="alert alert-danger">
+                <div class="row align-items-center">
+                    <div class="col-md-1 text-center">
+                        <i class="fas fa-skull-crossbones fa-2x text-danger"></i>
+                    </div>
+                    <div class="col-md-11">
+                        <h6 class="alert-heading text-danger mb-2">
+                            <i class="fas fa-warning"></i> Zona de Perigo
+                        </h6>
+                        <p class="mb-1">
+                            <strong>Excluir usuário:</strong> Remove permanentemente todos os dados do usuário do sistema.
+                        </p>
+                        <p class="mb-0 small">
+                            ⚠️ <strong>ATENÇÃO:</strong> Esta ação é <u>irreversível</u> e não pode ser desfeita. Use apenas em casos extremos.
+                        </p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Botões de Ação -->
     <div class="row mt-4">
-        <div class="col-12 d-flex gap-2 justify-content-end">
-            <a href="{% url 'linhas:listar_usuarios_empresa' %}" class="btn btn-secondary">
-                <i class="fas fa-times"></i> Cancelar
-            </a>
-            <button type="submit" class="btn btn-primary">
-                <i class="fas fa-save"></i> Salvar Alterações
-            </button>
+        <div class="col-12 d-flex gap-2 justify-content-between">
+            <div>
+                <a href="{% url 'linhas:excluir_usuario' usuario_empresa.user.id %}" 
+                   class="btn btn-outline-danger"
+                   onclick="return confirm('⚠️ ATENÇÃO: Tem certeza que deseja EXCLUIR PERMANENTEMENTE este usuário?\n\nEsta ação NÃO PODE SER DESFEITA!\n\n- Todos os dados do usuário serão removidos\n- O acesso ao sistema será revogado\n- Histórico será perdido\n\nClique OK apenas se tiver ABSOLUTA CERTEZA.')">
+                    <i class="fas fa-trash"></i> Excluir Usuário
+                </a>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{% url 'linhas:listar_usuarios_empresa' %}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancelar
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Salvar Alterações
+                </button>
+            </div>
         </div>
     </div>
 </form>

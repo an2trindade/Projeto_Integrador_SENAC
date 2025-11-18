@@ -1029,6 +1029,7 @@ def criar_usuario_empresa(request):
                 endereco = request.POST.get('endereco', '').strip()
                 email = request.POST.get('email', '').strip()
                 telefone = request.POST.get('telefone', '').strip()
+                nome_completo_agente = request.POST.get('nome_completo_agente', '').strip()
                 cpf_responsavel = request.POST.get('cpf_responsavel', '').strip()
                 data_nascimento = request.POST.get('data_nascimento', '').strip()
                 username = request.POST.get('username', '').strip()
@@ -1036,7 +1037,7 @@ def criar_usuario_empresa(request):
                 is_administrador = request.POST.get('is_administrador') == 'on'
                 
                 # Validações básicas
-                if not all([cnpj, razao_social, endereco, email, telefone, cpf_responsavel, data_nascimento, username, senha]):
+                if not all([cnpj, razao_social, endereco, email, telefone, nome_completo_agente, cpf_responsavel, data_nascimento, username, senha]):
                     return JsonResponse({
                         'success': False,
                         'error': 'Todos os campos obrigatórios devem ser preenchidos.'
@@ -1090,6 +1091,7 @@ def criar_usuario_empresa(request):
                     nome_fantasia=nome_fantasia,
                     endereco=endereco,
                     telefone=telefone,
+                    nome_completo_agente=nome_completo_agente,
                     cpf_agente=cpf_responsavel,
                     data_nascimento_agente=data_nascimento,
                     criado_por=request.user
@@ -1253,6 +1255,7 @@ def visualizar_usuario(request, user_id):
             'nome_fantasia': usuario_empresa.nome_fantasia,
             'endereco': usuario_empresa.endereco,
             'telefone': usuario_empresa.telefone,
+            'nome_completo_agente': usuario_empresa.nome_completo_agente,
             'cpf_agente': usuario_empresa.cpf_agente,
             'data_nascimento_agente': usuario_empresa.data_nascimento_agente.strftime('%d/%m/%Y'),
             'criado_em': usuario_empresa.criado_em.strftime('%d/%m/%Y %H:%M'),
@@ -1312,6 +1315,7 @@ def editar_usuario(request, user_id):
                 usuario_empresa.nome_fantasia = request.POST.get('nome_fantasia', '').strip()
                 usuario_empresa.endereco = request.POST.get('endereco', '').strip()
                 usuario_empresa.telefone = request.POST.get('telefone', '').strip()
+                usuario_empresa.nome_completo_agente = request.POST.get('nome_completo_agente', '').strip()
                 usuario_empresa.cpf_agente = request.POST.get('cpf_agente', '').strip()
                 usuario_empresa.data_nascimento_agente = request.POST.get('data_nascimento_agente', '')
                 
@@ -1356,4 +1360,121 @@ def excluir_usuario(request, user_id):
             messages.error(request, f'Erro ao excluir usuário: {str(e)}')
     
     return render(request, 'linhas/excluir_usuario.html', {'usuario_empresa': usuario_empresa})
+
+
+@login_required
+def alterar_senhas(request):
+    """
+    View para alterar senhas de usuários empresa
+    """
+    from .models import UsuarioEmpresa
+    from django.contrib.auth.models import User
+    from django.core.paginator import Paginator
+    from django.db.models import Q
+    
+    # Buscar todos os usuários empresa para alterar senha
+    usuarios_qs = UsuarioEmpresa.objects.select_related('user').filter(user__is_active=True).order_by('razao_social')
+    
+    # Filtro de busca
+    search = request.GET.get('search', '').strip()
+    if search:
+        usuarios_qs = usuarios_qs.filter(
+            Q(razao_social__icontains=search) |
+            Q(user__username__icontains=search) |
+            Q(user__email__icontains=search)
+        )
+    
+    # Paginação
+    paginator = Paginator(usuarios_qs, 15)  # 15 usuários por página
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'page_obj': page_obj,
+        'search': search,
+        'total_usuarios': usuarios_qs.count(),
+    }
+    
+    return render(request, 'linhas/alterar_senhas.html', context)
+
+
+@login_required
+def alterar_senha_usuario(request):
+    """
+    AJAX view para alterar senha de um usuário específico
+    """
+    if request.method == 'POST':
+        from django.contrib.auth.models import User
+        import re
+        
+        user_id = request.POST.get('user_id')
+        nova_senha = request.POST.get('nova_senha', '').strip()
+        confirmar_senha = request.POST.get('confirmar_senha', '').strip()
+        
+        # Validações
+        if not user_id:
+            return JsonResponse({
+                'success': False,
+                'error': 'ID do usuário não informado'
+            })
+        
+        if not nova_senha or not confirmar_senha:
+            return JsonResponse({
+                'success': False,
+                'error': 'Nova senha e confirmação são obrigatórias'
+            })
+        
+        if nova_senha != confirmar_senha:
+            return JsonResponse({
+                'success': False,
+                'error': 'Nova senha e confirmação não coincidem'
+            })
+        
+        if len(nova_senha) < 6:
+            return JsonResponse({
+                'success': False,
+                'error': 'A senha deve ter pelo menos 6 caracteres'
+            })
+        
+        # Validar complexidade da senha
+        if not re.search(r'[A-Za-z]', nova_senha) or not re.search(r'\d', nova_senha):
+            return JsonResponse({
+                'success': False,
+                'error': 'A senha deve conter pelo menos uma letra e um número'
+            })
+        
+        try:
+            user = User.objects.get(id=user_id)
+            
+            # Não permitir alterar senha do próprio usuário por segurança
+            if user == request.user:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Você não pode alterar sua própria senha por esta interface. Use as configurações da conta.'
+                })
+            
+            # Alterar a senha
+            user.set_password(nova_senha)
+            user.save()
+            
+            return JsonResponse({
+                'success': True,
+                'message': f'Senha do usuário "{user.username}" alterada com sucesso!'
+            })
+            
+        except User.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'error': 'Usuário não encontrado'
+            })
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': f'Erro ao alterar senha: {str(e)}'
+            })
+    
+    return JsonResponse({
+        'success': False,
+        'error': 'Método não permitido'
+    })
 

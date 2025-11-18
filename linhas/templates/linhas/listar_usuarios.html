@@ -246,20 +246,27 @@
 {% endif %}
 
 <!-- Modal de Detalhes -->
-<div class="modal fade" id="userDetailsModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+<div class="modal fade" id="userDetailsModal" tabindex="-1" aria-labelledby="userDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="fas fa-user"></i> Detalhes do Usuário
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="userDetailsModalLabel">
+                    <i class="fas fa-user-circle"></i> Detalhes Completos do Usuário
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body" id="userDetailsContent">
-                <!-- Conteúdo carregado via AJAX -->
+            <div class="modal-body p-4" id="userDetailsContent">
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Carregando...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Carregando dados do usuário...</p>
+                </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Fechar
+                </button>
             </div>
         </div>
     </div>
@@ -333,10 +340,21 @@ function toggleUserStatus(userId, username) {
 
 // Função para mostrar detalhes do usuário
 function showUserDetails(userId) {
-    const modal = new bootstrap.Modal(document.getElementById('userDetailsModal'));
+    const modalElement = document.getElementById('userDetailsModal');
+    const modal = new bootstrap.Modal(modalElement);
     const content = document.getElementById('userDetailsContent');
     
-    content.innerHTML = '<div class="text-center py-3"><i class="fas fa-spinner fa-spin fa-2x"></i><br>Carregando dados...</div>';
+    // Mostrar loading
+    content.innerHTML = `
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                <span class="visually-hidden">Carregando...</span>
+            </div>
+            <h5 class="text-muted">Carregando dados do usuário...</h5>
+            <p class="text-muted">Por favor, aguarde...</p>
+        </div>
+    `;
+    
     modal.show();
     
     fetch(`/linhas/configuracoes/visualizar-usuario/${userId}/`, {
@@ -350,63 +368,169 @@ function showUserDetails(userId) {
         if (data.success) {
             const user = data.usuario;
             content.innerHTML = `
-                <div class="row">
-                    <div class="col-md-6">
-                        <h6 class="text-primary border-bottom pb-2 mb-3">
-                            <i class="fas fa-building"></i> Dados da Empresa
-                        </h6>
-                        <p><strong>Razão Social:</strong><br>${user.razao_social}</p>
-                        <p><strong>Nome Fantasia:</strong><br>${user.nome_fantasia || 'Não informado'}</p>
-                        <p><strong>CNPJ:</strong><br><span class="font-monospace">${user.cnpj}</span></p>
-                        <p><strong>Endereço:</strong><br>${user.endereco}</p>
-                        <p><strong>Telefone:</strong><br>${user.telefone}</p>
-                    </div>
-                    <div class="col-md-6">
-                        <h6 class="text-primary border-bottom pb-2 mb-3">
-                            <i class="fas fa-user"></i> Dados do Usuário
-                        </h6>
-                        <p><strong>Nome de Usuário:</strong><br>${user.username}</p>
-                        <p><strong>Email:</strong><br>${user.email}</p>
-                        <p><strong>Status:</strong><br>
-                            ${user.is_active ? 
-                                '<span class="badge bg-success"><i class="fas fa-check-circle"></i> Ativo</span>' : 
-                                '<span class="badge bg-danger"><i class="fas fa-times-circle"></i> Inativo</span>'
-                            }
-                            ${user.is_staff ? 
-                                '<span class="badge bg-warning text-dark ms-1"><i class="fas fa-shield-alt"></i> Admin</span>' : ''
-                            }
-                        </p>
-                        <p><strong>Último Login:</strong><br>${user.last_login}</p>
-                        <p><strong>Cadastrado em:</strong><br>${user.date_joined}</p>
-                    </div>
-                </div>
-                <div class="row mt-3">
-                    <div class="col-12">
-                        <h6 class="text-primary border-bottom pb-2 mb-3">
-                            <i class="fas fa-id-card"></i> Dados do Agente
-                        </h6>
+                <style>
+                    .user-detail-section {
+                        background: #f8f9fa;
+                        border-radius: 8px;
+                        padding: 20px;
+                        margin-bottom: 20px;
+                        border-left: 4px solid #0d6efd;
+                    }
+                    .user-detail-item {
+                        margin-bottom: 15px;
+                        padding: 10px;
+                        background: white;
+                        border-radius: 5px;
+                        border: 1px solid #e9ecef;
+                    }
+                    .user-detail-label {
+                        font-weight: 600;
+                        color: #6c757d !important;
+                        font-size: 0.85em;
+                        text-transform: uppercase;
+                        margin-bottom: 8px;
+                        letter-spacing: 0.5px;
+                    }
+                    .user-detail-value {
+                        color: #212529 !important;
+                        font-size: 1.0em;
+                        font-weight: 500;
+                        line-height: 1.4;
+                    }
+                    .user-detail-section h5 {
+                        color: #0d6efd !important;
+                        font-weight: 600;
+                    }
+                    .font-monospace {
+                        color: #495057 !important;
+                        background-color: #f8f9fa;
+                        padding: 2px 6px;
+                        border-radius: 3px;
+                        font-family: 'Courier New', monospace;
+                    }
+                </style>
+                
+                <div class="container-fluid">
+                    <!-- Seção Empresa -->
+                    <div class="user-detail-section">
+                        <h5 class="text-primary mb-4">
+                            <i class="fas fa-building me-2"></i>Dados da Empresa
+                        </h5>
                         <div class="row">
                             <div class="col-md-6">
-                                <p><strong>CPF:</strong><br><span class="font-monospace">${user.cpf_agente}</span></p>
+                                <div class="user-detail-item">
+                                    <div class="user-detail-label">Razão Social</div>
+                                    <div class="user-detail-value">${user.razao_social}</div>
+                                </div>
+                                <div class="user-detail-item">
+                                    <div class="user-detail-label">CNPJ</div>
+                                    <div class="user-detail-value font-monospace">${user.cnpj}</div>
+                                </div>
+                                <div class="user-detail-item">
+                                    <div class="user-detail-label">Telefone</div>
+                                    <div class="user-detail-value">${user.telefone}</div>
+                                </div>
                             </div>
                             <div class="col-md-6">
-                                <p><strong>Data de Nascimento:</strong><br>${user.data_nascimento_agente}</p>
+                                <div class="user-detail-item">
+                                    <div class="user-detail-label">Nome Fantasia</div>
+                                    <div class="user-detail-value">${user.nome_fantasia || '<em class="text-muted">Não informado</em>'}</div>
+                                </div>
+                                <div class="user-detail-item">
+                                    <div class="user-detail-label">Endereço</div>
+                                    <div class="user-detail-value">${user.endereco}</div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="row mt-3">
-                    <div class="col-12">
-                        <h6 class="text-primary border-bottom pb-2 mb-3">
-                            <i class="fas fa-info-circle"></i> Informações do Sistema
-                        </h6>
+
+                    <!-- Seção Usuário -->
+                    <div class="user-detail-section">
+                        <h5 class="text-primary mb-4">
+                            <i class="fas fa-user me-2"></i>Dados de Acesso
+                        </h5>
                         <div class="row">
                             <div class="col-md-6">
-                                <p><strong>Criado em:</strong><br>${user.criado_em}</p>
-                                <p><strong>Criado por:</strong><br>${user.criado_por}</p>
+                                <div class="user-detail-item">
+                                    <div class="user-detail-label">Nome de Usuário</div>
+                                    <div class="user-detail-value font-monospace">${user.username}</div>
+                                </div>
+                                <div class="user-detail-item">
+                                    <div class="user-detail-label">Email</div>
+                                    <div class="user-detail-value">${user.email}</div>
+                                </div>
                             </div>
                             <div class="col-md-6">
-                                <p><strong>Última atualização:</strong><br>${user.atualizado_em}</p>
+                                <div class="user-detail-item">
+                                    <div class="user-detail-label">Status</div>
+                                    <div class="user-detail-value">
+                                        ${user.is_active ? 
+                                            '<span class="badge bg-success fs-6"><i class="fas fa-check-circle"></i> Ativo</span>' : 
+                                            '<span class="badge bg-danger fs-6"><i class="fas fa-times-circle"></i> Inativo</span>'
+                                        }
+                                        ${user.is_staff ? 
+                                            '<span class="badge bg-warning text-dark fs-6 ms-2"><i class="fas fa-shield-alt"></i> Administrador</span>' : ''
+                                        }
+                                    </div>
+                                </div>
+                                <div class="user-detail-item">
+                                    <div class="user-detail-label">Último Login</div>
+                                    <div class="user-detail-value">${user.last_login}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Seção Agente -->
+                    <div class="user-detail-section">
+                        <h5 class="text-primary mb-4">
+                            <i class="fas fa-id-card me-2"></i>Dados do Agente
+                        </h5>
+                        <div class="row">
+                            <div class="col-md-12 mb-2">
+                                <div class="user-detail-item">
+                                    <div class="user-detail-label">Nome Completo</div>
+                                    <div class="user-detail-value">${user.nome_completo_agente || '<em class="text-muted">Não informado</em>'}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="user-detail-item">
+                                    <div class="user-detail-label">CPF</div>
+                                    <div class="user-detail-value font-monospace">${user.cpf_agente}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="user-detail-item">
+                                    <div class="user-detail-label">Data de Nascimento</div>
+                                    <div class="user-detail-value">${user.data_nascimento_agente}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Seção Sistema -->
+                    <div class="user-detail-section">
+                        <h5 class="text-primary mb-4">
+                            <i class="fas fa-cogs me-2"></i>Informações do Sistema
+                        </h5>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="user-detail-item">
+                                    <div class="user-detail-label">Cadastrado em</div>
+                                    <div class="user-detail-value">${user.date_joined}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="user-detail-item">
+                                    <div class="user-detail-label">Criado por</div>
+                                    <div class="user-detail-value">${user.criado_por}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="user-detail-item">
+                                    <div class="user-detail-label">Última Atualização</div>
+                                    <div class="user-detail-value">${user.atualizado_em}</div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -414,18 +538,42 @@ function showUserDetails(userId) {
             `;
         } else {
             content.innerHTML = `
-                <div class="alert alert-danger">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <strong>Erro:</strong> ${data.error}
+                <div class="container-fluid">
+                    <div class="alert alert-danger border-danger" role="alert">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-exclamation-triangle fa-2x text-danger me-3"></i>
+                            <div>
+                                <h5 class="alert-heading text-danger">Erro ao Carregar Dados</h5>
+                                <p class="mb-0"><strong>Detalhes:</strong> ${data.error}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <button type="button" class="btn btn-primary" onclick="showUserDetails(${userId})">
+                            <i class="fas fa-redo"></i> Tentar Novamente
+                        </button>
+                    </div>
                 </div>
             `;
         }
     })
     .catch(error => {
         content.innerHTML = `
-            <div class="alert alert-danger">
-                <i class="fas fa-exclamation-triangle"></i>
-                <strong>Erro de conexão:</strong> Não foi possível carregar os dados.
+            <div class="container-fluid">
+                <div class="alert alert-danger border-danger" role="alert">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-wifi fa-2x text-danger me-3"></i>
+                        <div>
+                            <h5 class="alert-heading text-danger">Erro de Conexão</h5>
+                            <p class="mb-0">Não foi possível conectar ao servidor. Verifique sua conexão com a internet.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <button type="button" class="btn btn-primary" onclick="showUserDetails(${userId})">
+                        <i class="fas fa-redo"></i> Tentar Novamente
+                    </button>
+                </div>
             </div>
         `;
         console.error('Error:', error);
