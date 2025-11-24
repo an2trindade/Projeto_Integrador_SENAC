@@ -255,7 +255,7 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
-            height: 100vh;
+            min-height: 100vh;
             overflow-y: auto;
             backdrop-filter: blur(10px);
         }
@@ -278,7 +278,6 @@
         }
     /* Espaçamento: 0,5 cm entre botões (somente itens de primeiro nível) */
     .nav-vertical > li { margin-bottom: 0.5cm; }
-    .nav-vertical li.logout { margin-top: auto; margin-bottom: 1cm; }
         .nav-vertical a,
         .nav-vertical button.nav-link {
             display: flex;
@@ -317,8 +316,8 @@
             gap: 6px;
         }
         .submenu a { padding: 8px 10px; }
-        /* Fixar o botão Sair na parte inferior da sidebar */
-        .nav-vertical li.logout { margin-top: auto; }
+        
+        /* Estilo do botão Sair */
         .nav-vertical li.logout button.nav-link { 
             width: 100%; 
             display:flex; 
@@ -403,6 +402,14 @@
                         <i class="fas fa-cog"></i> Configurações
                     </a>
                 </li>
+                <li class="logout">
+                    <form action="{% url 'logout' %}" method="post" class="logout-form">
+                        {% csrf_token %}
+                        <button type="submit" class="nav-link border-0" style="text-align:left;">
+                            <i class="fas fa-sign-out-alt"></i> Sair
+                        </button>
+                    </form>
+                </li>
                 <!-- Bug Hunters Logo -->
                 <li style="margin: auto; text-align: center; padding: 20px 10px;">
                     <div style="background: linear-gradient(135deg, #1e3a2e 0%, #2d5a45 100%); 
@@ -423,14 +430,6 @@
                             BUG<br>HUNTERS
                         </div>
                     </div>
-                </li>
-                <li class="logout">
-                    <form action="{% url 'logout' %}" method="post" class="logout-form">
-                        {% csrf_token %}
-                        <button type="submit" class="nav-link border-0" style="text-align:left;">
-                            <i class="fas fa-sign-out-alt"></i> Sair
-                        </button>
-                    </form>
                 </li>
             </ul>
         </aside>

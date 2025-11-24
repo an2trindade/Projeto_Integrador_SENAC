@@ -5,6 +5,8 @@ from datetime import timedelta
 from .models import LoginAttempt
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.conf import settings
+from django.db import models
 
 def get_client_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
@@ -115,7 +117,19 @@ def buscar_cnpj_api_externa(request):
     
     Usage: GET /linhas/buscar-cnpj-api/?cnpj=19131243000197
     """
-    import requests
+    # Import seguro do requests para retornar erro amigável se ausente
+    try:
+        import requests
+    except Exception as e:
+        msg = 'Dependência ausente: requests'
+        if settings.DEBUG:
+            print('[CNPJ LOOKUP][ERRO IMPORT REQUESTS]', e)
+        return JsonResponse({
+            'success': False,
+            'error': msg,
+            'details': str(e) if settings.DEBUG else ''
+        }, status=500)
+
     import re
     
     cnpj = request.GET.get('cnpj', '')
@@ -128,6 +142,8 @@ def buscar_cnpj_api_externa(request):
     
     # Limpar CNPJ
     cnpj_limpo = re.sub(r'\D', '', cnpj)
+    if settings.DEBUG:
+        print(f'[CNPJ LOOKUP] Início busca - cnpj_recebido={cnpj} cnpj_limpo={cnpj_limpo}')
     
     if len(cnpj_limpo) != 14:
         return JsonResponse({
@@ -138,6 +154,8 @@ def buscar_cnpj_api_externa(request):
     try:
         # Tentar BrasilAPI primeiro
         url_brasil = f"https://brasilapi.com.br/api/cnpj/v1/{cnpj_limpo}"
+        if settings.DEBUG:
+            print('[CNPJ LOOKUP] Consultando BrasilAPI:', url_brasil)
         response = requests.get(url_brasil, timeout=10)
         
         if response.status_code == 200:
@@ -161,17 +179,23 @@ def buscar_cnpj_api_externa(request):
                 'fonte': 'BrasilAPI'
             }
             
+            if settings.DEBUG:
+                print('[CNPJ LOOKUP] BrasilAPI sucesso para', cnpj_limpo)
             return JsonResponse({
                 'success': True,
                 'dados': dados_padronizados
             })
         
     except Exception as e:
-        pass  # Fallback para ReceitaWS
+        if settings.DEBUG:
+            print('[CNPJ LOOKUP][BrasilAPI][ERRO]', repr(e))
+        # Fallback para ReceitaWS
     
     try:
         # Fallback ReceitaWS
         url_receita = f"https://www.receitaws.com.br/v1/cnpj/{cnpj_limpo}"
+        if settings.DEBUG:
+            print('[CNPJ LOOKUP] Consultando ReceitaWS:', url_receita)
         response = requests.get(url_receita, timeout=10)
         
         if response.status_code == 200:
@@ -203,14 +227,19 @@ def buscar_cnpj_api_externa(request):
                 'fonte': 'ReceitaWS'
             }
             
+            if settings.DEBUG:
+                print('[CNPJ LOOKUP] ReceitaWS sucesso para', cnpj_limpo)
             return JsonResponse({
                 'success': True,
                 'dados': dados_padronizados
             })
         
     except Exception as e:
-        pass
+        if settings.DEBUG:
+            print('[CNPJ LOOKUP][ReceitaWS][ERRO]', repr(e))
     
+    if settings.DEBUG:
+        print('[CNPJ LOOKUP] Não encontrado em nenhuma API para', cnpj_limpo)
     return JsonResponse({
         'success': False,
         'error': 'CNPJ não encontrado nas APIs externas'

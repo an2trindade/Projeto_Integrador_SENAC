@@ -222,7 +222,9 @@ console.log('Funções CPF e Contato carregadas');
                             <div class="input-group">
                                 <span class="input-group-text"><i class="fas fa-id-card"></i></span>
                                 {{ form.cnpj }}
-                                <button type="button" class="btn btn-outline-secondary" id="btn-buscar-cnpj" title="Buscar dados por CNPJ">
+                                <button type="button" class="btn btn-outline-secondary" id="btn-buscar-cnpj" 
+                                        title="Buscar dados por CNPJ"
+                                        onclick="console.log('🖱️ onclick disparado!'); if(window.buscarCnpjManual) window.buscarCnpjManual(); else alert('Função não carregada ainda!');">
                                     <i class="fas fa-search"></i> Buscar CNPJ
                                 </button>
                             </div>
@@ -840,263 +842,262 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <script>
-// Fetch CNPJ data on demand (button) with fallback and inline alerts
-document.addEventListener('DOMContentLoaded', function() {
-    try {
-        console.log('novo_cliente: CNPJ script init');
-    } catch (e) {}
-
-    // robustly locate the CNPJ input and the Buscar button using fallbacks
-    var cnpjInput = document.getElementById('id_cnpj') || document.querySelector('input[name="cnpj"]') || document.querySelector('input[id$="cnpj"]');
-    if (!cnpjInput) {
-        console.warn('CNPJ input not found on page');
-        return;
-    }
-
-    // Apply the same live-formatting used in relatorios: format as 00.000.000/0000-00 while typing/pasting
-    function onlyDigits(v){ return (v || '').replace(/\D/g, ''); }
-    function formatCNPJ(v){
-        v = onlyDigits(v).slice(0,14);
-        if (v.length <= 2) return v;
-        if (v.length <= 5) return v.slice(0,2) + '.' + v.slice(2);
-        if (v.length <= 8) return v.slice(0,2) + '.' + v.slice(2,5) + '.' + v.slice(5);
-        if (v.length <= 12) return v.slice(0,2) + '.' + v.slice(2,5) + '.' + v.slice(5,8) + '/' + v.slice(8);
-        return v.slice(0,2) + '.' + v.slice(2,5) + '.' + v.slice(5,8) + '/' + v.slice(8,12) + '-' + v.slice(12);
-    }
-    try {
-        cnpjInput.addEventListener('input', function(e){
-            try{
-                var pos = this.selectionStart || 0;
-                var old = this.value || '';
-                this.value = formatCNPJ(this.value);
-                // try to preserve cursor roughly
-                if (this.value.length > old.length) {
-                    this.selectionStart = this.selectionEnd = pos + (this.value.length - old.length);
-                }
-            }catch(err){/* ignore */}
-        });
-    } catch (e) { console.warn('attach cnpj formatter failed', e); }
-
-    var btnBuscar = document.getElementById('btn-buscar-cnpj') || document.querySelector('button[title*="Buscar"]');
-    // ensure button is enabled on load
-    try { if (btnBuscar) { btnBuscar.disabled = false; btnBuscar.style.cursor = 'pointer'; } } catch (e) { console.warn(e); }
+// 🔍 Função Global de Busca CNPJ - Disponível Imediatamente
+window.buscarCnpjManual = async function() {
+    console.log('🔎 [CNPJ] Função buscarCnpjManual chamada!');
+    
+    var cnpjInput = document.getElementById('id_cnpj');
     var razaoEl = document.getElementById('id_razao_social');
     var fantasiaEl = document.getElementById('id_fantasia');
     var enderecoEl = document.getElementById('id_endereco_completo');
     var alertEl = document.getElementById('cnpj-alert');
-
-    function showAlert(msg, isError) {
-        try {
-            if (!alertEl) return;
-            alertEl.style.display = msg ? '' : 'none';
-            alertEl.textContent = msg || '';
-            alertEl.classList.toggle('text-danger', !!isError);
-            alertEl.classList.toggle('text-success', !isError && !!msg);
-        } catch (err) {
-            try { console.warn('showAlert error', err); } catch (e) {}
-        }
+    var btnBuscar = document.getElementById('btn-buscar-cnpj');
+    
+    if (!cnpjInput) {
+        alert('❌ Campo CNPJ não encontrado!');
+        return;
     }
-
-    async function buscarCnpj() {
-        showAlert('', false);
-        var digits = (cnpjInput.value || '').replace(/\D/g, '');
-        if (digits.length !== 14) {
-            showAlert('Digite o CNPJ completo (14 dígitos).', true);
-            return;
-        }
-
-        btnBuscar && (btnBuscar.disabled = true);
-        showAlert('Buscando dados do CNPJ...', false);
-
-        try {
-            // Usar nossa API interna que já tem fallback BrasilAPI + ReceitaWS
-            var url = '/linhas/buscar-cnpj-api/?cnpj=' + digits;
-            console.log('Fazendo requisição para:', url);
-            
-            var response = await fetch(url, {
-                method: 'GET',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Content-Type': 'application/json',
-                }
-            });
-            
-            console.log('Status da resposta:', response.status);
-            
-            if (!response.ok) {
-                throw new Error('Erro na requisição: ' + response.status);
-            }
-            
-            var result = await response.json();
-            console.log('Resultado da API:', result);
-            
-            if (!result.success) {
-                throw new Error(result.error || 'CNPJ não encontrado');
-            }
-            
-            var data = result.dados;
-
-            // Preencher os campos com os dados recebidos
-            if (data) {
-                var razao = data.razao_social || data.nome || '';
-                var fantasia = data.fantasia || data.nome_fantasia || '';
-                var endereco = '';
-                
-                // Construir endereço completo
-                var endParts = [];
-                if (data.endereco) endParts.push(data.endereco);
-                if (data.numero) endParts.push(data.numero);
-                if (data.complemento) endParts.push(data.complemento);
-                if (data.bairro) endParts.push(data.bairro);
-                if (data.municipio) endParts.push(data.municipio);
-                if (data.uf) endParts.push(data.uf);
-                if (data.cep) endParts.push('CEP: ' + data.cep);
-                endereco = endParts.join(', ');
-
-                // Preencher os campos do formulário
-                if (razaoEl && razao) razaoEl.value = razao;
-                if (fantasiaEl && fantasia) fantasiaEl.value = fantasia;
-                if (enderecoEl && endereco) enderecoEl.value = endereco;
-                
-                showAlert('Dados do CNPJ carregados com sucesso! Fonte: ' + (data.fonte || 'API Externa'), false);
-            } else {
-                throw new Error('Dados não encontrados');
-            }
-        } catch (error) {
-            console.error('Erro ao buscar CNPJ:', error);
-            showAlert('Erro: ' + error.message, true);
-        }
+    
+    var digits = cnpjInput.value.replace(/\D/g, '');
+    console.log('📝 [CNPJ] Dígitos:', digits);
+    
+    if (digits.length !== 14) {
+        alert('⚠️ Digite o CNPJ completo (14 dígitos).\nAtual: ' + digits.length + ' dígitos');
+        return;
     }
-
-    // Event listeners para o botão
+    
     if (btnBuscar) {
-        btnBuscar.addEventListener('click', function(ev) {
-            try {
-                ev.preventDefault();
-                btnBuscar.disabled = true;
-                btnBuscar.dataset.origHtml = btnBuscar.innerHTML;
-                btnBuscar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Buscando...';
-            } catch (e) { console.warn(e); }
-            buscarCnpj().finally(function() {
-                try { btnBuscar.disabled = false; btnBuscar.innerHTML = btnBuscar.dataset.origHtml || '<i class="fas fa-search"></i> Buscar CNPJ'; } catch (xx) {}
-            });
-        });
-    } else {
-        console.warn('Buscar CNPJ button not found to attach listener');
+        btnBuscar.disabled = true;
+        btnBuscar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Buscando...';
     }
+    
+    if (alertEl) {
+        alertEl.style.display = 'block';
+        alertEl.className = 'form-text mt-1 text-success';
+        alertEl.textContent = 'Buscando dados do CNPJ...';
+    }
+    
+    try {
+        var url = '/linhas/buscar-cnpj-api/?cnpj=' + digits;
+        console.log('🌐 [CNPJ] Chamando:', url);
+        
+        var response = await fetch(url);
+        console.log('📡 [CNPJ] Status:', response.status);
+        
+        var result = await response.json();
+        console.log('📦 [CNPJ] Dados:', result);
+        
+        if (!result.success) {
+            throw new Error(result.error || 'CNPJ não encontrado');
+        }
+        
+        var data = result.dados;
+        var razao = data.razao_social || data.nome || '';
+        var fantasia = data.fantasia || data.nome_fantasia || '';
+        
+        // Construir endereço
+        var endParts = [];
+        if (data.endereco) endParts.push(data.endereco);
+        if (data.numero) endParts.push(data.numero);
+        if (data.complemento) endParts.push(data.complemento);
+        if (data.bairro) endParts.push(data.bairro);
+        if (data.municipio) endParts.push(data.municipio);
+        if (data.uf) endParts.push(data.uf);
+        if (data.cep) endParts.push('CEP: ' + data.cep);
+        var endereco = endParts.join(', ');
+        
+        console.log('✏️ [CNPJ] Preenchendo campos...');
+        
+        if (razaoEl && razao) {
+            razaoEl.value = razao;
+            razaoEl.dispatchEvent(new Event('input', { bubbles: true }));
+            console.log('✓ Razão Social preenchida');
+        }
+        if (fantasiaEl && fantasia) {
+            fantasiaEl.value = fantasia;
+            fantasiaEl.dispatchEvent(new Event('input', { bubbles: true }));
+            console.log('✓ Fantasia preenchida');
+        }
+        if (enderecoEl && endereco) {
+            enderecoEl.value = endereco;
+            enderecoEl.dispatchEvent(new Event('input', { bubbles: true }));
+            console.log('✓ Endereço preenchido');
+        }
+        
+        if (alertEl) {
+            alertEl.className = 'form-text mt-1 text-success';
+            alertEl.textContent = '✅ Dados carregados! Fonte: ' + (data.fonte || 'API');
+        }
+        
+        console.log('✅ [CNPJ] Busca concluída!');
+        
+    } catch (error) {
+        console.error('❌ [CNPJ] Erro:', error);
+        if (alertEl) {
+            alertEl.style.display = 'block';
+            alertEl.className = 'form-text mt-1 text-danger';
+            alertEl.textContent = 'Erro: ' + error.message;
+        }
+        alert('❌ Erro ao buscar CNPJ: ' + error.message);
+    } finally {
+        if (btnBuscar) {
+            btnBuscar.disabled = false;
+            btnBuscar.innerHTML = '<i class="fas fa-search"></i> Buscar CNPJ';
+        }
+    }
+};
 
-    // Fallback delegated listener on document body in case direct binding fails
-    document.body.addEventListener('click', function(e) {
-        try {
-            var el = e.target.closest ? e.target.closest('#btn-buscar-cnpj') : null;
-            if (el) {
-                e.preventDefault();
-                try { el.disabled = true; el.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Buscando...'; } catch (xx) {}
-                buscarCnpj().finally(function() {
-                    try { el.disabled = false; el.innerHTML = '<i class="fas fa-search"></i> Buscar CNPJ'; } catch (xx) {}
-                });
-            }
-        } catch (err) { try { console.warn(err); } catch (e) {} }
-    });
-});
+console.log('✅ [CNPJ] Função global carregada!');
 </script>
 
-<!-- Script simplificado adicional para debug -->
 <script>
-console.log('Script adicional carregado para debug do botão CNPJ');
-
-// Aguarda carregamento completo
-window.addEventListener('load', function() {
-    console.log('Página totalmente carregada');
+// 🔍 Script de Busca CNPJ - Inicialização e Formatação
+(function() {
+    'use strict';
     
-    // Tenta novamente encontrar o botão após carregamento completo
-    setTimeout(function() {
-        var btnBuscar = document.getElementById('btn-buscar-cnpj');
+    console.log('🚀 [CNPJ] Iniciando script de formatação...');
+    
+    function initCnpjSearch() {
         var cnpjInput = document.getElementById('id_cnpj');
+        var btnBuscar = document.getElementById('btn-buscar-cnpj');
         
-        console.log('Debug - Botão encontrado:', !!btnBuscar);
-        console.log('Debug - Input CNPJ encontrado:', !!cnpjInput);
+        console.log('📋 [CNPJ] Tentando inicializar... Botão:', !!btnBuscar, 'Input:', !!cnpjInput);
         
-        if (btnBuscar && !btnBuscar.hasAttribute('data-listener-added')) {
-            console.log('Adicionando listener adicional ao botão');
-            btnBuscar.setAttribute('data-listener-added', 'true');
-            
-            btnBuscar.addEventListener('click', async function(e) {
-                e.preventDefault();
-                console.log('Listener adicional executado');
-                
-                if (!cnpjInput) {
-                    console.error('Input CNPJ não encontrado no listener adicional');
-                    alert('Erro: Input CNPJ não encontrado');
-                    return;
-                }
-                
-                var cnpj = cnpjInput.value.replace(/\D/g, '');
-                console.log('CNPJ extraído:', cnpj);
-                
-                if (cnpj.length !== 14) {
-                    alert('Digite um CNPJ com 14 dígitos');
-                    return;
-                }
-                
-                btnBuscar.disabled = true;
-                btnBuscar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Buscando...';
-                
-                try {
-                    var url = '/linhas/buscar-cnpj-api/?cnpj=' + cnpj;
-                    console.log('Fazendo requisição para:', url);
-                    
-                    var response = await fetch(url);
-                    console.log('Status da resposta:', response.status);
-                    
-                    var result = await response.json();
-                    console.log('Resultado da API:', result);
-                    
-                    if (result.success) {
-                        var data = result.dados;
-                        
-                        // Preencher campos
-                        var razaoEl = document.getElementById('id_razao_social');
-                        var fantasiaEl = document.getElementById('id_fantasia');
-                        var enderecoEl = document.getElementById('id_endereco_completo');
-                        
-                        if (razaoEl && data.razao_social) {
-                            razaoEl.value = data.razao_social;
-                        }
-                        
-                        if (fantasiaEl && data.fantasia) {
-                            fantasiaEl.value = data.fantasia;
-                        }
-                        
-                        if (enderecoEl) {
-                            var endParts = [];
-                            if (data.endereco) endParts.push(data.endereco);
-                            if (data.numero) endParts.push(data.numero);
-                            if (data.complemento) endParts.push(data.complemento);
-                            if (data.bairro) endParts.push(data.bairro);
-                            if (data.municipio) endParts.push(data.municipio);
-                            if (data.uf) endParts.push(data.uf);
-                            if (data.cep) endParts.push('CEP: ' + data.cep);
-                            enderecoEl.value = endParts.join(', ');
-                        }
-                        
-                        alert('Dados carregados com sucesso! Fonte: ' + (data.fonte || 'API'));
-                        
-                    } else {
-                        alert('Erro: ' + (result.error || 'CNPJ não encontrado'));
-                    }
-                    
-                } catch (error) {
-                    console.error('Erro na requisição:', error);
-                    alert('Erro: ' + error.message);
-                } finally {
-                    btnBuscar.disabled = false;
-                    btnBuscar.innerHTML = '<i class="fas fa-search"></i> Buscar CNPJ';
-                }
-            });
+        if (!cnpjInput || !btnBuscar) {
+            console.warn('⚠️ [CNPJ] Elementos não encontrados ainda, tentando novamente...');
+            return false;
         }
-    }, 1000); // Aguarda 1 segundo após carregamento completo
-});
+        
+        // Formatação de CNPJ
+        function formatCNPJ(v) {
+            v = v.replace(/\D/g, '').slice(0, 14);
+            if (v.length <= 2) return v;
+            if (v.length <= 5) return v.slice(0,2) + '.' + v.slice(2);
+            if (v.length <= 8) return v.slice(0,2) + '.' + v.slice(2,5) + '.' + v.slice(5);
+            if (v.length <= 12) return v.slice(0,2) + '.' + v.slice(2,5) + '.' + v.slice(5,8) + '/' + v.slice(8);
+            return v.slice(0,2) + '.' + v.slice(2,5) + '.' + v.slice(5,8) + '/' + v.slice(8,12) + '-' + v.slice(12);
+        }
+        
+        cnpjInput.addEventListener('input', function() {
+            var pos = this.selectionStart || 0;
+            var old = this.value || '';
+            this.value = formatCNPJ(this.value);
+            if (this.value.length > old.length) {
+                this.selectionStart = this.selectionEnd = pos + (this.value.length - old.length);
+            }
+        });
+        
+        // Adicionar listener ao botão
+        btnBuscar.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('🖱️ [CNPJ] Botão clicado via addEventListener!');
+            window.buscarCnpjManual();
+        });
+        
+        console.log('✅ [CNPJ] Formatação e listeners inicializados!');
+        return true;
+    }
+    
+    // Tentar inicializar múltiplas vezes
+    var initialized = false;
+    var attempts = 0;
+    var maxAttempts = 10;
+    
+    function tryInit() {
+        attempts++;
+        console.log('🔄 [CNPJ] Tentativa', attempts, 'de', maxAttempts);
+        
+        if (initCnpjSearch()) {
+            initialized = true;
+            console.log('✅ [CNPJ] Inicializado na tentativa', attempts);
+        } else if (attempts < maxAttempts) {
+            setTimeout(tryInit, 500);
+        } else {
+            console.error('❌ [CNPJ] Falhou após', maxAttempts, 'tentativas');
+        }
+    }
+    
+    // Começar tentativas
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', tryInit);
+    } else {
+        tryInit();
+    }
+    
+    // Também tentar quando mudar de aba
+    document.addEventListener('click', function(e) {
+        if (!initialized && e.target.closest('.nav-link')) {
+            console.log('🔄 [CNPJ] Mudança de aba detectada, tentando inicializar...');
+            setTimeout(tryInit, 200);
+        }
+    });
+})();
+</script>
+
+<!-- Script para conversão automática para maiúsculas -->
+        function formatCNPJ(v) {
+            v = v.replace(/\D/g, '').slice(0, 14);
+            if (v.length <= 2) return v;
+            if (v.length <= 5) return v.slice(0,2) + '.' + v.slice(2);
+            if (v.length <= 8) return v.slice(0,2) + '.' + v.slice(2,5) + '.' + v.slice(5);
+            if (v.length <= 12) return v.slice(0,2) + '.' + v.slice(2,5) + '.' + v.slice(5,8) + '/' + v.slice(8);
+            return v.slice(0,2) + '.' + v.slice(2,5) + '.' + v.slice(5,8) + '/' + v.slice(8,12) + '-' + v.slice(12);
+        }
+        
+        cnpjInput.addEventListener('input', function() {
+            var pos = this.selectionStart || 0;
+            var old = this.value || '';
+            this.value = formatCNPJ(this.value);
+            if (this.value.length > old.length) {
+                this.selectionStart = this.selectionEnd = pos + (this.value.length - old.length);
+            }
+        });
+        
+        // Adicionar listener ao botão
+        btnBuscar.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('🖱️ [CNPJ] Botão clicado via addEventListener!');
+            window.buscarCnpjManual();
+        });
+        
+        console.log('✅ [CNPJ] Script inicializado com sucesso!');
+        return true;
+    }
+    
+    // Tentar inicializar múltiplas vezes
+    var initialized = false;
+    var attempts = 0;
+    var maxAttempts = 10;
+    
+    function tryInit() {
+        attempts++;
+        console.log('🔄 [CNPJ] Tentativa', attempts, 'de', maxAttempts);
+        
+        if (initCnpjSearch()) {
+            initialized = true;
+            console.log('✅ [CNPJ] Inicializado na tentativa', attempts);
+        } else if (attempts < maxAttempts) {
+            setTimeout(tryInit, 500);
+        } else {
+            console.error('❌ [CNPJ] Falhou após', maxAttempts, 'tentativas');
+        }
+    }
+    
+    // Começar tentativas
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', tryInit);
+    } else {
+        tryInit();
+    }
+    
+    // Também tentar quando mudar de aba
+    document.addEventListener('click', function(e) {
+        if (!initialized && e.target.closest('.nav-link')) {
+            console.log('🔄 [CNPJ] Mudança de aba detectada, tentando inicializar...');
+            setTimeout(tryInit, 200);
+        }
+    });
+})();
 </script>
 
 <!-- Script para conversão automática para maiúsculas -->

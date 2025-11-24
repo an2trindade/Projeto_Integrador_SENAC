@@ -22,6 +22,17 @@ class LoginAttempt(models.Model):
         return timezone.now() < self.blocked_until
 
 class Cliente(models.Model):
+    TIPO_PESSOA_CHOICES = [
+        ('PF', 'Pessoa Física'),
+        ('PJ', 'Pessoa Jurídica'),
+    ]
+    
+    tipo_pessoa = models.CharField(
+        max_length=2,
+        choices=TIPO_PESSOA_CHOICES,
+        default='PJ',
+        verbose_name='Tipo de Pessoa'
+    )
     empresa = models.CharField(max_length=150, verbose_name='Empresa')
     cnpj = models.CharField(max_length=18, verbose_name='CNPJ', blank=True, default='')
     razao_social = models.CharField(max_length=200, verbose_name='Razão Social', blank=True, default='')
