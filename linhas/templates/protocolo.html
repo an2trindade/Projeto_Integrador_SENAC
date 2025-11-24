@@ -3,10 +3,70 @@
 {% block title %}Protocolo - Gestor de Linhas{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12">
-        <h1>Protocolo</h1>
-        <p>Área para registrar e consultar protocolos.</p>
+<style>
+    /* Header Tecnológico */
+    .tech-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 25px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+    }
+    
+    .tech-header h1 {
+        color: #ffffff;
+        font-weight: 700;
+        font-size: 2rem;
+        margin: 0;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .tech-header p {
+        color: rgba(255,255,255,0.9);
+        margin: 10px 0 0 0;
+        font-size: 1.1rem;
+    }
+    
+    /* Card de Conteúdo */
+    .content-card {
+        background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 20px;
+        padding: 30px;
+        min-height: 300px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .coming-soon {
+        text-align: center;
+        color: rgba(255,255,255,0.8);
+    }
+    
+    .coming-soon i {
+        font-size: 4rem;
+        color: rgba(102, 126, 234, 0.6);
+        margin-bottom: 20px;
+    }
+    
+    .coming-soon h3 {
+        color: rgba(255,255,255,0.9);
+        font-weight: 600;
+    }
+</style>
+
+<div class="tech-header">
+    <h1><i class="fas fa-clipboard-list"></i> Protocolo</h1>
+    <p>Área para registrar e consultar protocolos</p>
+</div>
+
+<div class="content-card">
+    <div class="coming-soon">
+        <i class="fas fa-clipboard-list"></i>
+        <h3>Sistema de Protocolos</h3>
+        <p>Registre e acompanhe protocolos de atendimento</p>
     </div>
 </div>
 {% endblock %}

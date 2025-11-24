@@ -3,211 +3,387 @@
 {% block title %}Lista de Linhas - Gestor de Linhas de Telefonia{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
+<style>
+    /* Estilo Tecnológico - Lista de Linhas */
+    .tech-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 25px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+    }
+    
+    .tech-header h1 {
+        color: #ffffff;
+        font-weight: 700;
+        font-size: 2rem;
+        margin: 0;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    /* Cards Estatísticos Modernos */
+    .stat-card {
+        background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 20px;
+        padding: 25px;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        height: 100%;
+    }
+    
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+    }
+    
+    .stat-card.total::before {
+        background: linear-gradient(90deg, #667eea, #764ba2);
+    }
+    
+    .stat-card.ativas::before {
+        background: linear-gradient(90deg, #11998e, #38ef7d);
+    }
+    
+    .stat-card.inativas::before {
+        background: linear-gradient(90deg, #ee0979, #ff6a00);
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(102, 126, 234, 0.4);
+        border-color: rgba(102, 126, 234, 0.5);
+    }
+    
+    .stat-card .icon-wrapper {
+        width: 60px;
+        height: 60px;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        margin-bottom: 15px;
+        transition: all 0.3s ease;
+    }
+    
+    .stat-card:hover .icon-wrapper {
+        transform: scale(1.1) rotate(5deg);
+    }
+    
+    .stat-card.total .icon-wrapper {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: #ffffff;
+    }
+    
+    .stat-card.ativas .icon-wrapper {
+        background: linear-gradient(135deg, #11998e, #38ef7d);
+        color: #ffffff;
+    }
+    
+    .stat-card.inativas .icon-wrapper {
+        background: linear-gradient(135deg, #ee0979, #ff6a00);
+        color: #ffffff;
+    }
+    
+    .stat-card h5 {
+        color: rgba(255,255,255,0.8);
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin: 0 0 10px 0;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .stat-card h2 {
+        color: #ffffff;
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin: 0;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    /* Card de Filtros */
+    .filter-card {
+        background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 20px;
+        padding: 25px;
+        margin-bottom: 30px;
+    }
+    
+    .filter-card .form-label {
+        color: rgba(255,255,255,0.9);
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+    }
+    
+    /* Tabela Moderna */
+    .table-card {
+        background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 20px;
+        overflow: hidden;
+    }
+    
+    .table-tech {
+        margin: 0;
+        color: rgba(255,255,255,0.95);
+    }
+    
+    .table-tech thead {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));
+        border-bottom: 2px solid rgba(102, 126, 234, 0.5);
+    }
+    
+    .table-tech thead th {
+        color: #ffffff;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+        padding: 15px;
+        border: none;
+    }
+    
+    .table-tech tbody tr {
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .table-tech tbody tr:hover {
+        background: rgba(102, 126, 234, 0.2);
+        transform: scale(1.01);
+    }
+    
+    .table-tech tbody td {
+        padding: 15px;
+        vertical-align: middle;
+        border: none;
+    }
+    
+    .status-badge {
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .status-badge.ativa {
+        background: linear-gradient(135deg, rgba(17, 153, 142, 0.3), rgba(56, 239, 125, 0.3));
+        border: 1px solid rgba(56, 239, 125, 0.5);
+        color: #38ef7d;
+    }
+    
+    .status-badge.inativa {
+        background: linear-gradient(135deg, rgba(238, 9, 121, 0.3), rgba(255, 106, 0, 0.3));
+        border: 1px solid rgba(255, 106, 0, 0.5);
+        color: #ff6a00;
+    }
+</style>
+
+<!-- Header Tecnológico -->
+<div class="tech-header">
     <h1><i class="fas fa-mobile-alt"></i> Lista de Linhas de Telefonia</h1>
-    <!-- Botão Nova Linha removido da barra de título -->
 </div>
 
 <!-- Estatísticas -->
 <div class="row mb-4">
-    <div class="col-md-4">
-        <div class="card card-stats">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h5 class="card-title text-muted">Total de Linhas</h5>
-                        <h3 class="text-primary">{{ total_linhas }}</h3>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-mobile-alt fa-2x text-primary"></i>
-                    </div>
-                </div>
+    <div class="col-md-4 mb-3">
+        <div class="stat-card total">
+            <div class="icon-wrapper">
+                <i class="fas fa-mobile-alt"></i>
             </div>
+            <h5>Total de Linhas</h5>
+            <h2>{{ total_linhas }}</h2>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card card-stats">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h5 class="card-title text-muted">Linhas Ativas</h5>
-                        <h3 class="text-success">{{ linhas_ativas }}</h3>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-check-circle fa-2x text-success"></i>
-                    </div>
-                </div>
+    <div class="col-md-4 mb-3">
+        <div class="stat-card ativas">
+            <div class="icon-wrapper">
+                <i class="fas fa-check-circle"></i>
             </div>
+            <h5>Linhas Ativas</h5>
+            <h2>{{ linhas_ativas }}</h2>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card card-stats">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h5 class="card-title text-muted">Linhas Inativas</h5>
-                        <h3 class="text-danger">{{ linhas_inativas }}</h3>
-                    </div>
-                    <div class="align-self-center">
-                        <i class="fas fa-times-circle fa-2x text-danger"></i>
-                    </div>
-                </div>
+    <div class="col-md-4 mb-3">
+        <div class="stat-card inativas">
+            <div class="icon-wrapper">
+                <i class="fas fa-times-circle"></i>
             </div>
+            <h5>Linhas Inativas</h5>
+            <h2>{{ linhas_inativas }}</h2>
         </div>
     </div>
 </div>
 
 <!-- Filtros de Busca -->
-<div class="card mb-4">
-    <div class="card-body">
-        <form method="get" class="row g-3">
-            <div class="col-md-4">
-                <label class="form-label small">Buscar</label>
-                <div class="input-group">
-                    <span class="input-group-text"><i class="fas fa-search"></i></span>
-                    <!-- Render a plain bootstrap input to avoid the custom widget styles and match the Plano field -->
-                    <input type="text" id="{{ form_busca.busca.id_for_label }}" name="busca" class="form-control" placeholder="Buscar por CNPJ, nome do cliente, número da linha ou RP..." value="{{ request.GET.busca|default_if_none:'' }}" autocomplete="off">
-                </div>
-            </div>
-            <div class="col-md-2">
-                <label class="form-label small">Plano</label>
-                <div class="input-group">
-                    <span class="input-group-text"><i class="fas fa-file-contract"></i></span>
-                    {{ form_busca.tipo_plano }}
-                </div>
-            </div>
-            <div class="col-md-2">
-                <label class="form-label small">Status</label>
-                <div class="input-group">
-                    <span class="input-group-text"><i class="fas fa-info-circle"></i></span>
-                    {{ form_busca.ativa }}
-                </div>
-            </div>
-            <div class="col-md-2 d-flex align-items-end">
-                <button type="submit" class="btn btn-outline-primary me-2">
-                    <i class="fas fa-search"></i> Buscar
+<div class="filter-card">
+    <form method="get" class="row g-3">
+        <div class="col-md-4">
+            <label class="form-label"><i class="fas fa-search"></i> Buscar</label>
+            <input type="text" id="{{ form_busca.busca.id_for_label }}" name="busca" class="form-control" placeholder="Buscar por CNPJ, nome do cliente, número da linha ou RP..." value="{{ request.GET.busca|default_if_none:'' }}" autocomplete="off">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label"><i class="fas fa-file-contract"></i> Plano</label>
+            {{ form_busca.tipo_plano }}
+        </div>
+        <div class="col-md-3">
+            <label class="form-label"><i class="fas fa-info-circle"></i> Status</label>
+            {{ form_busca.ativa }}
+        </div>
+        <div class="col-md-2 d-flex align-items-end gap-2">
+            <button type="submit" class="btn btn-primary flex-fill">
+                <i class="fas fa-search"></i> Buscar
+            </button>
+            <a href="{% url 'linhas:listalinhas' %}" class="btn btn-secondary">
+                <i class="fas fa-times"></i>
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Tabela de Linhas -->
+{% if page_obj %}
+<div class="table-card">
+    <div class="table-responsive">
+        <form method="post" id="form-linhas-multiplas">
+            {% csrf_token %}
+            <table class="table table-tech">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="select-all"></th>
+                        <th>Linha</th>
+                        <th>Cliente</th>
+                        <th>CNPJ</th>
+                        <th>RP</th>
+                        <th>Plano</th>
+                        <th>Valor Plano</th>
+                        <th>Taxa de Manutenção</th>
+                        <th>Status</th>
+                        <th class="text-end">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for linha in page_obj %}
+                    <tr>
+                        <td><input type="checkbox" name="linhas_selecionadas" value="{{ linha.pk }}"></td>
+                        <td><strong>{{ linha.numero }}</strong></td>
+                        <td>{{ linha.empresa }}</td>
+                        <td>{{ linha.cnpj }}</td>
+                        <td>{{ linha.RP }}</td>
+                        <td>{{ linha.get_tipo_plano_display }}</td>
+                        <td>R$ {{ linha.valor_plano }}</td>
+                        <td>R$ {{ linha.taxa_manutencao }}</td>
+                        <td>
+                            {% if linha.ativa %}
+                                <span class="status-badge ativa">
+                                    <i class="fas fa-check-circle"></i> Ativa
+                                </span>
+                            {% else %}
+                                <span class="status-badge inativa">
+                                    <i class="fas fa-times-circle"></i> Inativa
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a href="{% url 'linhas:detalheslinha' linha.pk %}" class="btn btn-info" title="Ver detalhes">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'linhas:editarlinha' linha.pk %}" class="btn btn-warning" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'linhas:excluirlinha' linha.pk %}" class="btn btn-danger" title="Excluir"
+                                   onclick="return confirm('Tem certeza que deseja excluir esta linha?')">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="p-3">
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-check"></i> Executar ação em selecionadas
                 </button>
-                <a href="{% url 'linhas:listalinhas' %}" class="btn btn-outline-secondary">
-                    <i class="fas fa-times"></i>
-                </a>
             </div>
         </form>
     </div>
 </div>
 
-<!-- Lista de Linhas -->
-{% if page_obj %}
-<div class="container-fluid px-0">
-    <div class="card" style="width:100%; max-width:100%;">
-        <div class="card-body" style="padding:2rem;">
-            <div class="table-responsive">
-                <form method="post" id="form-linhas-multiplas">
-                    {% csrf_token %}
-                    <table class="table table-hover table-bordered" style="width:100%; font-size:1.1rem;">
-                        <thead class="table-light">
-                            <tr>
-                                <th><input type="checkbox" id="select-all"></th>
-                                <th>Linha</th>
-                                <th>Cliente</th>
-                                <th>CNPJ</th>
-                                <th>RP</th>
-                                <th>Plano</th>
-                                <th>Valor Plano</th>
-                                <th>Taxa de Manutenção</th>
-                                <th>Status</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for linha in page_obj %}
-                            <tr>
-                                <td><input type="checkbox" name="linhas_selecionadas" value="{{ linha.pk }}"></td>
-                                <td><strong>{{ linha.numero }}</strong></td>
-                                <td>{{ linha.empresa }}</td>
-                                <td>{{ linha.cnpj }}</td>
-                                <td>{{ linha.RP }}</td>
-                                <td>{{ linha.get_tipo_plano_display }}</td>
-                                <td>R$ {{ linha.valor_plano }}</td>
-                                <td>R$ {{ linha.taxa_manutencao }}</td>
-                                <td>
-                                    {% if linha.ativa %}
-                                        <i class="fas fa-check-circle status-ativo"></i> Ativa
-                                    {% else %}
-                                        <i class="fas fa-times-circle status-inativo"></i> Inativa
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <div class="btn-group btn-group-sm" role="group">
-                                        <a href="{% url 'linhas:detalheslinha' linha.pk %}" class="btn btn-outline-info" title="Ver detalhes">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                        <a href="{% url 'linhas:editarlinha' linha.pk %}" class="btn btn-outline-warning" title="Editar">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <a href="{% url 'linhas:excluirlinha' linha.pk %}" class="btn btn-outline-danger" title="Excluir">
-                                            <i class="fas fa-trash"></i>
-                                        </a>
-                                    </div>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                    <div class="mt-2">
-                        <button type="submit" class="btn btn-success">Executar ação em selecionadas</button>
-                    </div>
-                </form>
-                <script>
-                // Selecionar todos
-                document.addEventListener('DOMContentLoaded', function() {
-                    var selectAll = document.getElementById('select-all');
-                    if (selectAll) {
-                        selectAll.addEventListener('change', function() {
-                            var checkboxes = document.querySelectorAll('input[name="linhas_selecionadas"]');
-                            for (var i = 0; i < checkboxes.length; i++) {
-                                checkboxes[i].checked = selectAll.checked;
-                            }
-                        });
-                    }
-                });
-                </script>
-        </div>
-
-        <!-- Paginação -->
-        {% if page_obj.has_other_pages %}
-        <nav aria-label="Paginação">
-            <ul class="pagination justify-content-center">
-                {% if page_obj.has_previous %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page=1{% if request.GET.busca %}&busca={{ request.GET.busca }}{% endif %}{% if request.GET.operadora %}&operadora={{ request.GET.operadora }}{% endif %}{% if request.GET.tipo_plano %}&tipo_plano={{ request.GET.tipo_plano }}{% endif %}{% if request.GET.ativa %}&ativa={{ request.GET.ativa }}{% endif %}">Primeira</a>
-                    </li>
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.busca %}&busca={{ request.GET.busca }}{% endif %}{% if request.GET.operadora %}&operadora={{ request.GET.operadora }}{% endif %}{% if request.GET.tipo_plano %}&tipo_plano={{ request.GET.tipo_plano }}{% endif %}{% if request.GET.ativa %}&ativa={{ request.GET.ativa }}{% endif %}">Anterior</a>
-                    </li>
-                {% endif %}
-
-                <li class="page-item active">
-                    <span class="page-link">{{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
-                </li>
-
-                {% if page_obj.has_next %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.busca %}&busca={{ request.GET.busca }}{% endif %}{% if request.GET.operadora %}&operadora={{ request.GET.operadora }}{% endif %}{% if request.GET.tipo_plano %}&tipo_plano={{ request.GET.tipo_plano }}{% endif %}{% if request.GET.ativa %}&ativa={{ request.GET.ativa }}{% endif %}">Próxima</a>
-                    </li>
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.busca %}&busca={{ request.GET.busca }}{% endif %}{% if request.GET.operadora %}&operadora={{ request.GET.operadora }}{% endif %}{% if request.GET.tipo_plano %}&tipo_plano={{ request.GET.tipo_plano }}{% endif %}{% if request.GET.ativa %}&ativa={{ request.GET.ativa }}{% endif %}">Última</a>
-                    </li>
-                {% endif %}
-            </ul>
-        </nav>
+<!-- Paginação -->
+{% if page_obj.has_other_pages %}
+<nav aria-label="Paginação" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1{% if request.GET.busca %}&busca={{ request.GET.busca }}{% endif %}{% if request.GET.operadora %}&operadora={{ request.GET.operadora }}{% endif %}{% if request.GET.tipo_plano %}&tipo_plano={{ request.GET.tipo_plano }}{% endif %}{% if request.GET.ativa %}&ativa={{ request.GET.ativa }}{% endif %}">
+                    <i class="fas fa-angle-double-left"></i> Primeira
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.busca %}&busca={{ request.GET.busca }}{% endif %}{% if request.GET.operadora %}&operadora={{ request.GET.operadora }}{% endif %}{% if request.GET.tipo_plano %}&tipo_plano={{ request.GET.tipo_plano }}{% endif %}{% if request.GET.ativa %}&ativa={{ request.GET.ativa }}{% endif %}">
+                    <i class="fas fa-angle-left"></i> Anterior
+                </a>
+            </li>
         {% endif %}
-    </div>
-</div>
+
+        <li class="page-item active">
+            <span class="page-link">
+                Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+            </span>
+        </li>
+
+        {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.busca %}&busca={{ request.GET.busca }}{% endif %}{% if request.GET.operadora %}&operadora={{ request.GET.operadora }}{% endif %}{% if request.GET.tipo_plano %}&tipo_plano={{ request.GET.tipo_plano }}{% endif %}{% if request.GET.ativa %}&ativa={{ request.GET.ativa }}{% endif %}">
+                    Próxima <i class="fas fa-angle-right"></i>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.busca %}&busca={{ request.GET.busca }}{% endif %}{% if request.GET.operadora %}&operadora={{ request.GET.operadora }}{% endif %}{% if request.GET.tipo_plano %}&tipo_plano={{ request.GET.tipo_plano }}{% endif %}{% if request.GET.ativa %}&ativa={{ request.GET.ativa }}{% endif %}">
+                    Última <i class="fas fa-angle-double-right"></i>
+                </a>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
 {% else %}
-<div class="alert alert-warning text-center">
-    <i class="fas fa-exclamation-triangle"></i>
-    SEM RESULTADOS PARA A BUSCA
+<div class="alert alert-warning text-center" style="background: rgba(255, 193, 7, 0.2); border: 1px solid rgba(255, 193, 7, 0.5); border-radius: 15px; color: #ffc107;">
+    <i class="fas fa-exclamation-triangle"></i> SEM RESULTADOS PARA A BUSCA
 </div>
 {% endif %}
+
+<script>
+    // Select All Checkbox
+    document.addEventListener('DOMContentLoaded', function() {
+        const selectAll = document.getElementById('select-all');
+        if (selectAll) {
+            selectAll.addEventListener('change', function() {
+                const checkboxes = document.querySelectorAll('input[name="linhas_selecionadas"]');
+                checkboxes.forEach(checkbox => checkbox.checked = this.checked);
+            });
+        }
+    });
+</script>
+
 {% endblock %}
 

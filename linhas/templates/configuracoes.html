@@ -13,21 +13,23 @@
         padding: 0;
     }
     
-    /* Header principal - fundo escuro */
+    /* Header principal - Tecnológico */
     .config-main-header {
-        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         padding: 2rem;
         margin: 0;
+        box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
     }
     
     .config-title {
         font-size: 2rem;
-        font-weight: 400;
+        font-weight: 700;
         margin: 0;
         display: flex;
         align-items: center;
         gap: 1rem;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     
     .config-title i {
@@ -35,10 +37,10 @@
     }
     
     .config-subtitle {
-        opacity: 0.8;
+        opacity: 0.9;
         margin: 0.5rem 0 0 0;
-        font-size: 1rem;
-        font-weight: 300;
+        font-size: 1.1rem;
+        font-weight: 400;
     }
     
     /* Container branco com abas */
@@ -53,10 +55,10 @@
     
     /* Navegação das Abas - Sistema Claro */
     .config-nav {
-        background: linear-gradient(135deg, #f1f3f4 0%, #e8eaed 100%);
-        border-bottom: 3px solid #dadce0;
-        padding: 1.5rem 0 0;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        border-bottom: none;
+        padding: 1.5rem 0;
+        box-shadow: none;
     }
     
     .nav-tabs-custom {
@@ -64,59 +66,21 @@
         padding: 0 2rem;
         margin: 0;
         display: flex;
-        gap: 8px;
+        gap: 12px;
     }
     
     .nav-tabs-custom .nav-link {
-        border: 2px solid #dadce0;
-        color: #5f6368;
-        font-weight: 500;
-        padding: 16px 28px;
-        margin-right: 0;
-        border-radius: 16px 16px 0 0;
-        background: #f8f9fa;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        position: relative;
-        margin-bottom: -3px;
-        box-shadow: 0 -4px 12px rgba(0,0,0,0.08);
-        min-width: 140px;
-        text-align: center;
-    }
-    
-    .nav-tabs-custom .nav-link:hover {
-        color: #1a73e8;
-        background: #e8f0fe;
-        border-color: #aecbfa;
-        transform: translateY(-4px);
-        box-shadow: 0 -8px 20px rgba(26, 115, 232, 0.15);
+        margin-bottom: 0;
     }
     
     .nav-tabs-custom .nav-link.active {
-        color: #007bff;
-        background: white;
-        font-weight: 600;
-        border-color: #007bff;
-        border-bottom-color: white;
-        box-shadow: 0 -2px 8px rgba(0, 123, 255, 0.15);
-        z-index: 10;
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+        color: #fff;
     }
-    
-
     
     .nav-tabs-custom .nav-link.active::after {
-        content: '';
-        position: absolute;
-        bottom: -3px;
-        left: 0;
-        right: 0;
-        height: 4px;
-        background: linear-gradient(90deg, #1a73e8 0%, #4285f4 100%);
-        border-radius: 2px;
-    }
-    
-    .nav-tabs-custom .nav-link i {
-        font-size: 1.1rem;
-        margin-right: 8px;
+        display: none;
     }
     
     /* Conteúdo das Abas - Mais Separado */
@@ -521,23 +485,23 @@
     <!-- Navegação das Abas -->
     <ul class="nav nav-tabs-custom" id="configTabs" role="tablist">
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="linhas-tab" data-bs-toggle="tab" data-bs-target="#linhas-content" type="button" role="tab">
-                        <i class="fas fa-phone me-2"></i>Linhas
+                    <button class="nav-link btn-outline-primary active" id="linhas-tab" data-bs-toggle="tab" data-bs-target="#linhas-content" type="button" role="tab">
+                        <i class="fas fa-phone"></i> Linhas
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="usuarios-tab" data-bs-toggle="tab" data-bs-target="#usuarios-content" type="button" role="tab">
-                        <i class="fas fa-users me-2"></i>Usuários
+                    <button class="nav-link btn-outline-primary" id="usuarios-tab" data-bs-toggle="tab" data-bs-target="#usuarios-content" type="button" role="tab">
+                        <i class="fas fa-users"></i> Usuários
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="protocolo-tab" data-bs-toggle="tab" data-bs-target="#protocolo-content" type="button" role="tab">
-                        <i class="fas fa-clipboard-list me-2"></i>Protocolos
+                    <button class="nav-link btn-outline-primary" id="protocolo-tab" data-bs-toggle="tab" data-bs-target="#protocolo-content" type="button" role="tab">
+                        <i class="fas fa-clipboard-list"></i> Protocolos
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="associados-tab" data-bs-toggle="tab" data-bs-target="#associados-content" type="button" role="tab">
-                        <i class="fas fa-handshake me-2"></i>Associados
+                    <button class="nav-link btn-outline-primary" id="associados-tab" data-bs-toggle="tab" data-bs-target="#associados-content" type="button" role="tab">
+                        <i class="fas fa-handshake"></i> Associados
                     </button>
                 </li>
             </ul>
@@ -547,12 +511,12 @@
             
             <!-- Aba Linhas -->
             <div class="tab-pane fade show active" id="linhas-content" role="tabpanel">
-                <div class="section-title">
-                    <i class="fas fa-phone"></i>
-                    Configurações de Linhas
+                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                    <i class="fas fa-phone" style="font-size: 1.5rem;"></i>
+                    <h5 style="margin: 0; font-weight: 600;">Configurações de Linhas</h5>
                 </div>
                 
-                <p class="section-description">
+                <p style="color: #6c757d; margin-bottom: 2rem;">
                     Configure parâmetros relacionados ao gerenciamento de linhas telefônicas
                 </p>
                 
@@ -561,36 +525,32 @@
                     <span><strong>Em desenvolvimento:</strong> Configurações de linhas serão implementadas em breve.</span>
                 </div>
                 
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <div class="config-card">
-                            <div class="config-card-title">
-                                <i class="fas fa-cogs"></i>
-                                Parâmetros Gerais
-                            </div>
-                            <div class="config-card-description">
-                                Configurações globais do sistema de linhas
-                            </div>
-                            <button class="btn btn-outline-secondary btn-sm" disabled>
-                                <i class="fas fa-edit me-1"></i> Configurar
-                            </button>
-                        </div>
+                <!-- Parâmetros Gerais -->
+                <div style="margin-bottom: 2.5rem;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+                        <i class="fas fa-cogs" style="font-size: 1.2rem;"></i>
+                        <h6 style="margin: 0; font-weight: 600;">Parâmetros Gerais</h6>
                     </div>
-                    
-                    <div class="col-md-6 mb-3">
-                        <div class="config-card">
-                            <div class="config-card-title">
-                                <i class="fas fa-chart-line"></i>
-                                Relatórios
-                            </div>
-                            <div class="config-card-description">
-                                Configurações de relatórios e exportações
-                            </div>
-                            <button class="btn btn-outline-secondary btn-sm" disabled>
-                                <i class="fas fa-chart-bar me-1"></i> Configurar
-                            </button>
-                        </div>
+                    <p style="color: #6c757d; font-size: 0.95rem; margin-bottom: 1rem;">
+                        Configurações globais do sistema de linhas
+                    </p>
+                    <button class="btn btn-outline-primary" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-external-link-alt"></i> Configurar
+                    </button>
+                </div>
+                
+                <!-- Relatórios -->
+                <div style="margin-bottom: 2.5rem;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+                        <i class="fas fa-chart-line" style="font-size: 1.2rem;"></i>
+                        <h6 style="margin: 0; font-weight: 600;">Relatórios</h6>
                     </div>
+                    <p style="color: #6c757d; font-size: 0.95rem; margin-bottom: 1rem;">
+                        Configurações de relatórios e exportações
+                    </p>
+                    <button class="btn btn-outline-primary" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-external-link-alt"></i> Configurar
+                    </button>
                 </div>
             </div>
 

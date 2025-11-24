@@ -3,15 +3,70 @@
 {% block title %}Relatórios - Gestor de Linhas{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12">
-        <h1>Relatórios</h1>
-        <p>Painel de relatórios e exportações.</p>
-    </div>
+<style>
+    /* Header Tecnológico */
+    .tech-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 25px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+    }
+    
+    .tech-header h1 {
+        color: #ffffff;
+        font-weight: 700;
+        font-size: 2rem;
+        margin: 0;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .tech-header p {
+        color: rgba(255,255,255,0.9);
+        margin: 10px 0 0 0;
+        font-size: 1.1rem;
+    }
+    
+    /* Card de Filtros */
+    .filter-card {
+        background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 20px;
+        padding: 25px;
+    }
+    
+    .filter-card h5 {
+        color: rgba(255,255,255,0.95);
+        font-weight: 600;
+    }
+    
+    .filter-card .text-muted {
+        color: rgba(255,255,255,0.7) !important;
+    }
+    
+    .filter-card small.text-muted {
+        color: rgba(255,255,255,0.6) !important;
+    }
+    
+    .form-label {
+        color: rgba(255,255,255,0.9);
+        font-weight: 600;
+    }
+    
+    .filter-card hr {
+        border-color: rgba(255,255,255,0.2);
+    }
+</style>
+
+<div class="tech-header">
+    <h1><i class="fas fa-chart-bar"></i> Relatórios</h1>
+    <p>Painel de relatórios e exportações</p>
 </div>
+
 <div class="row mt-4">
     <div class="col-12">
-        <div class="card p-3 shadow-sm">
+        <div class="filter-card">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h5 class="mb-0">Exportações</h5>
