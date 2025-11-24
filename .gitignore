@@ -13,3 +13,8 @@ env/
 *.egg-info/
 dist/
 build/
+
+# Diretórios de projeto obsoletos
+Projeto_Telefonia_Corrigido/
+Projeto_Telefonia/
+.env/
