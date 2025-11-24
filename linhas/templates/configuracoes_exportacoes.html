@@ -1,0 +1,369 @@
+{% extends 'base.html' %}
+
+{% block title %}Configurações - Gestor de Linhas{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Layout baseado no modelo de Exportações */
+    body {
+        background: linear-gradient(135deg, #2d3561 0%, #1e2347 100%);
+        min-height: 100vh;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    
+    /* Container Principal */
+    .config-main-container {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        margin: 2rem;
+        overflow: hidden;
+    }
+    
+    /* Header da página */
+    .config-page-header {
+        padding: 2rem 2rem 1rem 2rem;
+        border-bottom: 1px solid #e9ecef;
+        background: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+    
+    .config-page-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #2d3561;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .config-page-subtitle {
+        color: #6c757d;
+        font-size: 0.95rem;
+        margin: 0;
+    }
+    
+    /* Botão Limpar */
+    .clear-btn {
+        background: #17a2b8;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .clear-btn:hover {
+        background: #138496;
+        transform: translateY(-1px);
+    }
+    
+    /* Grid de Filtros e Campos */
+    .config-content {
+        padding: 2rem;
+    }
+    
+    .config-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    /* Grupos de Campos */
+    .field-group {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .field-label {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .field-label i {
+        color: #6b7280;
+        font-size: 1rem;
+    }
+    
+    /* Inputs estilizados */
+    .config-input, .config-select {
+        padding: 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        transition: all 0.2s;
+        background: white;
+    }
+    
+    .config-input:focus, .config-select:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    
+    .config-input::placeholder {
+        color: #9ca3af;
+    }
+    
+    /* Área de Botões */
+    .config-actions {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        padding-top: 1.5rem;
+        border-top: 1px solid #e5e7eb;
+    }
+    
+    /* Botões de Ação */
+    .action-btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        color: white;
+    }
+    
+    .btn-primary {
+        background: #10b981;
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background: #059669;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+    
+    .btn-secondary {
+        background: #f59e0b;
+        color: white;
+    }
+    
+    .btn-secondary:hover {
+        background: #d97706;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+    }
+    
+    .btn-info {
+        background: #3b82f6;
+        color: white;
+    }
+    
+    .btn-info:hover {
+        background: #2563eb;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+    
+    .btn-warning {
+        background: #ef4444;
+        color: white;
+    }
+    
+    .btn-warning:hover {
+        background: #dc2626;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    }
+    
+    /* Nota */
+    .config-note {
+        margin-bottom: 1rem;
+        color: #6b7280;
+        font-size: 0.875rem;
+    }
+    
+    .config-note strong {
+        color: #374151;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="config-main-container">
+    <!-- Header da Página -->
+    <div class="config-page-header">
+        <div>
+            <h1 class="config-page-title">
+                <i class="fas fa-cogs"></i>
+                Configurações
+            </h1>
+            <p class="config-page-subtitle">Filtre os dados e gere relatórios personalizados</p>
+        </div>
+        <button class="clear-btn" onclick="limparFiltros()">
+            Limpar
+        </button>
+    </div>
+    
+    <!-- Conteúdo Principal -->
+    <div class="config-content">
+        <!-- Grid de Filtros -->
+        <div class="config-grid">
+            <!-- Cliente / Empresa -->
+            <div class="field-group">
+                <label class="field-label">
+                    <i class="fas fa-building"></i>
+                    Cliente / Empresa
+                </label>
+                <input type="text" class="config-input" placeholder="Nome da empresa" id="clienteEmpresa">
+            </div>
+            
+            <!-- CNPJ -->
+            <div class="field-group">
+                <label class="field-label">
+                    <i class="fas fa-id-card"></i>
+                    CNPJ
+                </label>
+                <input type="text" class="config-input" placeholder="00.000.000/0000-00" id="cnpj">
+            </div>
+            
+            <!-- Plano -->
+            <div class="field-group">
+                <label class="field-label">
+                    <i class="fas fa-list"></i>
+                    Plano
+                </label>
+                <select class="config-select" id="plano">
+                    <option value="">Todos</option>
+                    <option value="basico">Básico</option>
+                    <option value="premium">Premium</option>
+                    <option value="corporativo">Corporativo</option>
+                </select>
+            </div>
+            
+            <!-- Linha (número) -->
+            <div class="field-group">
+                <label class="field-label">
+                    <i class="fas fa-phone"></i>
+                    Linha (número)
+                </label>
+                <input type="text" class="config-input" placeholder="(99) 9XXXX-XXXX" id="linha">
+            </div>
+            
+            <!-- Status -->
+            <div class="field-group">
+                <label class="field-label">
+                    <i class="fas fa-signal"></i>
+                    Status
+                </label>
+                <select class="config-select" id="status">
+                    <option value="">Todos</option>
+                    <option value="ativo">Ativo</option>
+                    <option value="inativo">Inativo</option>
+                    <option value="suspenso">Suspenso</option>
+                </select>
+            </div>
+            
+            <!-- Período início -->
+            <div class="field-group">
+                <label class="field-label">
+                    <i class="fas fa-calendar-alt"></i>
+                    Período início
+                </label>
+                <input type="date" class="config-input" id="periodoInicio">
+            </div>
+            
+            <!-- Período fim -->
+            <div class="field-group">
+                <label class="field-label">
+                    <i class="fas fa-calendar-alt"></i>
+                    Período fim
+                </label>
+                <input type="date" class="config-input" id="periodoFim">
+            </div>
+        </div>
+        
+        <div class="config-note">
+            <small><strong>Dica:</strong> deixe o período vazio para usar o ciclo atual (19—18).</small>
+        </div>
+        
+        <!-- Área de Botões -->
+        <div class="config-actions">
+            <button class="action-btn btn-primary" onclick="aplicarFiltros()">
+                <i class="fas fa-filter"></i>
+                Aplicar filtros
+            </button>
+            
+            <button class="action-btn btn-secondary" onclick="exportarCSV()">
+                <i class="fas fa-file-csv"></i>
+                Exportar Linhas (CSV)
+            </button>
+            
+            <button class="action-btn btn-info" onclick="exportarXLSX()">
+                <i class="fas fa-file-excel"></i>
+                Exportar Linhas (XLSX)
+            </button>
+            
+            <button class="action-btn btn-warning" onclick="exportarProtocolos()">
+                <i class="fas fa-clipboard-list"></i>
+                Exportar Protocolos Pendentes
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript para as funcionalidades -->
+<script>
+function limparFiltros() {
+    document.getElementById('clienteEmpresa').value = '';
+    document.getElementById('cnpj').value = '';
+    document.getElementById('plano').value = '';
+    document.getElementById('linha').value = '';
+    document.getElementById('status').value = '';
+    document.getElementById('periodoInicio').value = '';
+    document.getElementById('periodoFim').value = '';
+    console.log('Filtros limpos');
+}
+
+function aplicarFiltros() {
+    const filtros = {
+        clienteEmpresa: document.getElementById('clienteEmpresa').value,
+        cnpj: document.getElementById('cnpj').value,
+        plano: document.getElementById('plano').value,
+        linha: document.getElementById('linha').value,
+        status: document.getElementById('status').value,
+        periodoInicio: document.getElementById('periodoInicio').value,
+        periodoFim: document.getElementById('periodoFim').value
+    };
+    
+    console.log('Aplicando filtros:', filtros);
+    alert('Filtros aplicados com sucesso!');
+}
+
+function exportarCSV() {
+    console.log('Exportando CSV...');
+    alert('Exportação CSV em desenvolvimento');
+}
+
+function exportarXLSX() {
+    console.log('Exportando XLSX...');
+    alert('Exportação XLSX em desenvolvimento');
+}
+
+function exportarProtocolos() {
+    console.log('Exportando protocolos...');
+    alert('Exportação de protocolos em desenvolvimento');
+}
+</script>
+
+{% endblock %}

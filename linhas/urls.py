@@ -38,4 +38,6 @@ urlpatterns = [
     path("configuracoes/visualizar-usuario/<int:user_id>/", views.visualizar_usuario, name="visualizar_usuario"),
     path("configuracoes/editar-usuario/<int:user_id>/", views.editar_usuario, name="editar_usuario"),
     path("configuracoes/excluir-usuario/<int:user_id>/", views.excluir_usuario, name="excluir_usuario"),
+    path("configuracoes/alterar-senhas/", views.alterar_senhas, name="alterar_senhas"),
+    path("configuracoes/alterar-senha-usuario/", views.alterar_senha_usuario, name="alterar_senha_usuario"),
 ]

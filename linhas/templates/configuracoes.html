@@ -2,79 +2,593 @@
 
 {% block title %}Configurações - Gestor de Linhas{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Layout conforme print - fundo escuro */
+    body {
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        min-height: 100vh;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        margin: 0;
+        padding: 0;
+    }
+    
+    /* Header principal - fundo escuro */
+    .config-main-header {
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        color: white;
+        padding: 2rem;
+        margin: 0;
+    }
+    
+    .config-title {
+        font-size: 2rem;
+        font-weight: 400;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .config-title i {
+        font-size: 1.8rem;
+    }
+    
+    .config-subtitle {
+        opacity: 0.8;
+        margin: 0.5rem 0 0 0;
+        font-size: 1rem;
+        font-weight: 300;
+    }
+    
+    /* Container branco com abas */
+    /* Container branco com abas */
+    .config-white-container {
+        background: white;
+        margin: 0 2rem 2rem 2rem;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+    
+    /* Navegação das Abas - Sistema Claro */
+    .config-nav {
+        background: linear-gradient(135deg, #f1f3f4 0%, #e8eaed 100%);
+        border-bottom: 3px solid #dadce0;
+        padding: 1.5rem 0 0;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .nav-tabs-custom {
+        border: none;
+        padding: 0 2rem;
+        margin: 0;
+        display: flex;
+        gap: 8px;
+    }
+    
+    .nav-tabs-custom .nav-link {
+        border: 2px solid #dadce0;
+        color: #5f6368;
+        font-weight: 500;
+        padding: 16px 28px;
+        margin-right: 0;
+        border-radius: 16px 16px 0 0;
+        background: #f8f9fa;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        margin-bottom: -3px;
+        box-shadow: 0 -4px 12px rgba(0,0,0,0.08);
+        min-width: 140px;
+        text-align: center;
+    }
+    
+    .nav-tabs-custom .nav-link:hover {
+        color: #1a73e8;
+        background: #e8f0fe;
+        border-color: #aecbfa;
+        transform: translateY(-4px);
+        box-shadow: 0 -8px 20px rgba(26, 115, 232, 0.15);
+    }
+    
+    .nav-tabs-custom .nav-link.active {
+        color: #007bff;
+        background: white;
+        font-weight: 600;
+        border-color: #007bff;
+        border-bottom-color: white;
+        box-shadow: 0 -2px 8px rgba(0, 123, 255, 0.15);
+        z-index: 10;
+    }
+    
+
+    
+    .nav-tabs-custom .nav-link.active::after {
+        content: '';
+        position: absolute;
+        bottom: -3px;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #1a73e8 0%, #4285f4 100%);
+        border-radius: 2px;
+    }
+    
+    .nav-tabs-custom .nav-link i {
+        font-size: 1.1rem;
+        margin-right: 8px;
+    }
+    
+    /* Conteúdo das Abas - Mais Separado */
+    .tab-content-area {
+        background: white;
+        padding: 2rem;
+        min-height: 500px;
+        border-top: 1px solid #dee2e6;
+        position: relative;
+    }
+    
+
+    
+    /* Títulos das Seções - Mais Destacados */
+    .section-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #2d3748;
+        margin-bottom: 1rem;
+        padding: 1.5rem 0;
+        border-bottom: 3px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+        margin: -1.5rem -1.5rem 2rem -1.5rem;
+        padding-left: 1.5rem;
+        border-radius: 8px 8px 0 0;
+    }
+    
+    .section-title i {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+    
+    .section-description {
+        color: #6c757d;
+        margin-bottom: 2rem;
+        font-size: 1rem;
+        line-height: 1.5;
+    }
+    
+    /* Badge de Status Simples */
+    .status-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .status-badge.active {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+    
+    .status-badge.development {
+        background: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeaa7;
+    }
+    
+
+
+    /* Cards de funcionalidades conforme print */
+    .config-card {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .config-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+    }
+    
+    .config-card-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .config-card-description {
+        color: #666;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+    
+    /* Alert de desenvolvimento conforme print */
+    .development-alert {
+        background: #f8d7da;
+        border: 1px solid #f5c6cb;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        color: #721c24;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .development-alert i {
+        color: #721c24;
+    }
+    
+    .feature-card.active {
+        border-left: 4px solid #28a745;
+        background: linear-gradient(135deg, #f8fff9 0%, #e8f5e8 100%);
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.2);
+    }
+    
+    .feature-card.development {
+        border-left: 4px solid #ffc107;
+        background: linear-gradient(135deg, #fffef8 0%, #fef9e7 100%);
+        box-shadow: 0 4px 15px rgba(255, 193, 7, 0.2);
+    }
+    
+    /* Ícones Simples */
+    .feature-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+        font-size: 1.25rem;
+        color: white;
+    }
+    
+    .feature-icon.primary { background: #007bff; }
+    .feature-icon.success { background: #28a745; }
+    .feature-icon.warning { background: #ffc107; color: #212529; }
+    .feature-icon.info { background: #17a2b8; }
+    .feature-icon.danger { background: #dc3545; }
+    
+    .feature-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 0.75rem;
+    }
+    
+    .feature-description {
+        color: #6c757d;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        margin-bottom: 1.5rem;
+    }
+    
+    /* Botões Simples */
+    .btn-clean {
+        padding: 0.5rem 1.25rem;
+        border-radius: 4px;
+        font-weight: 500;
+        font-size: 0.9rem;
+        border: 1px solid;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+    }
+    
+    .btn-clean.primary {
+        background: #007bff;
+        color: white;
+        border-color: #007bff;
+    }
+    
+    .btn-clean.primary:hover {
+        background: #0056b3;
+        border-color: #0056b3;
+        color: white;
+        text-decoration: none;
+    }
+    
+    .btn-clean.success {
+        background: #28a745;
+        color: white;
+        border-color: #28a745;
+    }
+    
+    .btn-clean.success:hover {
+        background: #1e7e34;
+        border-color: #1e7e34;
+        color: white;
+        text-decoration: none;
+    }
+    
+    .btn-clean.outline {
+        background: white;
+        color: #6c757d;
+        border-color: #dee2e6;
+    }
+    
+    .btn-clean.outline:hover {
+        background: #f8f9fa;
+        border-color: #adb5bd;
+        color: #495057;
+        text-decoration: none;
+    }
+    
+    .btn-clean:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    
+    .btn-clean:disabled:hover {
+        transform: none;
+        box-shadow: none;
+    }
+    
+    /* Alerts Modernos */
+    .modern-alert {
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin: 2rem 0;
+        border: 1px solid;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .modern-alert::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+    }
+    
+    .modern-alert.info {
+        background: #f0f9ff;
+        border-color: #e0f2fe;
+        color: #0c4a6e;
+    }
+    
+    .modern-alert.info::before {
+        background: #0ea5e9;
+    }
+    
+    .modern-alert.success {
+        background: #f0fdf4;
+        border-color: #dcfce7;
+        color: #14532d;
+    }
+    
+    .modern-alert.success::before {
+        background: #10b981;
+    }
+    
+    .modern-alert.warning {
+        background: #fffbeb;
+        border-color: #fef3c7;
+        color: #92400e;
+    }
+    
+    .modern-alert.warning::before {
+        background: #f59e0b;
+    }
+    
+    .alert-content {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .alert-icon {
+        flex-shrink: 0;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        font-size: 0.875rem;
+    }
+    
+    .alert-icon.info {
+        background: #0ea5e9;
+        color: white;
+    }
+    
+    .alert-icon.success {
+        background: #10b981;
+        color: white;
+    }
+    
+    .alert-icon.warning {
+        background: #f59e0b;
+        color: white;
+    }
+    
+    .alert-text strong {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+    
+    /* Formulários Padronizados */
+    .form-section {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        border: 1px solid #e9ecef;
+    }
+    
+    .form-section-header {
+        color: #2c3e50;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #e9ecef;
+    }
+    
+    .form-group-enhanced {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-label-enhanced {
+        color: #495057;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .form-control-enhanced {
+        border-radius: 8px;
+        border: 2px solid #e9ecef;
+        padding: 12px 16px;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control-enhanced:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+    
+    /* Responsividade */
+    @media (max-width: 768px) {
+        .config-tabs {
+            padding: 1rem 1rem 0;
+        }
+        
+        .config-tabs .nav-link {
+            padding: 10px 12px;
+            font-size: 0.9rem;
+            margin-right: 2px;
+        }
+        
+        .tab-content {
+            padding: 1.5rem 1rem;
+        }
+        
+        .feature-card-header {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .feature-icon {
+            margin-right: 0;
+            margin-bottom: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="row mb-4">
-    <div class="col-12">
-        <h1><i class="fas fa-cog"></i> Configurações</h1>
-        <p class="text-muted">Gerencie configurações do sistema, usuários e associados</p>
-    </div>
+<!-- Header Principal -->
+<div class="config-main-header">
+    <h1 class="config-title">
+        <i class="fas fa-cogs"></i>
+        Configurações
+    </h1>
+    <p class="config-subtitle">Gerencie configurações do sistema, usuários e associados</p>
 </div>
 
-<!-- Abas de Navegação -->
-<div class="card">
-    <div class="card-header">
-        <ul class="nav nav-tabs card-header-tabs" id="configTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="linhas-tab" data-bs-toggle="tab" data-bs-target="#linhas-content" type="button" role="tab">
-                    <i class="fas fa-phone me-2"></i>Linhas
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="usuarios-tab" data-bs-toggle="tab" data-bs-target="#usuarios-content" type="button" role="tab">
-                    <i class="fas fa-users me-2"></i>Usuários
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="protocolo-tab" data-bs-toggle="tab" data-bs-target="#protocolo-content" type="button" role="tab">
-                    <i class="fas fa-clipboard-list me-2"></i>Protocolos
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="associados-tab" data-bs-toggle="tab" data-bs-target="#associados-content" type="button" role="tab">
-                    <i class="fas fa-handshake me-2"></i>Associados
-                </button>
-            </li>
-        </ul>
-    </div>
+<!-- Container Branco com Abas -->
+<div class="config-white-container">
+    <!-- Navegação das Abas -->
+    <ul class="nav nav-tabs-custom" id="configTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="linhas-tab" data-bs-toggle="tab" data-bs-target="#linhas-content" type="button" role="tab">
+                        <i class="fas fa-phone me-2"></i>Linhas
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="usuarios-tab" data-bs-toggle="tab" data-bs-target="#usuarios-content" type="button" role="tab">
+                        <i class="fas fa-users me-2"></i>Usuários
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="protocolo-tab" data-bs-toggle="tab" data-bs-target="#protocolo-content" type="button" role="tab">
+                        <i class="fas fa-clipboard-list me-2"></i>Protocolos
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="associados-tab" data-bs-toggle="tab" data-bs-target="#associados-content" type="button" role="tab">
+                        <i class="fas fa-handshake me-2"></i>Associados
+                    </button>
+                </li>
+            </ul>
+        </div>
 
-    <div class="card-body">
-        <div class="tab-content" id="configTabsContent">
+        <div class="tab-content tab-content-area" id="configTabsContent">
             
             <!-- Aba Linhas -->
             <div class="tab-pane fade show active" id="linhas-content" role="tabpanel">
+                <div class="section-title">
+                    <i class="fas fa-phone"></i>
+                    Configurações de Linhas
+                </div>
+                
+                <p class="section-description">
+                    Configure parâmetros relacionados ao gerenciamento de linhas telefônicas
+                </p>
+                
+                <div class="development-alert">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span><strong>Em desenvolvimento:</strong> Configurações de linhas serão implementadas em breve.</span>
+                </div>
+                
                 <div class="row">
-                    <div class="col-md-8">
-                        <h5><i class="fas fa-phone text-primary"></i> Configurações de Linhas</h5>
-                        <p class="text-muted">Configure parâmetros relacionados ao gerenciamento de linhas telefônicas</p>
-                        
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle"></i>
-                            <strong>Em desenvolvimento:</strong> Configurações de linhas serão implementadas em breve.
+                    <div class="col-md-6 mb-3">
+                        <div class="config-card">
+                            <div class="config-card-title">
+                                <i class="fas fa-cogs"></i>
+                                Parâmetros Gerais
+                            </div>
+                            <div class="config-card-description">
+                                Configurações globais do sistema de linhas
+                            </div>
+                            <button class="btn btn-outline-secondary btn-sm" disabled>
+                                <i class="fas fa-edit me-1"></i> Configurar
+                            </button>
                         </div>
-                        
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <div class="card border-light">
-                                    <div class="card-body">
-                                        <h6><i class="fas fa-cogs"></i> Parâmetros Gerais</h6>
-                                        <p class="small text-muted">Configurações globais do sistema de linhas</p>
-                                        <button class="btn btn-outline-primary btn-sm" disabled>
-                                            <i class="fas fa-edit"></i> Configurar
-                                        </button>
-                                    </div>
-                                </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <div class="config-card">
+                            <div class="config-card-title">
+                                <i class="fas fa-chart-line"></i>
+                                Relatórios
                             </div>
-                            <div class="col-md-6">
-                                <div class="card border-light">
-                                    <div class="card-body">
-                                        <h6><i class="fas fa-chart-line"></i> Relatórios</h6>
-                                        <p class="small text-muted">Configurações de relatórios e exportações</p>
-                                        <button class="btn btn-outline-primary btn-sm" disabled>
-                                            <i class="fas fa-edit"></i> Configurar
-                                        </button>
-                                    </div>
-                                </div>
+                            <div class="config-card-description">
+                                Configurações de relatórios e exportações
                             </div>
+                            <button class="btn btn-outline-secondary btn-sm" disabled>
+                                <i class="fas fa-chart-bar me-1"></i> Configurar
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -82,50 +596,67 @@
 
             <!-- Aba Usuários -->
             <div class="tab-pane fade" id="usuarios-content" role="tabpanel">
-                <div class="row">
-                    <div class="col-md-8">
-                        <h5><i class="fas fa-users text-primary"></i> Gerenciamento de Usuários</h5>
-                        <p class="text-muted">Gerencie usuários do sistema e segurança de acesso</p>
+                <div class="section-title">
+                    <i class="fas fa-users"></i>
+                    Gerenciamento de Usuários
+                </div>
+                
+                <p class="section-description">
+                    Gerencie usuários do sistema e segurança de acesso.
+                </p>
+                
+                <span class="status-badge active">Ativo</span>
                         
-                        <!-- Seção Desbloquear Usuários -->
-                        <div class="card border-warning mb-4">
-                            <div class="card-header bg-warning bg-opacity-10">
-                                <h6 class="mb-0"><i class="fas fa-shield-alt"></i> Segurança e Bloqueios</h6>
-                            </div>
-                            <div class="card-body">
-                                <p>Desbloquear manualmente usuários que excederam tentativas de login.</p>
-                                
-                                {% if bloqueados %}
-                                    <div class="alert alert-warning">
-                                        <strong><i class="fas fa-exclamation-triangle"></i> Usuários bloqueados atualmente:</strong>
-                                        <ul class="mt-2 mb-0">
-                                            {% for u in bloqueados %}
-                                                <li class="fw-bold">{{ u }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                {% else %}
-                                    <div class="alert alert-success">
-                                        <i class="fas fa-check-circle"></i> <em>Nenhum usuário bloqueado no momento.</em>
-                                    </div>
-                                {% endif %}
-                                
-                                <form method="post" action="{% url 'linhas:desbloquear_usuario' %}" class="row g-3">
-                                    {% csrf_token %}
-                                    <div class="col-md-8">
-                                        <label for="unlockUsername" class="form-label">
-                                            <i class="fas fa-user"></i> Nome de usuário
-                                        </label>
-                                        <input type="text" id="unlockUsername" name="username" class="form-control" placeholder="Digite o nome do usuário" required>
-                                    </div>
-                                    <div class="col-md-4 d-flex align-items-end">
-                                        <button type="submit" class="btn btn-warning w-100">
-                                            <i class="fas fa-unlock"></i> Desbloquear
-                                        </button>
-                                    </div>
-                                </form>
+                <!-- Seção Desbloquear Usuários -->
+                <div class="form-section">
+                    <h6 class="form-section-header">
+                        <i class="fas fa-shield-alt me-2"></i>Segurança e Controle de Acesso
+                    </h6>
+                    
+                    <p class="mb-3">Gerencie bloqueios de segurança e desbloqueie usuários que excederam tentativas de login.</p>
+                    
+                    {% if bloqueados %}
+                        <div class="config-alert warning mb-3">
+                            <div class="d-flex align-items-start">
+                                <i class="fas fa-exclamation-triangle me-3" style="font-size: 1.5rem;"></i>
+                                <div>
+                                    <strong>Usuários Bloqueados Detectados</strong><br>
+                                    <span>Os seguintes usuários estão atualmente bloqueados por segurança:</span>
+                                    <ul class="mt-2 mb-0">
+                                        {% for u in bloqueados %}
+                                            <li class="fw-bold">{{ u }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
                             </div>
                         </div>
+                    {% else %}
+                        <div class="config-alert success mb-3">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-check-circle me-3" style="font-size: 1.5rem;"></i>
+                                <div>
+                                    <strong>Sistema Seguro</strong><br>
+                                    <span>Nenhum usuário está bloqueado no momento. Todos os acessos estão normalizados.</span>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    <form method="post" action="{% url 'linhas:desbloquear_usuario' %}" class="row g-3">
+                        {% csrf_token %}
+                        <div class="col-md-8">
+                            <label for="unlockUsername" class="form-label-enhanced">
+                                <i class="fas fa-user"></i>Nome de usuário para desbloqueio
+                            </label>
+                            <input type="text" id="unlockUsername" name="username" class="form-control form-control-enhanced" placeholder="Digite exatamente o nome do usuário bloqueado" required>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button type="submit" class="btn btn-feature warning w-100">
+                                <i class="fas fa-unlock"></i>Desbloquear Usuário
+                            </button>
+                        </div>
+                    </form>
+                </div>
 
                         <!-- Formulário de Criação de Usuário -->
                         <div class="card border-success mb-4">
@@ -231,6 +762,17 @@
                                             </h6>
                                         </div>
                                         
+                                        <div class="col-md-12 mb-3">
+                                            <label for="nomeCompletoAgente" class="form-label">
+                                                <i class="fas fa-user"></i> Nome Completo do Agente *
+                                            </label>
+                                            <input type="text" class="form-control" id="nomeCompletoAgente" name="nome_completo_agente" 
+                                                   placeholder="Nome completo do responsável" required>
+                                            <div class="invalid-feedback">
+                                                Por favor, insira o nome completo do agente.
+                                            </div>
+                                        </div>
+                                        
                                         <div class="col-md-6 mb-3">
                                             <label for="cpfResponsavel" class="form-label">
                                                 <i class="fas fa-id-badge"></i> CPF do Agente *
@@ -310,30 +852,31 @@
                             </div>
                         </div>
 
-                        <!-- Outras configurações de usuários -->
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <div class="card border-light">
-                                    <div class="card-body">
-                                        <h6><i class="fas fa-list"></i> Listar Usuários</h6>
-                                        <p class="small text-muted">Visualizar todos os usuários cadastrados</p>
-                                        <a href="{% url 'linhas:listar_usuarios_empresa' %}" class="btn btn-outline-primary btn-sm">
-                                            <i class="fas fa-eye"></i> Visualizar
-                                        </a>
-                                    </div>
-                                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-md-6 mb-3">
+                        <div class="feature-card active">
+                            <div class="feature-icon success">
+                                <i class="fas fa-list"></i>
                             </div>
-                            <div class="col-md-6">
-                                <div class="card border-light">
-                                    <div class="card-body">
-                                        <h6><i class="fas fa-key"></i> Alterar Senhas</h6>
-                                        <p class="small text-muted">Redefinir senhas de usuários</p>
-                                        <button class="btn btn-outline-primary btn-sm" disabled>
-                                            <i class="fas fa-edit"></i> Gerenciar
-                                        </button>
-                                    </div>
-                                </div>
+                            <h4 class="feature-title">Listar Usuários</h4>
+                            <p class="feature-description">Visualizar todos os usuários cadastrados</p>
+                            <a href="{% url 'linhas:listar_usuarios_empresa' %}" class="btn-clean success">
+                                <i class="fas fa-eye"></i> Visualizar
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <div class="feature-card active">
+                            <div class="feature-icon primary">
+                                <i class="fas fa-key"></i>
                             </div>
+                            <h4 class="feature-title">Alterar Senhas</h4>
+                            <p class="feature-description">Redefinir senhas de usuários</p>
+                            <a href="{% url 'linhas:alterar_senhas' %}" class="btn-clean primary">
+                                <i class="fas fa-key"></i> Gerenciar
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -341,60 +884,126 @@
 
             <!-- Aba Protocolos -->
             <div class="tab-pane fade" id="protocolo-content" role="tabpanel">
-                <div class="row">
-                    <div class="col-md-8">
-                        <h5><i class="fas fa-clipboard-list text-primary"></i> Gerenciamento de Protocolos</h5>
-                        <p class="text-muted">Configure parâmetros e gerencie protocolos do sistema</p>
-                        
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle"></i>
-                            <strong>Em desenvolvimento:</strong> Configurações avançadas de protocolos serão implementadas em breve.
+                <div class="section-title">
+                    <i class="fas fa-clipboard-list"></i>
+                    Gerenciamento de Protocolos
+                </div>
+                
+                <p class="section-description">
+                    Configure parâmetros, status, prazos e automações para o sistema de protocolos.
+                </p>
+                
+                <span class="status-badge development">Em Desenvolvimento</span>
+                
+                <div class="config-alert info">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-info-circle me-3" style="font-size: 1.5rem;"></i>
+                        <div>
+                            <strong>Configurações Avançadas em Desenvolvimento</strong><br>
+                            <span>As funcionalidades completas de configuração de protocolos estarão disponíveis em breve.</span>
                         </div>
-                        
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <div class="card border-light">
-                                    <div class="card-body">
-                                        <h6><i class="fas fa-cogs"></i> Parâmetros de Status</h6>
-                                        <p class="small text-muted">Configurar status disponíveis para protocolos</p>
-                                        <button class="btn btn-outline-primary btn-sm" disabled>
-                                            <i class="fas fa-edit"></i> Configurar
-                                        </button>
+                    </div>
+                </div>
+                
+                <div class="row g-4">
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card feature-card disabled-feature">
+                            <div class="card-body">
+                                <div class="feature-card-header">
+                                    <div class="feature-icon warning">
+                                        <i class="fas fa-cogs"></i>
                                     </div>
+                                    <h6 class="feature-title">Status de Protocolos</h6>
                                 </div>
+                                <p class="feature-description">Configure e gerencie todos os status disponíveis para classificação de protocolos</p>
+                                <button class="btn btn-feature outline" disabled>
+                                    <i class="fas fa-edit"></i>Configurar Status
+                                </button>
                             </div>
-                            <div class="col-md-6">
-                                <div class="card border-light">
-                                    <div class="card-body">
-                                        <h6><i class="fas fa-clock"></i> Prazos e SLA</h6>
-                                        <p class="small text-muted">Definir prazos padrão de atendimento</p>
-                                        <button class="btn btn-outline-primary btn-sm" disabled>
-                                            <i class="fas fa-calendar"></i> Definir
-                                        </button>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card feature-card disabled-feature">
+                            <div class="card-body">
+                                <div class="feature-card-header">
+                                    <div class="feature-icon info">
+                                        <i class="fas fa-clock"></i>
                                     </div>
+                                    <h6 class="feature-title">Prazos e SLA</h6>
                                 </div>
+                                <p class="feature-description">Defina prazos padrão de atendimento e configurações de SLA por tipo de protocolo</p>
+                                <button class="btn btn-feature outline" disabled>
+                                    <i class="fas fa-calendar"></i>Definir Prazos
+                                </button>
                             </div>
-                            <div class="col-md-6">
-                                <div class="card border-light">
-                                    <div class="card-body">
-                                        <h6><i class="fas fa-bell"></i> Notificações</h6>
-                                        <p class="small text-muted">Configurar alertas automáticos</p>
-                                        <button class="btn btn-outline-primary btn-sm" disabled>
-                                            <i class="fas fa-cog"></i> Configurar
-                                        </button>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card feature-card disabled-feature">
+                            <div class="card-body">
+                                <div class="feature-card-header">
+                                    <div class="feature-icon primary">
+                                        <i class="fas fa-bell"></i>
                                     </div>
+                                    <h6 class="feature-title">Notificações</h6>
                                 </div>
+                                <p class="feature-description">Configure alertas automáticos, lembretes e notificações por email ou SMS</p>
+                                <button class="btn btn-feature outline" disabled>
+                                    <i class="fas fa-bell"></i>Configurar Alertas
+                                </button>
                             </div>
-                            <div class="col-md-6">
-                                <div class="card border-light">
-                                    <div class="card-body">
-                                        <h6><i class="fas fa-archive"></i> Arquivamento</h6>
-                                        <p class="small text-muted">Regras de arquivamento automático</p>
-                                        <button class="btn btn-outline-primary btn-sm" disabled>
-                                            <i class="fas fa-folder"></i> Gerenciar
-                                        </button>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card feature-card disabled-feature">
+                            <div class="card-body">
+                                <div class="feature-card-header">
+                                    <div class="feature-icon success">
+                                        <i class="fas fa-archive"></i>
                                     </div>
+                                    <h6 class="feature-title">Arquivamento</h6>
                                 </div>
+                                <p class="feature-description">Configure regras automáticas de arquivamento e retenção de protocolos antigos</p>
+                                <button class="btn btn-feature outline" disabled>
+                                    <i class="fas fa-folder"></i>Gerenciar Arquivo
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card feature-card disabled-feature">
+                            <div class="card-body">
+                                <div class="feature-card-header">
+                                    <div class="feature-icon danger">
+                                        <i class="fas fa-chart-line"></i>
+                                    </div>
+                                    <h6 class="feature-title">Relatórios</h6>
+                                </div>
+                                <p class="feature-description">Configure relatórios automáticos de performance e estatísticas de protocolos</p>
+                                <button class="btn btn-feature outline" disabled>
+                                    <i class="fas fa-chart-bar"></i>Configurar Relatórios
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card feature-card disabled-feature">
+                            <div class="card-body">
+                                <div class="feature-card-header">
+                                    <div class="feature-icon info">
+                                        <i class="fas fa-robot"></i>
+                                    </div>
+                                    <h6 class="feature-title">Automações</h6>
+                                </div>
+                                <p class="feature-description">Configure fluxos automatizados e regras de negócio para protocolos</p>
+                                <button class="btn btn-feature outline" disabled>
+                                    <i class="fas fa-cogs"></i>Configurar Fluxos
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -403,69 +1012,233 @@
 
             <!-- Aba Associados -->
             <div class="tab-pane fade" id="associados-content" role="tabpanel">
-                <div class="row">
-                    <div class="col-md-8">
-                        <h5><i class="fas fa-handshake text-primary"></i> Gerenciamento de Associados</h5>
-                        <p class="text-muted">Configure e gerencie informações de associados e parcerias</p>
-                        
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle"></i>
-                            <strong>Em desenvolvimento:</strong> Funcionalidades de associados serão implementadas em breve.
+                <div class="section-title">
+                    <i class="fas fa-handshake"></i>
+                    Gerenciamento de Associados
+                </div>
+                
+                <p class="section-description">
+                    Configure e administre parcerias, associados e estruturas de comissionamento.
+                </p>
+                
+                <span class="status-badge development">Em Desenvolvimento</span>
+                
+                <div class="config-alert info">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-info-circle me-3" style="font-size: 1.5rem;"></i>
+                        <div>
+                            <strong>Módulo de Associados em Desenvolvimento</strong><br>
+                            <span>O sistema completo de gerenciamento de associados e comissões está sendo desenvolvido.</span>
                         </div>
-                        
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <div class="card border-light">
-                                    <div class="card-body">
-                                        <h6><i class="fas fa-building"></i> Cadastrar Associado</h6>
-                                        <p class="small text-muted">Adicionar novos associados ao sistema</p>
-                                        <button class="btn btn-outline-primary btn-sm" disabled>
-                                            <i class="fas fa-plus"></i> Novo Associado
-                                        </button>
+                    </div>
+                </div>
+                
+                <div class="row g-4">
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card feature-card disabled-feature">
+                            <div class="card-body">
+                                <div class="feature-card-header">
+                                    <div class="feature-icon success">
+                                        <i class="fas fa-building"></i>
                                     </div>
+                                    <h6 class="feature-title">Cadastrar Associado</h6>
                                 </div>
+                                <p class="feature-description">Adicione novos associados com dados completos e configurações de parceria</p>
+                                <button class="btn btn-feature outline" disabled>
+                                    <i class="fas fa-plus"></i>Novo Associado
+                                </button>
                             </div>
-                            <div class="col-md-6">
-                                <div class="card border-light">
-                                    <div class="card-body">
-                                        <h6><i class="fas fa-list"></i> Listar Associados</h6>
-                                        <p class="small text-muted">Visualizar todos os associados cadastrados</p>
-                                        <button class="btn btn-outline-primary btn-sm" disabled>
-                                            <i class="fas fa-eye"></i> Visualizar
-                                        </button>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card feature-card disabled-feature">
+                            <div class="card-body">
+                                <div class="feature-card-header">
+                                    <div class="feature-icon primary">
+                                        <i class="fas fa-list"></i>
                                     </div>
+                                    <h6 class="feature-title">Listar Associados</h6>
                                 </div>
+                                <p class="feature-description">Visualize, edite e gerencie todos os associados cadastrados no sistema</p>
+                                <button class="btn btn-feature outline" disabled>
+                                    <i class="fas fa-eye"></i>Gerenciar Associados
+                                </button>
                             </div>
-                            <div class="col-md-6">
-                                <div class="card border-light">
-                                    <div class="card-body">
-                                        <h6><i class="fas fa-percent"></i> Comissões</h6>
-                                        <p class="small text-muted">Configurar percentuais de comissão</p>
-                                        <button class="btn btn-outline-primary btn-sm" disabled>
-                                            <i class="fas fa-calculator"></i> Configurar
-                                        </button>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card feature-card disabled-feature">
+                            <div class="card-body">
+                                <div class="feature-card-header">
+                                    <div class="feature-icon warning">
+                                        <i class="fas fa-percent"></i>
                                     </div>
+                                    <h6 class="feature-title">Comissões</h6>
                                 </div>
+                                <p class="feature-description">Configure percentuais, regras e estruturas de comissionamento por associado</p>
+                                <button class="btn btn-feature outline" disabled>
+                                    <i class="fas fa-calculator"></i>Configurar Comissões
+                                </button>
                             </div>
-                            <div class="col-md-6">
-                                <div class="card border-light">
-                                    <div class="card-body">
-                                        <h6><i class="fas fa-file-invoice-dollar"></i> Relatórios</h6>
-                                        <p class="small text-muted">Relatórios de vendas por associado</p>
-                                        <button class="btn btn-outline-primary btn-sm" disabled>
-                                            <i class="fas fa-chart-bar"></i> Gerar
-                                        </button>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card feature-card disabled-feature">
+                            <div class="card-body">
+                                <div class="feature-card-header">
+                                    <div class="feature-icon info">
+                                        <i class="fas fa-file-invoice-dollar"></i>
                                     </div>
+                                    <h6 class="feature-title">Relatórios Financeiros</h6>
                                 </div>
+                                <p class="feature-description">Gere relatórios detalhados de vendas, comissões e performance por associado</p>
+                                <button class="btn btn-feature outline" disabled>
+                                    <i class="fas fa-chart-bar"></i>Gerar Relatórios
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card feature-card disabled-feature">
+                            <div class="card-body">
+                                <div class="feature-card-header">
+                                    <div class="feature-icon danger">
+                                        <i class="fas fa-handshake"></i>
+                                    </div>
+                                    <h6 class="feature-title">Contratos</h6>
+                                </div>
+                                <p class="feature-description">Gerencie contratos, termos de parceria e documentação legal</p>
+                                <button class="btn btn-feature outline" disabled>
+                                    <i class="fas fa-file-contract"></i>Gerenciar Contratos
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card feature-card disabled-feature">
+                            <div class="card-body">
+                                <div class="feature-card-header">
+                                    <div class="feature-icon success">
+                                        <i class="fas fa-chart-line"></i>
+                                    </div>
+                                    <h6 class="feature-title">Analytics</h6>
+                                </div>
+                                <p class="feature-description">Análises avançadas de performance, tendências e métricas de associados</p>
+                                <button class="btn btn-feature outline" disabled>
+                                    <i class="fas fa-analytics"></i>Ver Análises
+                                </button>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+            
+            <!-- Aba Protocolos -->
+            <div class="tab-pane fade" id="protocolo-content" role="tabpanel">
+                <div class="section-title">
+                    <i class="fas fa-clipboard-list"></i>
+                    Gerenciamento de Protocolos
+                </div>
+                
+                <p class="section-description">
+                    Configure parâmetros e gerencie protocolos do sistema.
+                </p>
+                
+                <span class="status-badge development">Em Desenvolvimento</span>
+                
+                <div class="alert alert-info mt-3 mb-4">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Em desenvolvimento:</strong> Configurações avançadas de protocolos serão implementadas em breve.
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="feature-card development">
+                            <div class="feature-icon warning">
+                                <i class="fas fa-cogs"></i>
+                            </div>
+                            <h4 class="feature-title">Parâmetros de Status</h4>
+                            <p class="feature-description">Configurar status disponíveis para protocolos</p>
+                            <button class="btn-clean outline" disabled>
+                                <i class="fas fa-edit"></i> Configurar
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <div class="feature-card development">
+                            <div class="feature-icon info">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <h4 class="feature-title">Prazos e SLA</h4>
+                            <p class="feature-description">Definir prazos padrão de atendimento</p>
+                            <button class="btn-clean outline" disabled>
+                                <i class="fas fa-calendar"></i> Definir
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aba Associados -->
+            <div class="tab-pane fade" id="associados-content" role="tabpanel">
+                <div class="section-title">
+                    <i class="fas fa-handshake"></i>
+                    Gerenciamento de Associados
+                </div>
+                
+                <p class="section-description">
+                    Configure e gerencie informações de associados e parcerias.
+                </p>
+                
+                <span class="status-badge development">Em Desenvolvimento</span>
+                
+                <div class="alert alert-info mt-3 mb-4">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Em desenvolvimento:</strong> Funcionalidades de associados serão implementadas em breve.
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="feature-card development">
+                            <div class="feature-icon success">
+                                <i class="fas fa-building"></i>
+                            </div>
+                            <h4 class="feature-title">Cadastrar Associado</h4>
+                            <p class="feature-description">Adicionar novos associados ao sistema</p>
+                            <button class="btn-clean outline" disabled>
+                                <i class="fas fa-plus"></i> Novo Associado
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <div class="feature-card development">
+                            <div class="feature-icon primary">
+                                <i class="fas fa-percent"></i>
+                            </div>
+                            <h4 class="feature-title">Comissões</h4>
+                            <p class="feature-description">Configurar percentuais de comissão</p>
+                            <button class="btn-clean outline" disabled>
+                                <i class="fas fa-calculator"></i> Configurar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
 <script>
 // Máscaras de input
 function aplicarMascaras() {
@@ -713,11 +1486,116 @@ function hideMessage() {
     }
 }
 
-// Inicializar quando o DOM estiver carregado
+// Funções de UI aprimoradas
+function initConfigurationUI() {
+    // Animações de entrada para cards
+    const featureCards = document.querySelectorAll('.feature-card');
+    featureCards.forEach((card, index) => {
+        setTimeout(() => {
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+    
+    // Efeitos de hover personalizados
+    featureCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+        });
+    });
+    
+    // Indicadores de progresso para funcionalidades
+    updateProgressIndicators();
+}
+
+function updateProgressIndicators() {
+    const activeFeatures = document.querySelectorAll('.feature-card.active-feature').length;
+    const totalFeatures = document.querySelectorAll('.feature-card').length;
+    const developmentFeatures = document.querySelectorAll('.feature-card.disabled-feature').length;
+    
+    // Atualizar contadores se existirem
+    const progressElements = document.querySelectorAll('[data-progress]');
+    progressElements.forEach(el => {
+        const type = el.getAttribute('data-progress');
+        switch(type) {
+            case 'active':
+                el.textContent = activeFeatures;
+                break;
+            case 'total':
+                el.textContent = totalFeatures;
+                break;
+            case 'development':
+                el.textContent = developmentFeatures;
+                break;
+        }
+    });
+}
+
+// Melhorias na navegação das abas
+function enhanceTabNavigation() {
+    const tabs = document.querySelectorAll('[data-bs-toggle="tab"]');
+    tabs.forEach(tab => {
+        tab.addEventListener('shown.bs.tab', function(e) {
+            const target = e.target.getAttribute('data-bs-target');
+            const tabPane = document.querySelector(target);
+            
+            // Animação de fade-in personalizada
+            if (tabPane) {
+                tabPane.style.opacity = '0';
+                tabPane.style.transform = 'translateX(20px)';
+                
+                setTimeout(() => {
+                    tabPane.style.transition = 'all 0.3s ease';
+                    tabPane.style.opacity = '1';
+                    tabPane.style.transform = 'translateX(0)';
+                }, 50);
+            }
+            
+            // Atualizar URL sem recarregar página
+            const tabId = e.target.id.replace('-tab', '');
+            history.replaceState(null, null, '#' + tabId);
+        });
+    });
+}
+
+// Inicialização quando DOM carregado
 document.addEventListener('DOMContentLoaded', function() {
+    // Aplicar estilos iniciais
+    document.querySelectorAll('.feature-card').forEach(card => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        card.style.transition = 'all 0.3s ease';
+    });
+    
+    // Inicializar funções
     aplicarMascaras();
     validarFormulario();
+    initConfigurationUI();
+    enhanceTabNavigation();
+    
+    // Verificar hash na URL para ativação de aba
+    if (window.location.hash) {
+        const hash = window.location.hash.substring(1);
+        const tabButton = document.getElementById(hash + '-tab');
+        if (tabButton) {
+            const tab = new bootstrap.Tab(tabButton);
+            tab.show();
+        }
+    }
+});
+
+// Smooth scrolling para elementos internos
+document.addEventListener('click', function(e) {
+    if (e.target.matches('a[href^="#"]')) {
+        e.preventDefault();
+        const target = document.querySelector(e.target.getAttribute('href'));
+        if (target) {
+            target.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+    }
 });
 </script>
-
 {% endblock %}

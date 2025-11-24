@@ -1,0 +1,684 @@
+{% extends 'base.html' %}
+
+{% block title %}Alterar Senhas - {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        margin-bottom: 2rem;
+    }
+    
+    .search-card {
+        border: none;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    
+    .user-card {
+        border: none;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        transition: all 0.3s ease;
+        margin-bottom: 1rem;
+    }
+    
+    .user-card:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        transform: translateY(-2px);
+    }
+    
+    .stats-card {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        border: none;
+    }
+    
+    .btn-change-password {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+    }
+    
+    .btn-change-password:hover {
+        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        color: white;
+    }
+    
+    .modal-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    .modal-header .btn-close {
+        filter: invert(1);
+    }
+    
+    /* FORÇA MÁXIMA - Texto preto em todo o modal */
+    div#modalAlterarSenha.modal .modal-dialog .modal-content .modal-body,
+    div#modalAlterarSenha.modal .modal-dialog .modal-content .modal-body *:not(.btn):not(.fas):not(.fa) {
+        color: #000000 !important;
+        text-shadow: none !important;
+    }
+    
+    /* Header permanece branco */
+    div#modalAlterarSenha.modal .modal-dialog .modal-content .modal-header,
+    div#modalAlterarSenha.modal .modal-dialog .modal-content .modal-header * {
+        color: white !important;
+    }
+    
+    /* Específicos do modal body */
+    div#modalAlterarSenha .modal-body {
+        color: #000000 !important;
+        background-color: #ffffff !important;
+    }
+    
+    /* Labels dos formulários */
+    div#modalAlterarSenha .modal-body label,
+    div#modalAlterarSenha .modal-body .form-label {
+        color: #000000 !important;
+        font-weight: 600 !important;
+    }
+    
+    /* Inputs */
+    div#modalAlterarSenha .modal-body input.form-control {
+        color: #000000 !important;
+        background-color: #ffffff !important;
+        border: 1px solid #ced4da !important;
+    }
+    
+    /* Alert */
+    div#modalAlterarSenha .modal-body .alert {
+        color: #000000 !important;
+        background-color: #d1ecf1 !important;
+        border-color: #bee5eb !important;
+    }
+    
+    div#modalAlterarSenha .modal-body .alert strong {
+        color: #000000 !important;
+        font-weight: bold !important;
+    }
+    
+    /* Requisitos da senha */
+    div#modalAlterarSenha .modal-body .password-requirements {
+        color: #000000 !important;
+        background-color: #f8f9fa !important;
+    }
+    
+    div#modalAlterarSenha .modal-body .password-requirements h6 {
+        color: #000000 !important;
+        font-weight: 600 !important;
+    }
+    
+    div#modalAlterarSenha .modal-body .requirement-item {
+        color: #000000 !important;
+    }
+    
+    /* Ícones coloridos */
+    div#modalAlterarSenha .modal-body .text-success,
+    div#modalAlterarSenha .modal-body .fas.fa-check {
+        color: #198754 !important;
+    }
+    
+    div#modalAlterarSenha .modal-body .text-danger,
+    div#modalAlterarSenha .modal-body .fas.fa-times {
+        color: #dc3545 !important;
+    }
+    
+    /* Placeholders */
+    div#modalAlterarSenha .modal-body input::placeholder {
+        color: #6c757d !important;
+        opacity: 0.7 !important;
+    }
+    
+    /* Botões - manter cores originais */
+    div#modalAlterarSenha .modal-footer .btn {
+        color: white !important;
+    }
+    
+    div#modalAlterarSenha .modal-footer .btn-secondary {
+        color: white !important;
+        background-color: #6c757d !important;
+        border-color: #6c757d !important;
+    }
+    
+    div#modalAlterarSenha .modal-footer .btn-primary {
+        color: white !important;
+        background-color: #0d6efd !important;
+        border-color: #0d6efd !important;
+    }
+    
+    .password-requirements {
+        background-color: #f8f9fa;
+        border-left: 4px solid #007bff;
+        padding: 15px;
+        margin: 15px 0;
+        border-radius: 4px;
+    }
+    
+    .requirement-item {
+        display: flex;
+        align-items: center;
+        margin: 5px 0;
+    }
+    
+    .requirement-item i {
+        margin-right: 8px;
+        width: 16px;
+    }
+    
+    .pagination {
+        justify-content: center;
+    }
+    
+    .pagination .page-link {
+        color: #667eea;
+        border: 1px solid #dee2e6;
+    }
+    
+    .pagination .page-item.active .page-link {
+        background-color: #667eea;
+        border-color: #667eea;
+    }
+    
+    .pagination .page-link:hover {
+        color: #764ba2;
+        background-color: #f8f9fa;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header py-4 mb-4">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="h3 mb-1">
+                    <i class="fas fa-key me-2"></i>Alterar Senhas
+                </h1>
+                <p class="mb-0 opacity-75">Gerencie e redefina senhas dos usuários</p>
+            </div>
+            <a href="{% url 'linhas:configuracoes' %}" class="btn btn-light btn-sm">
+                <i class="fas fa-arrow-left me-1"></i>Voltar
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Estatísticas -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card stats-card">
+                <div class="card-body text-center">
+                    <i class="fas fa-users fa-2x mb-2"></i>
+                    <h4 class="mb-1">{{ total_usuarios }}</h4>
+                    <small>Usuários Ativos</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stats-card">
+                <div class="card-body text-center">
+                    <i class="fas fa-shield-alt fa-2x mb-2"></i>
+                    <h4 class="mb-1">100%</h4>
+                    <small>Segurança</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stats-card">
+                <div class="card-body text-center">
+                    <i class="fas fa-lock fa-2x mb-2"></i>
+                    <h4 class="mb-1">Ativo</h4>
+                    <small>Sistema Protegido</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Busca -->
+    <div class="card search-card mb-4">
+        <div class="card-body">
+            <form method="GET" class="d-flex align-items-end gap-3">
+                <div class="flex-grow-1">
+                    <label for="search" class="form-label">
+                        <i class="fas fa-search"></i> Buscar usuários
+                    </label>
+                    <input 
+                        type="text" 
+                        class="form-control" 
+                        id="search" 
+                        name="search" 
+                        value="{{ search }}"
+                        placeholder="Digite razão social, usuário ou email..."
+                    >
+                </div>
+                <div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i> Buscar
+                    </button>
+                    {% if search %}
+                        <a href="{% url 'linhas:alterar_senhas' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times"></i> Limpar
+                        </a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Lista de Usuários -->
+    {% if page_obj.object_list %}
+        <div class="row">
+            {% for usuario_empresa in page_obj.object_list %}
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="card user-card h-100">
+                        <div class="card-body d-flex flex-column">
+                            <div class="d-flex align-items-start mb-3">
+                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                                    <i class="fas fa-building"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="card-title mb-1">{{ usuario_empresa.razao_social|truncatechars:25 }}</h6>
+                                    <small class="text-muted">{{ usuario_empresa.user.username }}</small>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3 flex-grow-1">
+                                <div class="small">
+                                    <div class="mb-1">
+                                        <i class="fas fa-envelope text-muted me-2"></i>
+                                        <span>{{ usuario_empresa.user.email|default:"Não informado" }}</span>
+                                    </div>
+                                    <div class="mb-1">
+                                        <i class="fas fa-id-card text-muted me-2"></i>
+                                        <span>{{ usuario_empresa.cnpj|default:"CNPJ não informado" }}</span>
+                                    </div>
+                                    <div class="mb-1">
+                                        <i class="fas fa-calendar text-muted me-2"></i>
+                                        <span>Criado: {{ usuario_empresa.user.date_joined|date:"d/m/Y" }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-auto">
+                                <button 
+                                    class="btn btn-change-password btn-sm w-100"
+                                    onclick="abrirModalAlterarSenha('{{ usuario_empresa.user.id }}', '{{ usuario_empresa.user.username }}', '{{ usuario_empresa.razao_social }}')"
+                                >
+                                    <i class="fas fa-key me-1"></i>Alterar Senha
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Paginação -->
+        {% if page_obj.has_other_pages %}
+            <div class="d-flex justify-content-center mt-4">
+                <nav aria-label="Navegação de páginas">
+                    <ul class="pagination">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1{% if search %}&search={{ search }}{% endif %}">&laquo; Primeira</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}">Anterior</a>
+                            </li>
+                        {% endif %}
+                        
+                        {% for page_num in page_obj.paginator.page_range %}
+                            {% if page_num == page_obj.number %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ page_num }}</span>
+                                </li>
+                            {% elif page_num > page_obj.number|add:'-3' and page_num < page_obj.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_num }}{% if search %}&search={{ search }}{% endif %}">{{ page_num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}">Próximo</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search %}&search={{ search }}{% endif %}">Última &raquo;</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+        {% endif %}
+    {% else %}
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted mb-2">
+                    {% if search %}
+                        Nenhum usuário encontrado para "{{ search }}"
+                    {% else %}
+                        Nenhum usuário encontrado
+                    {% endif %}
+                </h5>
+                <p class="text-muted mb-3">
+                    {% if search %}
+                        Tente usar termos diferentes para sua busca
+                    {% else %}
+                        Não há usuários cadastrados no sistema
+                    {% endif %}
+                </p>
+                {% if search %}
+                    <a href="{% url 'linhas:alterar_senhas' %}" class="btn btn-primary">
+                        <i class="fas fa-list"></i> Ver todos os usuários
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Modal para Alterar Senha -->
+<div class="modal fade" id="modalAlterarSenha" tabindex="-1" aria-labelledby="modalAlterarSenhaLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalAlterarSenhaLabel">
+                    <i class="fas fa-key me-2"></i>Alterar Senha
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <form id="formAlterarSenha">
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Alterando senha do usuário: <strong id="usuarioInfo"></strong>
+                    </div>
+                    
+                    <input type="hidden" id="userId" name="user_id">
+                    
+                    <div class="mb-3">
+                        <label for="novaSenha" class="form-label">Nova Senha *</label>
+                        <div class="input-group">
+                            <input 
+                                type="password" 
+                                class="form-control" 
+                                id="novaSenha" 
+                                name="nova_senha" 
+                                required
+                                placeholder="Digite a nova senha"
+                            >
+                            <button class="btn btn-outline-secondary" type="button" id="toggleNovaSenha">
+                                <i class="fas fa-eye" id="iconNovaSenha"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="confirmarSenha" class="form-label">Confirmar Nova Senha *</label>
+                        <div class="input-group">
+                            <input 
+                                type="password" 
+                                class="form-control" 
+                                id="confirmarSenha" 
+                                name="confirmar_senha" 
+                                required
+                                placeholder="Digite novamente a nova senha"
+                            >
+                            <button class="btn btn-outline-secondary" type="button" id="toggleConfirmarSenha">
+                                <i class="fas fa-eye" id="iconConfirmarSenha"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Requisitos da Senha -->
+                    <div class="password-requirements">
+                        <h6><i class="fas fa-shield-alt me-2"></i>Requisitos da Senha:</h6>
+                        <div class="requirement-item">
+                            <i class="fas fa-check text-success" id="req-length" style="display: none;"></i>
+                            <i class="fas fa-times text-danger" id="req-length-fail"></i>
+                            Mínimo de 6 caracteres
+                        </div>
+                        <div class="requirement-item">
+                            <i class="fas fa-check text-success" id="req-letter" style="display: none;"></i>
+                            <i class="fas fa-times text-danger" id="req-letter-fail"></i>
+                            Pelo menos uma letra
+                        </div>
+                        <div class="requirement-item">
+                            <i class="fas fa-check text-success" id="req-number" style="display: none;"></i>
+                            <i class="fas fa-times text-danger" id="req-number-fail"></i>
+                            Pelo menos um número
+                        </div>
+                        <div class="requirement-item">
+                            <i class="fas fa-check text-success" id="req-match" style="display: none;"></i>
+                            <i class="fas fa-times text-danger" id="req-match-fail"></i>
+                            Senhas devem coincidir
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary" id="btnSalvarSenha">
+                        <i class="fas fa-save me-1"></i>Alterar Senha
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let modalAlterarSenha = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    modalAlterarSenha = new bootstrap.Modal(document.getElementById('modalAlterarSenha'));
+    
+    // Toggle de visualização de senha
+    document.getElementById('toggleNovaSenha').addEventListener('click', function() {
+        togglePasswordVisibility('novaSenha', 'iconNovaSenha');
+    });
+    
+    document.getElementById('toggleConfirmarSenha').addEventListener('click', function() {
+        togglePasswordVisibility('confirmarSenha', 'iconConfirmarSenha');
+    });
+    
+    // Validação em tempo real
+    document.getElementById('novaSenha').addEventListener('input', validatePassword);
+    document.getElementById('confirmarSenha').addEventListener('input', validatePassword);
+    
+    // Submit do formulário
+    document.getElementById('formAlterarSenha').addEventListener('submit', function(e) {
+        e.preventDefault();
+        alterarSenhaUsuario();
+    });
+});
+
+function abrirModalAlterarSenha(userId, username, razaoSocial) {
+    document.getElementById('userId').value = userId;
+    document.getElementById('usuarioInfo').textContent = `${username} (${razaoSocial})`;
+    
+    // Limpar formulário
+    document.getElementById('formAlterarSenha').reset();
+    document.getElementById('userId').value = userId; // Restaurar após reset
+    
+    // Resetar validações
+    resetPasswordValidation();
+    
+    modalAlterarSenha.show();
+}
+
+function togglePasswordVisibility(inputId, iconId) {
+    const input = document.getElementById(inputId);
+    const icon = document.getElementById(iconId);
+    
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'fas fa-eye-slash';
+    } else {
+        input.type = 'password';
+        icon.className = 'fas fa-eye';
+    }
+}
+
+function validatePassword() {
+    const novaSenha = document.getElementById('novaSenha').value;
+    const confirmarSenha = document.getElementById('confirmarSenha').value;
+    
+    // Validar comprimento
+    const lengthValid = novaSenha.length >= 6;
+    toggleRequirement('req-length', lengthValid);
+    
+    // Validar letra
+    const letterValid = /[A-Za-z]/.test(novaSenha);
+    toggleRequirement('req-letter', letterValid);
+    
+    // Validar número
+    const numberValid = /\d/.test(novaSenha);
+    toggleRequirement('req-number', numberValid);
+    
+    // Validar correspondência
+    const matchValid = novaSenha.length > 0 && confirmarSenha.length > 0 && novaSenha === confirmarSenha;
+    toggleRequirement('req-match', matchValid);
+    
+    // Habilitar/desabilitar botão
+    const btnSalvar = document.getElementById('btnSalvarSenha');
+    const allValid = lengthValid && letterValid && numberValid && matchValid;
+    btnSalvar.disabled = !allValid;
+    
+    return allValid;
+}
+
+function toggleRequirement(reqId, isValid) {
+    const checkIcon = document.getElementById(reqId);
+    const failIcon = document.getElementById(reqId + '-fail');
+    
+    if (isValid) {
+        checkIcon.style.display = 'inline';
+        failIcon.style.display = 'none';
+    } else {
+        checkIcon.style.display = 'none';
+        failIcon.style.display = 'inline';
+    }
+}
+
+function resetPasswordValidation() {
+    // Resetar todos os requisitos para falso
+    toggleRequirement('req-length', false);
+    toggleRequirement('req-letter', false);
+    toggleRequirement('req-number', false);
+    toggleRequirement('req-match', false);
+    
+    // Desabilitar botão
+    document.getElementById('btnSalvarSenha').disabled = true;
+}
+
+function alterarSenhaUsuario() {
+    if (!validatePassword()) {
+        showNotification('Por favor, verifique os requisitos da senha', 'error');
+        return;
+    }
+    
+    const btnSalvar = document.getElementById('btnSalvarSenha');
+    const originalText = btnSalvar.innerHTML;
+    
+    // Mostrar loading
+    btnSalvar.disabled = true;
+    btnSalvar.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Alterando...';
+    
+    // Preparar dados
+    const formData = new FormData();
+    formData.append('user_id', document.getElementById('userId').value);
+    formData.append('nova_senha', document.getElementById('novaSenha').value);
+    formData.append('confirmar_senha', document.getElementById('confirmarSenha').value);
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+    
+    // Enviar requisição
+    fetch('{% url "linhas:alterar_senha_usuario" %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(data.message, 'success');
+            modalAlterarSenha.hide();
+        } else {
+            showNotification(data.error, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        showNotification('Erro ao alterar senha. Tente novamente.', 'error');
+    })
+    .finally(() => {
+        // Restaurar botão
+        btnSalvar.disabled = false;
+        btnSalvar.innerHTML = originalText;
+    });
+}
+
+function showNotification(message, type = 'info') {
+    // Remove notificações existentes
+    const existingNotifications = document.querySelectorAll('.toast-notification');
+    existingNotifications.forEach(notification => notification.remove());
+    
+    // Criar nova notificação
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type === 'error' ? 'danger' : type === 'success' ? 'success' : 'info'} toast-notification`;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        min-width: 300px;
+        opacity: 0;
+        transform: translateX(100%);
+        transition: all 0.3s ease;
+    `;
+    
+    const icon = type === 'error' ? 'fa-exclamation-circle' : 
+                 type === 'success' ? 'fa-check-circle' : 'fa-info-circle';
+    
+    notification.innerHTML = `
+        <div class="d-flex align-items-center">
+            <i class="fas ${icon} me-2"></i>
+            <div class="flex-grow-1">${message}</div>
+            <button type="button" class="btn-close ms-2" onclick="this.parentElement.parentElement.remove()"></button>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Animação de entrada
+    setTimeout(() => {
+        notification.style.opacity = '1';
+        notification.style.transform = 'translateX(0)';
+    }, 10);
+    
+    // Remoção automática
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.style.opacity = '0';
+            notification.style.transform = 'translateX(100%)';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 300);
+        }
+    }, 5000);
+}
+</script>
+{% endblock %}

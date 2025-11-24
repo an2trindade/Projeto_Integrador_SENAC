@@ -159,6 +159,7 @@ class UsuarioEmpresa(models.Model):
     nome_fantasia = models.CharField(max_length=200, verbose_name='Nome Fantasia', blank=True, default='')
     endereco = models.CharField(max_length=500, verbose_name='Endereço')
     telefone = models.CharField(max_length=15, verbose_name='Telefone')
+    nome_completo_agente = models.CharField(max_length=200, verbose_name='Nome Completo do Agente', blank=True, default='')
     cpf_agente = models.CharField(max_length=14, verbose_name='CPF do Agente')
     data_nascimento_agente = models.DateField(verbose_name='Data de Nascimento do Agente')
     criado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Criado por', related_name='usuarios_empresas_criados')
