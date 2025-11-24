@@ -623,7 +623,154 @@ def dashboard(request):
 
 @login_required
 def protocolo(request):
-    return render(request, 'protocolo.html')
+    """
+    Página de protocolo que mostra todos os pedidos criados no menu Nova linha e Fidelidade
+    """
+    from django.db.models import Q
+    from django.core.paginator import Paginator
+    from datetime import datetime, timedelta
+    from django.contrib.auth.models import User
+    from .models import Fidelidade
+    
+    # Buscar parâmetros de filtro
+    filtro_tipo = request.GET.get('tipo', 'todos')  # todos, linhas, fidelidades
+    busca = request.GET.get('busca', '').strip()
+    data_inicio = request.GET.get('data_inicio', '')
+    data_fim = request.GET.get('data_fim', '')
+    usuario_criador = request.GET.get('usuario', '')
+    
+    # Preparar querysets
+    linhas_qs = Linha.objects.select_related('criado_por', 'cliente').all()
+    fidelidades_qs = Fidelidade.objects.select_related('criado_por', 'linha').all()
+    
+    # Aplicar filtros de data
+    if data_inicio:
+        try:
+            data_inicio_dt = datetime.strptime(data_inicio, '%Y-%m-%d')
+            linhas_qs = linhas_qs.filter(criado_em__gte=data_inicio_dt)
+            fidelidades_qs = fidelidades_qs.filter(criado_em__gte=data_inicio_dt)
+        except ValueError:
+            pass
+    
+    if data_fim:
+        try:
+            data_fim_dt = datetime.strptime(data_fim, '%Y-%m-%d')
+            # Incluir todo o dia
+            data_fim_dt = data_fim_dt.replace(hour=23, minute=59, second=59)
+            linhas_qs = linhas_qs.filter(criado_em__lte=data_fim_dt)
+            fidelidades_qs = fidelidades_qs.filter(criado_em__lte=data_fim_dt)
+        except ValueError:
+            pass
+    
+    # Filtro por usuário criador
+    if usuario_criador:
+        linhas_qs = linhas_qs.filter(criado_por__username__icontains=usuario_criador)
+        fidelidades_qs = fidelidades_qs.filter(criado_por__username__icontains=usuario_criador)
+    
+    # Filtro de busca (número, empresa, observações)
+    if busca:
+        linhas_qs = linhas_qs.filter(
+            Q(numero__icontains=busca) |
+            Q(empresa__icontains=busca) |
+            Q(cnpj__icontains=busca) |
+            Q(rp__icontains=busca) |
+            Q(observacoes__icontains=busca)
+        )
+        fidelidades_qs = fidelidades_qs.filter(
+            Q(linha__numero__icontains=busca) |
+            Q(linha__empresa__icontains=busca) |
+            Q(observacoes__icontains=busca)
+        )
+    
+    # Aplicar filtro de tipo
+    requests_list = []
+    
+    if filtro_tipo in ['todos', 'linhas']:
+        # Adicionar linhas à lista de requests
+        for linha in linhas_qs.order_by('-criado_em'):
+            requests_list.append({
+                'tipo': 'Nova Linha',
+                'id': linha.id,
+                'numero': linha.numero,
+                'cliente': linha.empresa or 'N/A',
+                'cnpj': linha.cnpj or 'N/A',
+                'rp': linha.rp or 'N/A',
+                'tipo_plano': linha.tipo_plano,
+                'valor': linha.valor_plano,
+                'acao': linha.acao,
+                'status': 'Ativa' if linha.ativa else 'Inativa',
+                'observacoes': linha.observacoes or 'Sem observações',
+                'criado_por': linha.criado_por.username if linha.criado_por else 'Sistema',
+                'criado_em': linha.criado_em,
+                'detalhes_extra': {
+                    'iccid': linha.iccid or 'N/A',
+                    'taxa_manutencao': linha.taxa_manutencao or 0,
+                }
+            })
+    
+    if filtro_tipo in ['todos', 'fidelidades']:
+        # Adicionar fidelidades à lista de requests
+        for fidelidade in fidelidades_qs.order_by('-criado_em'):
+            requests_list.append({
+                'tipo': 'Fidelidade',
+                'id': fidelidade.id,
+                'numero': fidelidade.linha.numero,
+                'cliente': fidelidade.linha.empresa or 'N/A',
+                'cnpj': fidelidade.linha.cnpj or 'N/A',
+                'rp': fidelidade.linha.rp or 'N/A',
+                'tipo_plano': fidelidade.linha.tipo_plano,
+                'valor': fidelidade.linha.valor_plano,
+                'acao': 'FIDELIDADE',
+                'status': 'Processada',
+                'observacoes': fidelidade.observacoes,
+                'criado_por': fidelidade.criado_por.username if fidelidade.criado_por else 'Sistema',
+                'criado_em': fidelidade.criado_em,
+                'detalhes_extra': {
+                    'linha_ativa': 'Sim' if fidelidade.linha.ativa else 'Não',
+                    'tipo_original': 'Registro de Fidelidade',
+                }
+            })
+    
+    # Ordenar por data de criação (mais recente primeiro)
+    requests_list.sort(key=lambda x: x['criado_em'], reverse=True)
+    
+    # Paginação
+    paginator = Paginator(requests_list, 15)  # 15 itens por página
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    # Estatísticas
+    total_linhas = Linha.objects.count()
+    total_fidelidades = Fidelidade.objects.count()
+    total_requests = total_linhas + total_fidelidades
+    
+    # Requests do último mês
+    ultimo_mes = timezone.now() - timedelta(days=30)
+    linhas_ultimo_mes = Linha.objects.filter(criado_em__gte=ultimo_mes).count()
+    fidelidades_ultimo_mes = Fidelidade.objects.filter(criado_em__gte=ultimo_mes).count()
+    
+    # Lista de usuários para filtro
+    usuarios = User.objects.filter(
+        Q(linha__isnull=False) | Q(fidelidade__isnull=False)
+    ).distinct().values('username').order_by('username')
+    
+    context = {
+        'page_obj': page_obj,
+        'filtro_tipo': filtro_tipo,
+        'busca': busca,
+        'data_inicio': data_inicio,
+        'data_fim': data_fim,
+        'usuario_criador': usuario_criador,
+        'total_requests': total_requests,
+        'total_linhas': total_linhas,
+        'total_fidelidades': total_fidelidades,
+        'linhas_ultimo_mes': linhas_ultimo_mes,
+        'fidelidades_ultimo_mes': fidelidades_ultimo_mes,
+        'usuarios': usuarios,
+        'hoje': timezone.now().date(),
+    }
+    
+    return render(request, 'protocolo.html', context)
 
 
 @login_required

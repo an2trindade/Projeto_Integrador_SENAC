@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Protocolo - Gestor de Linhas{% endblock %}
+{% block title %}Protocolo de Pedidos - Gestor de Linhas{% endblock %}
 
 {% block content %}
 <style>
@@ -27,46 +27,401 @@
         font-size: 1.1rem;
     }
     
-    /* Card de Conteúdo */
-    .content-card {
+    /* Cards de Estatística */
+    .stats-card {
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        color: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        transition: transform 0.3s ease;
+    }
+    
+    .stats-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    /* Filtros */
+    .filter-card {
         background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
         backdrop-filter: blur(10px);
         border: 1px solid rgba(255,255,255,0.2);
-        border-radius: 20px;
-        padding: 30px;
-        min-height: 300px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }
     
-    .coming-soon {
+    /* Cards de Pedidos */
+    .request-card {
+        border-left: 4px solid;
+        transition: all 0.3s ease;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        background: white;
+    }
+    
+    .request-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    
+    .request-card.nova-linha {
+        border-left-color: #28a745;
+    }
+    
+    .request-card.fidelidade {
+        border-left-color: #007bff;
+    }
+    
+    .badge-nova-linha {
+        background-color: #28a745;
+    }
+    
+    .badge-fidelidade {
+        background-color: #007bff;
+    }
+    
+    .obs-preview {
+        max-height: 60px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .empty-state {
         text-align: center;
-        color: rgba(255,255,255,0.8);
+        padding: 60px 20px;
+        color: #6c757d;
     }
     
-    .coming-soon i {
+    .empty-state i {
         font-size: 4rem;
-        color: rgba(102, 126, 234, 0.6);
         margin-bottom: 20px;
-    }
-    
-    .coming-soon h3 {
-        color: rgba(255,255,255,0.9);
-        font-weight: 600;
+        opacity: 0.5;
     }
 </style>
 
 <div class="tech-header">
-    <h1><i class="fas fa-clipboard-list"></i> Protocolo</h1>
-    <p>Área para registrar e consultar protocolos</p>
+    <h1><i class="fas fa-clipboard-list"></i> Protocolo de Pedidos</h1>
+    <p>Acompanhe todos os pedidos criados nos menus Nova Linha e Fidelidade</p>
 </div>
 
-<div class="content-card">
-    <div class="coming-soon">
-        <i class="fas fa-clipboard-list"></i>
-        <h3>Sistema de Protocolos</h3>
-        <p>Registre e acompanhe protocolos de atendimento</p>
+<!-- Estatísticas -->
+<div class="row mb-4">
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card stats-card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-list-alt fa-2x mb-2"></i>
+                <h4 class="mb-1">{{ total_requests }}</h4>
+                <small>Total de Pedidos</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card border-success h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-plus-circle fa-2x text-success mb-2"></i>
+                <h4 class="mb-1 text-success">{{ total_linhas }}</h4>
+                <small>Novas Linhas</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card border-primary h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-heart fa-2x text-primary mb-2"></i>
+                <h4 class="mb-1 text-primary">{{ total_fidelidades }}</h4>
+                <small>Fidelidades</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card border-info h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-calendar-alt fa-2x text-info mb-2"></i>
+                <h4 class="mb-1 text-info">{{ linhas_ultimo_mes|add:fidelidades_ultimo_mes }}</h4>
+                <small>Último Mês</small>
+            </div>
+        </div>
     </div>
 </div>
+
+<!-- Filtros -->
+<div class="card filter-card mb-4">
+    <div class="card-body">
+        <h5 class="card-title mb-3">
+            <i class="fas fa-filter me-2"></i>Filtros
+        </h5>
+        <form method="GET" class="row g-3">
+            <div class="col-lg-2 col-md-3">
+                <label for="tipo" class="form-label">Tipo</label>
+                <select name="tipo" id="tipo" class="form-select">
+                    <option value="todos" {% if filtro_tipo == 'todos' %}selected{% endif %}>Todos</option>
+                    <option value="linhas" {% if filtro_tipo == 'linhas' %}selected{% endif %}>Nova Linha</option>
+                    <option value="fidelidades" {% if filtro_tipo == 'fidelidades' %}selected{% endif %}>Fidelidade</option>
+                </select>
+            </div>
+            <div class="col-lg-3 col-md-4">
+                <label for="busca" class="form-label">Buscar</label>
+                <input type="text" name="busca" id="busca" class="form-control" value="{{ busca }}" 
+                       placeholder="Número, empresa, observações...">
+            </div>
+            <div class="col-lg-2 col-md-3">
+                <label for="data_inicio" class="form-label">Data Início</label>
+                <input type="date" name="data_inicio" id="data_inicio" class="form-control" value="{{ data_inicio }}">
+            </div>
+            <div class="col-lg-2 col-md-3">
+                <label for="data_fim" class="form-label">Data Fim</label>
+                <input type="date" name="data_fim" id="data_fim" class="form-control" value="{{ data_fim }}">
+            </div>
+            <div class="col-lg-2 col-md-4">
+                <label for="usuario" class="form-label">Criado Por</label>
+                <input type="text" name="usuario" id="usuario" class="form-control" value="{{ usuario_criador }}" 
+                       placeholder="Nome do usuário">
+            </div>
+            <div class="col-lg-1 col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <button type="submit" class="btn btn-primary d-block w-100">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Lista de Pedidos -->
+{% if page_obj %}
+    <div class="row">
+        {% for request in page_obj %}
+        <div class="col-12 mb-3">
+            <div class="card request-card {% if request.tipo == 'Nova Linha' %}nova-linha{% else %}fidelidade{% endif %}">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-lg-8 col-md-7">
+                            <div class="d-flex align-items-center mb-2 flex-wrap">
+                                <span class="badge {% if request.tipo == 'Nova Linha' %}badge-nova-linha{% else %}badge-fidelidade{% endif %} me-2 mb-1">
+                                    {% if request.tipo == 'Nova Linha' %}
+                                        <i class="fas fa-plus-circle me-1"></i>
+                                    {% else %}
+                                        <i class="fas fa-heart me-1"></i>
+                                    {% endif %}
+                                    {{ request.tipo }}
+                                </span>
+                                <strong class="text-dark me-2">{{ request.numero }}</strong>
+                                <span class="text-muted">{{ request.cliente }}</span>
+                            </div>
+                            
+                            <div class="row text-sm">
+                                <div class="col-md-6">
+                                    <small class="text-muted">
+                                        <strong>CNPJ:</strong> {{ request.cnpj }}<br>
+                                        <strong>RP:</strong> {{ request.rp }}<br>
+                                        <strong>Plano:</strong> {{ request.tipo_plano|truncatechars:30 }}
+                                    </small>
+                                </div>
+                                <div class="col-md-6">
+                                    <small class="text-muted">
+                                        <strong>Valor:</strong> R$ {{ request.valor|floatformat:2 }}<br>
+                                        <strong>Ação:</strong> {{ request.acao }}<br>
+                                        <strong>Status:</strong> 
+                                        <span class="{% if request.status == 'Ativa' %}text-success{% elif request.status == 'Processada' %}text-primary{% else %}text-danger{% endif %}">
+                                            {{ request.status }}
+                                        </span>
+                                    </small>
+                                </div>
+                            </div>
+                            
+                            {% if request.observacoes %}
+                            <div class="mt-2">
+                                <small class="text-muted">
+                                    <strong>Observações:</strong>
+                                    <div class="obs-preview">{{ request.observacoes|truncatewords:20 }}</div>
+                                </small>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-lg-4 col-md-5 text-end">
+                            <div class="mb-2">
+                                <small class="text-muted">
+                                    <i class="fas fa-user me-1"></i>{{ request.criado_por }}<br>
+                                    <i class="fas fa-calendar me-1"></i>{{ request.criado_em|date:"d/m/Y H:i" }}
+                                </small>
+                            </div>
+                            
+                            <!-- Botão para ver detalhes -->
+                            <button class="btn btn-sm btn-outline-primary" onclick="verDetalhes({{ request.id }}, '{{ request.tipo }}', {{ request|safe }})">
+                                <i class="fas fa-eye me-1"></i>Detalhes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body empty-state">
+                    <i class="fas fa-search fa-3x"></i>
+                    <h4>Nenhum pedido encontrado</h4>
+                    <p class="mb-4">Tente ajustar os filtros ou criar novos pedidos nos menus Nova Linha ou Fidelidade.</p>
+                    <div>
+                        <a href="{% url 'linhas:novalinha' %}" class="btn btn-success me-2">
+                            <i class="fas fa-plus me-1"></i>Nova Linha
+                        </a>
+                        <a href="{% url 'linhas:fidelidade' %}" class="btn btn-primary">
+                            <i class="fas fa-heart me-1"></i>Fidelidade
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Paginação -->
+    {% if page_obj.has_other_pages %}
+    <nav aria-label="Paginação" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page=1">
+                        <i class="fas fa-angle-double-left"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}">
+                        <i class="fas fa-angle-left"></i>
+                    </a>
+                </li>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ num }}">{{ num }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}">
+                        <i class="fas fa-angle-right"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.paginator.num_pages }}">
+                        <i class="fas fa-angle-double-right"></i>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+
+{% else %}
+    <div class="card">
+        <div class="card-body empty-state">
+            <i class="fas fa-clipboard-list fa-4x"></i>
+            <h4>Nenhum pedido cadastrado</h4>
+            <p class="mb-4">Ainda não há pedidos criados no sistema. Comece criando novos pedidos nos menus Nova Linha ou Fidelidade.</p>
+            <div>
+                <a href="{% url 'linhas:novalinha' %}" class="btn btn-success me-2">
+                    <i class="fas fa-plus me-1"></i>Nova Linha
+                </a>
+                <a href="{% url 'linhas:fidelidade' %}" class="btn btn-primary">
+                    <i class="fas fa-heart me-1"></i>Fidelidade
+                </a>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+<!-- Modal para Detalhes -->
+<div class="modal fade" id="detalhesModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-info-circle me-2"></i>Detalhes do Pedido
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="detalhes-conteudo">
+                    <!-- Conteúdo será carregado via JavaScript -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Função para ver detalhes do pedido
+    function verDetalhes(id, tipo, requestData) {
+        const modal = new bootstrap.Modal(document.getElementById('detalhesModal'));
+        const conteudo = document.getElementById('detalhes-conteudo');
+        
+        conteudo.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Carregando...</div>';
+        modal.show();
+        
+        // Simular carregamento e mostrar detalhes básicos
+        setTimeout(() => {
+            const badgeClass = tipo === 'Nova Linha' ? 'badge-nova-linha' : 'badge-fidelidade';
+            const icon = tipo === 'Nova Linha' ? 'fas fa-plus-circle' : 'fas fa-heart';
+            
+            conteudo.innerHTML = `
+                <div class="row">
+                    <div class="col-12 mb-3">
+                        <span class="badge ${badgeClass} fs-6">
+                            <i class="${icon} me-1"></i>${tipo}
+                        </span>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-info-circle text-primary me-2"></i>Informações Gerais</h6>
+                        <table class="table table-sm">
+                            <tr><td><strong>ID:</strong></td><td>${id}</td></tr>
+                            <tr><td><strong>Tipo:</strong></td><td>${tipo}</td></tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-user text-success me-2"></i>Responsável</h6>
+                        <p class="mb-1"><strong>Criado por:</strong> Sistema</p>
+                        <p><strong>Data:</strong> ${new Date().toLocaleDateString('pt-BR')}</p>
+                    </div>
+                </div>
+                <div class="alert alert-info mt-3">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Nota:</strong> Para ver detalhes completos específicos, esta funcionalidade pode ser expandida 
+                    para incluir mais informações detalhadas de cada tipo de pedido.
+                </div>
+            `;
+        }, 500);
+    }
+
+    // Auto-submit do formulário quando alterar o tipo
+    document.getElementById('tipo').addEventListener('change', function() {
+        this.form.submit();
+    });
+    
+    // Melhorar UX dos filtros
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('form[method="GET"]');
+        const inputs = form.querySelectorAll('input[type="date"]');
+        
+        inputs.forEach(input => {
+            input.addEventListener('change', function() {
+                // Auto-submit quando alterar datas (opcional)
+                // form.submit();
+            });
+        });
+    });
+</script>
 {% endblock %}
