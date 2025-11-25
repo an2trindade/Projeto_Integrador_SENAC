@@ -203,7 +203,12 @@ console.log('Funções CPF e Contato carregadas');
             <div class="tab-pane fade show active" id="conteudo-pj" role="tabpanel">
                 <form method="post" id="form-cliente">
                     {% csrf_token %}
-                    <input type="hidden" name="tipo_pessoa" value="juridica" id="input-tipo-pessoa">
+                    <input type="hidden" name="tipo_pessoa" value="PJ" id="input-tipo-pessoa">
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger py-2 mb-3">
+                        {% for err in form.non_field_errors %}<div>{{ err }}</div>{% endfor %}
+                    </div>
+                    {% endif %}
                     
                     {% if cliente_salvo %}
                     <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -328,24 +333,33 @@ console.log('Funções CPF e Contato carregadas');
             <div class="tab-pane fade" id="conteudo-pf" role="tabpanel">
                 <form method="post" id="form-cliente-pf">
                     {% csrf_token %}
-                    <input type="hidden" name="tipo_pessoa" value="fisica">
+                    <input type="hidden" name="tipo_pessoa" value="PF">
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger py-2 mb-3">
+                        {% for err in form.non_field_errors %}<div>{{ err }}</div>{% endfor %}
+                    </div>
+                    {% endif %}
                     
                     <!-- Campos Pessoa Física -->
                     <div class="mb-3">
                         <label class="form-label small">Nome Completo *</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="fas fa-user"></i></span>
-                            <input type="text" name="nome_completo" id="id_nome_completo" class="form-control" placeholder="NOME COMPLETO" required
+                                <!-- Para PF usamos 'empresa' como identificação e também refletimos em nome_dono -->
+                                <input type="text" name="empresa" id="id_nome_completo" class="form-control" placeholder="NOME COMPLETO" required
                                    style="text-transform: uppercase;" 
                                    oninput="this.value = this.value.toUpperCase()">
                         </div>
                     </div>
 
+                            <!-- Nome do proprietário (oculto, espelha empresa) -->
+                            <input type="hidden" name="nome_dono" id="id_nome_dono_hidden">
+
                         <div class="mb-3">
                         <label class="form-label small">CPF (somente números)*</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="fas fa-id-card"></i></span>
-                            <input type="text" name="cpf_pf" id="id_cpf_pf" class="form-control" placeholder="12345678901" required
+                            <input type="text" name="cpf_dono" id="id_cpf_pf" class="form-control" placeholder="12345678901" required
                                    maxlength="11"
                                    pattern="[0-9]{11}"
                                    inputmode="numeric"
@@ -359,13 +373,13 @@ console.log('Funções CPF e Contato carregadas');
                         <label class="form-label small">Data de Nascimento *</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
-                            <input type="date" name="data_nascimento_pf" id="id_data_nascimento_pf" class="form-control" required>
+                            <input type="date" name="data_nascimento_dono" id="id_data_nascimento_pf" class="form-control" required>
                         </div>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label small">Endereço Completo *</label>
-                        <textarea name="endereco_pf" id="id_endereco_pf" class="form-control" rows="3" placeholder="RUA - NÚMERO - COMPLEMENTO - BAIRRO - CIDADE - ESTADO - CEP" required
+                        <textarea name="endereco_completo" id="id_endereco_pf" class="form-control" rows="3" placeholder="RUA - NÚMERO - COMPLEMENTO - BAIRRO - CIDADE - ESTADO - CEP" required
                                   style="text-transform: uppercase;" 
                                   oninput="this.value = this.value.toUpperCase()"></textarea>
                     </div>
@@ -374,7 +388,7 @@ console.log('Funções CPF e Contato carregadas');
                         <label class="form-label small">Contato Principal (somentes números) *</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="fas fa-phone"></i></span>
-                            <input type="text" name="contato_pf" id="id_contato_pf" class="form-control" placeholder="11999999999" required
+                            <input type="text" name="contato" id="id_contato_pf" class="form-control" placeholder="11999999999" required
                                    maxlength="11"
                                    autocomplete="off"
                                    pattern="[0-9]{11}"
@@ -390,7 +404,7 @@ console.log('Funções CPF e Contato carregadas');
                         <label class="form-label small">E-mail</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-                            <input type="email" name="email_pf" id="id_email_pf" class="form-control" placeholder="email@exemplo.com"
+                            <input type="email" name="email" id="id_email_pf" class="form-control" placeholder="email@exemplo.com"
                                    style="text-transform: lowercase;" 
                                    oninput="this.value = this.value.toLowerCase()"
                                    onpaste="setTimeout(function(){ var el = document.getElementById('id_email_pf'); el.value = el.value.toLowerCase(); }, 10)">
@@ -454,8 +468,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Função para alternar tipo
     function alternarTipo(tipo) {
         console.log('=== ALTERNANDO PARA:', tipo, '===');
-        
-        if (tipo === 'juridica') {
+        // Normalizar para códigos do modelo (PJ/PF)
+        if (tipo === 'juridica') { tipo = 'PJ'; }
+        if (tipo === 'fisica') { tipo = 'PF'; }
+
+        if (tipo === 'PJ') {
             // Mostrar campos PJ
             if (camposPJ) {
                 camposPJ.style.display = 'block';
@@ -466,7 +483,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('Campos PF ocultados');
             }
             if (inputTipo) {
-                inputTipo.value = 'juridica';
+                inputTipo.value = 'PJ';
                 console.log('Tipo definido como juridica');
             }
             
@@ -480,7 +497,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('Botão PF desativado');
             }
             
-        } else if (tipo === 'fisica') {
+        } else if (tipo === 'PF') {
             // Mostrar campos PF
             if (camposPF) {
                 camposPF.style.display = 'block';
@@ -491,7 +508,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('Campos PJ ocultados');
             }
             if (inputTipo) {
-                inputTipo.value = 'fisica';
+                inputTipo.value = 'PF';
                 console.log('Tipo definido como fisica');
             }
             
@@ -530,7 +547,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Inicializar com Pessoa Jurídica
     console.log('Inicializando com Pessoa Jurídica...');
-    alternarTipo('juridica');
+    alternarTipo('PJ');
     
     console.log('=== SISTEMA CONFIGURADO COM SUCESSO ===');
     
@@ -1210,6 +1227,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <!-- Script adicional para proteção rigorosa do campo CPF -->
 <script>
+// Espelhar Nome Completo PF em nome_dono oculto
+document.addEventListener('DOMContentLoaded', function(){
+    var nomeCompleto = document.getElementById('id_nome_completo');
+    var nomeDonoHidden = document.getElementById('id_nome_dono_hidden');
+    if (nomeCompleto && nomeDonoHidden) {
+        var sync = function(){ nomeDonoHidden.value = nomeCompleto.value; };
+        nomeCompleto.addEventListener('input', sync);
+        nomeCompleto.addEventListener('blur', sync);
+        sync();
+    }
+});
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Configurando proteção rigorosa do CPF');
     
