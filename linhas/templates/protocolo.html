@@ -27,17 +27,85 @@
         font-size: 1.1rem;
     }
     
-    /* Cards de Estatística */
-    .stats-card {
-        background: linear-gradient(45deg, #667eea, #764ba2);
-        color: white;
-        border-radius: 15px;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-        transition: transform 0.3s ease;
+    /* Cards de Estatística Dashboard Style */
+    .stat-card {
+        background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 20px;
+        padding: 25px;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
     }
     
-    .stats-card:hover {
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+    }
+    
+    .stat-card:hover {
         transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(102, 126, 234, 0.4);
+        border-color: rgba(102, 126, 234, 0.5);
+    }
+    
+    .stat-card .icon-wrapper {
+        width: 60px;
+        height: 60px;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        margin-bottom: 15px;
+        transition: all 0.3s ease;
+    }
+    
+    .stat-card:hover .icon-wrapper {
+        transform: scale(1.1) rotate(5deg);
+    }
+    
+    .stat-card.total .icon-wrapper {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: #ffffff;
+    }
+    
+    .stat-card.ativas .icon-wrapper {
+        background: linear-gradient(135deg, #11998e, #38ef7d);
+        color: #ffffff;
+    }
+    
+    .stat-card.canceladas .icon-wrapper {
+        background: linear-gradient(135deg, #ee0979, #ff6a00);
+        color: #ffffff;
+    }
+    
+    .stat-card.novas .icon-wrapper {
+        background: linear-gradient(135deg, #f093fb, #f5576c);
+        color: #ffffff;
+    }
+    
+    .stat-card h5 {
+        color: rgba(255,255,255,0.8);
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin: 0 0 10px 0;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .stat-card h2 {
+        color: #ffffff;
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin: 0;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     
     /* Filtros */
@@ -49,18 +117,75 @@
         box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }
     
+    .filter-card .card-title {
+        color: rgba(255,255,255,0.95);
+        font-weight: 600;
+    }
+    
+    .filter-card .form-label {
+        color: rgba(255,255,255,0.9);
+        font-weight: 600;
+    }
+    
+    .filter-card .form-control,
+    .filter-card .form-select {
+        background: rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.2);
+        color: rgba(255,255,255,0.95);
+    }
+    
+    .filter-card .form-control::placeholder {
+        color: rgba(255,255,255,0.5);
+    }
+    
+    .filter-card .form-control:focus,
+    .filter-card .form-select:focus {
+        background: rgba(255,255,255,0.15);
+        border-color: rgba(102, 126, 234, 0.5);
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        color: rgba(255,255,255,0.95);
+    }
+    
+    .filter-card .btn-primary {
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        border: none;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        transition: all 0.3s ease;
+    }
+    
+    .filter-card .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    }
+    
     /* Cards de Pedidos */
     .request-card {
+        background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.2);
         border-left: 4px solid;
         transition: all 0.3s ease;
         border-radius: 10px;
         box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        background: white;
     }
     
     .request-card:hover {
         transform: translateY(-3px);
-        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        border-color: rgba(102, 126, 234, 0.5);
+    }
+    
+    .request-card .card-body {
+        color: rgba(255,255,255,0.95);
+    }
+    
+    .request-card h6 {
+        color: rgba(255,255,255,0.95);
+    }
+    
+    .request-card small,
+    .request-card .text-muted {
+        color: rgba(255,255,255,0.7) !important;
     }
     
     .request-card.nova-linha {
@@ -86,15 +211,38 @@
     }
     
     .empty-state {
+        background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 15px;
         text-align: center;
         padding: 60px 20px;
-        color: #6c757d;
+        color: rgba(255,255,255,0.8);
     }
     
     .empty-state i {
         font-size: 4rem;
         margin-bottom: 20px;
-        opacity: 0.5;
+        opacity: 0.6;
+        color: rgba(255,255,255,0.7);
+    }
+    
+    .empty-state h5 {
+        color: rgba(255,255,255,0.95);
+        font-weight: 600;
+    }
+    
+    .empty-state p {
+        color: rgba(255,255,255,0.8);
+    }
+    
+    .empty-state .btn {
+        transition: all 0.3s ease;
+    }
+    
+    .empty-state .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
     }
 </style>
 
@@ -106,39 +254,39 @@
 <!-- Estatísticas -->
 <div class="row mb-4">
     <div class="col-lg-3 col-md-6 mb-3">
-        <div class="card stats-card h-100">
-            <div class="card-body text-center">
-                <i class="fas fa-list-alt fa-2x mb-2"></i>
-                <h4 class="mb-1">{{ total_requests }}</h4>
-                <small>Total de Pedidos</small>
+        <div class="stat-card total">
+            <div class="icon-wrapper">
+                <i class="fas fa-list-alt"></i>
             </div>
+            <h5>Total de Pedidos</h5>
+            <h2>{{ total_requests }}</h2>
         </div>
     </div>
     <div class="col-lg-3 col-md-6 mb-3">
-        <div class="card border-success h-100">
-            <div class="card-body text-center">
-                <i class="fas fa-plus-circle fa-2x text-success mb-2"></i>
-                <h4 class="mb-1 text-success">{{ total_linhas }}</h4>
-                <small>Novas Linhas</small>
+        <div class="stat-card novas">
+            <div class="icon-wrapper">
+                <i class="fas fa-plus-circle"></i>
             </div>
+            <h5>Novas Linhas</h5>
+            <h2>{{ total_linhas }}</h2>
         </div>
     </div>
     <div class="col-lg-3 col-md-6 mb-3">
-        <div class="card border-primary h-100">
-            <div class="card-body text-center">
-                <i class="fas fa-heart fa-2x text-primary mb-2"></i>
-                <h4 class="mb-1 text-primary">{{ total_fidelidades }}</h4>
-                <small>Fidelidades</small>
+        <div class="stat-card ativas">
+            <div class="icon-wrapper">
+                <i class="fas fa-heart"></i>
             </div>
+            <h5>Fidelidades</h5>
+            <h2>{{ total_fidelidades }}</h2>
         </div>
     </div>
     <div class="col-lg-3 col-md-6 mb-3">
-        <div class="card border-info h-100">
-            <div class="card-body text-center">
-                <i class="fas fa-calendar-alt fa-2x text-info mb-2"></i>
-                <h4 class="mb-1 text-info">{{ linhas_ultimo_mes|add:fidelidades_ultimo_mes }}</h4>
-                <small>Último Mês</small>
+        <div class="stat-card canceladas">
+            <div class="icon-wrapper">
+                <i class="fas fa-calendar-alt"></i>
             </div>
+            <h5>Último Mês</h5>
+            <h2>{{ linhas_ultimo_mes|add:fidelidades_ultimo_mes }}</h2>
         </div>
     </div>
 </div>
