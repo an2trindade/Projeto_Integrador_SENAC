@@ -525,6 +525,70 @@
                     <span><strong>Em desenvolvimento:</strong> Configurações de linhas serão implementadas em breve.</span>
                 </div>
                 
+                <!-- Importar Linhas -->
+                <div style="margin-bottom: 2.5rem;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+                        <i class="fas fa-file-upload" style="font-size: 1.2rem; color: #28a745;"></i>
+                        <h6 style="margin: 0; font-weight: 600;">Importar Linhas</h6>
+                        <span class="status-badge active">Ativo</span>
+                    </div>
+                    <p style="color: #6c757d; font-size: 0.95rem; margin-bottom: 1rem;">
+                        Importe linhas em lote através de arquivos Excel ou CSV
+                    </p>
+                    
+                    <div class="card border-success" style="margin-bottom: 1rem;">
+                        <div class="card-body">
+                            <form id="importLinhasForm" enctype="multipart/form-data" style="margin-bottom: 1rem;">
+                                {% csrf_token %}
+                                
+                                <div class="row align-items-end">
+                                    <div class="col-md-4 mb-3">
+                                        <label for="empresa_select" class="form-label">
+                                            <i class="fas fa-building me-1"></i>Empresa de Destino *
+                                        </label>
+                                        <select name="empresa_id" id="empresa_select" class="form-select" required>
+                                            <option value="">Selecione uma empresa...</option>
+                                            <!-- Será preenchido via AJAX -->
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="col-md-4 mb-3">
+                                        <label for="arquivo_import" class="form-label">
+                                            <i class="fas fa-file-excel me-1"></i>Arquivo de Linhas *
+                                        </label>
+                                        <input type="file" name="arquivo_linhas" id="arquivo_import" 
+                                               class="form-control" accept=".xlsx,.xls,.csv" required>
+                                    </div>
+                                    
+                                    <div class="col-md-4 mb-3">
+                                        <button type="button" id="btnImportarLinhas" class="btn btn-success w-100">
+                                            <i class="fas fa-upload me-1"></i>Importar Linhas
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-text">
+                                    <strong>Formatos aceitos:</strong> Excel (.xlsx, .xls) ou CSV<br>
+                                    <strong>Colunas esperadas:</strong> Numero, ICCID, Tipo_Plano, Valor_Plano, RP, Acao
+                                </div>
+                            </form>
+                            
+                            <!-- Preview do arquivo -->
+                            <div id="preview_import_linhas" style="display: none;">
+                                <hr>
+                                <h6><i class="fas fa-eye me-2"></i>Preview do Arquivo</h6>
+                                <div id="preview_content"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Dica:</strong> Use o <a href="{% url 'linhas:cadastro_empresa' %}" class="alert-link">cadastro de empresa</a> 
+                        para importar linhas automaticamente ao criar uma nova empresa.
+                    </div>
+                </div>
+                
                 <!-- Parâmetros Gerais -->
                 <div style="margin-bottom: 2.5rem;">
                     <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
@@ -791,7 +855,7 @@
                                                 <label class="form-check-label" for="isAdministrador">
                                                     <i class="fas fa-shield-alt text-warning"></i> 
                                                     <strong>Usuário Administrador</strong>
-                                                    <small class="text-muted d-block">Concede acesso total ao sistema</small>
+                                                    <small class="d-block" style="color: #000000 !important; font-weight: 600;">Concede acesso total ao sistema</small>
                                                 </label>
                                             </div>
                                         </div>
@@ -1518,6 +1582,208 @@ function enhanceTabNavigation() {
     });
 }
 
+// Funções para importação de linhas
+function carregarEmpresas() {
+    const select = document.getElementById('empresa_select');
+    if (!select) return;
+    
+    // Fazer requisição para buscar empresas
+    fetch('/linhas/buscar-clientes/')
+        .then(response => response.json())
+        .then(data => {
+            // Limpar opções existentes (exceto a primeira)
+            select.innerHTML = '<option value="">Selecione uma empresa...</option>';
+            
+            // Adicionar empresas
+            data.forEach(empresa => {
+                const option = document.createElement('option');
+                option.value = empresa.id;
+                option.textContent = `${empresa.empresa} - ${empresa.cnpj}`;
+                select.appendChild(option);
+            });
+        })
+        .catch(error => {
+            console.error('Erro ao carregar empresas:', error);
+            select.innerHTML = '<option value="">Erro ao carregar empresas</option>';
+        });
+}
+
+function previewArquivoImport() {
+    const arquivo = document.getElementById('arquivo_import').files[0];
+    const previewDiv = document.getElementById('preview_import_linhas');
+    const previewContent = document.getElementById('preview_content');
+    
+    if (!arquivo) {
+        previewDiv.style.display = 'none';
+        return;
+    }
+    
+    previewContent.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Processando arquivo...</div>';
+    previewDiv.style.display = 'block';
+    
+    // Usar AJAX para processar arquivo no servidor
+    const formData = new FormData();
+    formData.append('arquivo', arquivo);
+    
+    fetch('/linhas/preview-arquivo-linhas/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            mostrarPreviewImport(data.linhas, data.arquivo_nome);
+        } else {
+            previewContent.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-times-circle me-1"></i>
+                    ${data.error}
+                </div>
+            `;
+        }
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        previewContent.innerHTML = `
+            <div class="alert alert-danger">
+                <i class="fas fa-times-circle me-1"></i>
+                Erro ao processar arquivo. Tente novamente.
+            </div>
+        `;
+    });
+}
+
+function mostrarPreviewImport(linhas, nomeArquivo) {
+    const previewContent = document.getElementById('preview_content');
+    
+    if (!linhas || linhas.length === 0) {
+        previewContent.innerHTML = `
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle me-1"></i>
+                Nenhuma linha encontrada no arquivo.
+            </div>
+        `;
+        return;
+    }
+    
+    let html = `
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+                <strong>${linhas.length} linha${linhas.length > 1 ? 's' : ''} encontrada${linhas.length > 1 ? 's' : ''}</strong>
+                <br><small style="color: #000000 !important; font-weight: 600;">Arquivo: ${nomeArquivo}</small>
+            </div>
+        </div>
+        <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+            <table class="table table-sm table-bordered">
+                <thead class="table-light sticky-top">
+                    <tr>
+                        <th>Número</th>
+                        <th>ICCID</th>
+                        <th>Plano</th>
+                        <th>Valor</th>
+                        <th>RP</th>
+                        <th>Ação</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+    
+    // Mostrar todas as linhas no preview das configurações
+    linhas.forEach(linha => {
+        html += `
+            <tr>
+                <td>${linha.numero || ''}</td>
+                <td>${linha.iccid || ''}</td>
+                <td>${linha.tipo_plano || ''}</td>
+                <td>${linha.valor_plano || ''}</td>
+                <td>${linha.rp || ''}</td>
+                <td>${linha.acao || 'ESTOQUE'}</td>
+            </tr>
+        `;
+    });
+    
+    html += `
+                </tbody>
+            </table>
+        </div>
+        <div class="mt-2">
+            <small class="text-success">
+                <i class="fas fa-check-circle me-1"></i>
+                Arquivo válido. Pronto para importação.
+            </small>
+        </div>
+    `;
+    
+    previewContent.innerHTML = html;
+}
+
+function importarLinhas() {
+    const empresaSelect = document.getElementById('empresa_select');
+    const arquivoInput = document.getElementById('arquivo_import');
+    const btnImportar = document.getElementById('btnImportarLinhas');
+    
+    // Validações
+    if (!empresaSelect.value) {
+        alert('Por favor, selecione uma empresa.');
+        empresaSelect.focus();
+        return;
+    }
+    
+    if (!arquivoInput.files[0]) {
+        alert('Por favor, selecione um arquivo.');
+        arquivoInput.focus();
+        return;
+    }
+    
+    // Desabilitar botão e mostrar loading
+    const originalText = btnImportar.innerHTML;
+    btnImportar.disabled = true;
+    btnImportar.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Importando...';
+    
+    // Preparar FormData
+    const formData = new FormData();
+    formData.append('empresa_id', empresaSelect.value);
+    formData.append('lista_estoque', arquivoInput.files[0]);
+    
+    // Enviar requisição
+    fetch('/linhas/processar-lista-estoque/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        },
+        body: formData
+    })
+    .then(response => {
+        if (response.ok) {
+            return response.text();
+        }
+        throw new Error('Erro na importação');
+    })
+    .then(data => {
+        // Mostrar mensagem de sucesso
+        alert('Linhas importadas com sucesso!');
+        
+        // Limpar formulário
+        document.getElementById('importLinhasForm').reset();
+        document.getElementById('preview_import_linhas').style.display = 'none';
+        
+        // Recarregar página para mostrar mensagens do Django
+        window.location.reload();
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        alert('Erro ao importar linhas. Tente novamente.');
+    })
+    .finally(() => {
+        // Restaurar botão
+        btnImportar.disabled = false;
+        btnImportar.innerHTML = originalText;
+    });
+}
+
 // Inicialização quando DOM carregado
 document.addEventListener('DOMContentLoaded', function() {
     // Aplicar estilos iniciais
@@ -1532,6 +1798,20 @@ document.addEventListener('DOMContentLoaded', function() {
     validarFormulario();
     initConfigurationUI();
     enhanceTabNavigation();
+    
+    // Carregar empresas para o select
+    carregarEmpresas();
+    
+    // Event listeners para importação de linhas
+    const arquivoInput = document.getElementById('arquivo_import');
+    if (arquivoInput) {
+        arquivoInput.addEventListener('change', previewArquivoImport);
+    }
+    
+    const btnImportar = document.getElementById('btnImportarLinhas');
+    if (btnImportar) {
+        btnImportar.addEventListener('click', importarLinhas);
+    }
     
     // Verificar hash na URL para ativação de aba
     if (window.location.hash) {

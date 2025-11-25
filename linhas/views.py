@@ -1654,3 +1654,380 @@ def alterar_senha_usuario(request):
         'error': 'Método não permitido'
     })
 
+
+@login_required
+def cadastro_empresa(request):
+    """
+    View para cadastro de empresa com dados completos
+    """
+    from django.db import transaction
+    import re
+    
+    if request.method == 'POST':
+        try:
+            with transaction.atomic():
+                # Coletar dados do formulário
+                cnpj = request.POST.get('cnpj', '').strip()
+                razao_social = request.POST.get('razao_social', '').strip()
+                nome_fantasia = request.POST.get('nome_fantasia', '').strip()
+                nome_proprietario = request.POST.get('nome_proprietario', '').strip()
+                cpf_proprietario = request.POST.get('cpf_proprietario', '').strip()
+                data_nascimento = request.POST.get('data_nascimento', '').strip()
+                endereco = request.POST.get('endereco', '').strip()
+                telefone = request.POST.get('telefone', '').strip()
+                email = request.POST.get('email', '').strip()
+                arquivo_linhas = request.FILES.get('arquivo_linhas')
+                
+                # Validações básicas
+                if not all([cnpj, razao_social, nome_proprietario, cpf_proprietario, data_nascimento, endereco, telefone, email]):
+                    messages.error(request, 'Todos os campos obrigatórios devem ser preenchidos.')
+                    return render(request, 'linhas/cadastro_empresa.html')
+                
+                # Validar CNPJ (básico - apenas dígitos)
+                cnpj_digits = re.sub(r'\D', '', cnpj)
+                if len(cnpj_digits) != 14:
+                    messages.error(request, 'CNPJ deve ter 14 dígitos válidos.')
+                    return render(request, 'linhas/cadastro_empresa.html')
+                
+                # Verificar se CNPJ já existe
+                if Cliente.objects.filter(cnpj=cnpj).exists():
+                    messages.error(request, f'CNPJ {cnpj} já está cadastrado no sistema.')
+                    return render(request, 'linhas/cadastro_empresa.html')
+                
+                # Validar CPF (básico - apenas dígitos)
+                cpf_digits = re.sub(r'\D', '', cpf_proprietario)
+                if len(cpf_digits) != 11:
+                    messages.error(request, 'CPF deve ter 11 dígitos válidos.')
+                    return render(request, 'linhas/cadastro_empresa.html')
+                
+                # Validar email
+                from django.core.validators import validate_email
+                from django.core.exceptions import ValidationError
+                try:
+                    validate_email(email)
+                except ValidationError:
+                    messages.error(request, 'Email inválido.')
+                    return render(request, 'linhas/cadastro_empresa.html')
+                
+                # Criar empresa/cliente
+                cliente = Cliente.objects.create(
+                    cnpj=cnpj,
+                    empresa=razao_social,
+                    razao_social=razao_social,
+                    fantasia=nome_fantasia or razao_social,
+                    nome_dono=nome_proprietario,
+                    cpf_dono=cpf_proprietario,
+                    data_nascimento_dono=data_nascimento,
+                    endereco_completo=endereco,
+                    telefone=telefone,
+                    email=email,
+                    tipo_pessoa='PJ'
+                )
+                
+                # Processar arquivo de linhas se fornecido
+                linhas_importadas = 0
+                if arquivo_linhas:
+                    try:
+                        linhas_importadas = processar_arquivo_linhas(arquivo_linhas, cliente, request.user)
+                        if linhas_importadas > 0:
+                            messages.success(request, f'Empresa "{razao_social}" cadastrada com sucesso! {linhas_importadas} linha{"s" if linhas_importadas > 1 else ""} importada{"s" if linhas_importadas > 1 else ""} do arquivo.')
+                        else:
+                            messages.success(request, f'Empresa "{razao_social}" cadastrada com sucesso!')
+                            messages.warning(request, 'Nenhuma linha válida foi encontrada no arquivo.')
+                    except Exception as e:
+                        messages.success(request, f'Empresa "{razao_social}" cadastrada com sucesso!')
+                        messages.error(request, f'Erro ao processar arquivo de linhas: {str(e)}')
+                else:
+                    messages.success(request, f'Empresa "{razao_social}" cadastrada com sucesso!')
+                
+                return redirect('linhas:cadastro_empresa')
+                
+        except Exception as e:
+            messages.error(request, f'Erro ao cadastrar empresa: {str(e)}')
+    
+    return render(request, 'linhas/cadastro_empresa.html')
+
+
+@login_required
+def listar_empresas(request):
+    """
+    View para listar empresas cadastradas
+    """
+    from django.core.paginator import Paginator
+    from django.db.models import Q
+    
+    # Buscar todas as empresas
+    empresas_qs = Cliente.objects.filter(tipo_pessoa='PJ').order_by('razao_social')
+    
+    # Filtros opcionais
+    search = request.GET.get('search', '').strip()
+    if search:
+        empresas_qs = empresas_qs.filter(
+            Q(razao_social__icontains=search) |
+            Q(fantasia__icontains=search) |
+            Q(cnpj__icontains=search) |
+            Q(nome_dono__icontains=search) |
+            Q(email__icontains=search)
+        )
+    
+    # Paginação
+    paginator = Paginator(empresas_qs, 10)  # 10 empresas por página
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'page_obj': page_obj,
+        'search': search,
+        'total_empresas': empresas_qs.count(),
+    }
+    
+    return render(request, 'linhas/listar_empresas.html', context)
+
+
+def processar_arquivo_linhas(arquivo, cliente, usuario):
+    """
+    Processa arquivo Excel/CSV com linhas e cria registros no sistema
+    """
+    import csv
+    import io
+    from decimal import Decimal, InvalidOperation
+    
+    linhas_criadas = 0
+    
+    try:
+        # Determinar tipo de arquivo e processar
+        if arquivo.name.endswith('.csv'):
+            # Processar CSV
+            arquivo_texto = io.StringIO(arquivo.read().decode('utf-8'))
+            csv_reader = csv.DictReader(arquivo_texto)
+            
+            for row in csv_reader:
+                linha_criada = criar_linha_do_arquivo(row, cliente, usuario)
+                if linha_criada:
+                    linhas_criadas += 1
+                    
+        elif arquivo.name.endswith('.xlsx') or arquivo.name.endswith('.xls'):
+            # Processar Excel
+            try:
+                import openpyxl
+                from openpyxl import load_workbook
+                
+                # Carregar workbook do arquivo
+                workbook = load_workbook(arquivo)
+                worksheet = workbook.active
+                
+                # Assumir que a primeira linha contém os cabeçalhos
+                headers = []
+                for cell in worksheet[1]:
+                    headers.append(cell.value.lower() if cell.value else '')
+                
+                # Processar linhas de dados
+                for row in worksheet.iter_rows(min_row=2, values_only=True):
+                    if any(row):  # Pular linhas vazias
+                        row_dict = {}
+                        for i, value in enumerate(row):
+                            if i < len(headers) and headers[i]:
+                                row_dict[headers[i]] = value
+                        
+                        linha_criada = criar_linha_do_arquivo(row_dict, cliente, usuario)
+                        if linha_criada:
+                            linhas_criadas += 1
+                            
+            except ImportError:
+                raise Exception("Biblioteca openpyxl não está instalada. Instale com: pip install openpyxl")
+                
+    except Exception as e:
+        raise Exception(f"Erro ao processar arquivo: {str(e)}")
+    
+    return linhas_criadas
+
+
+def criar_linha_do_arquivo(row_dict, cliente, usuario):
+    """
+    Cria uma linha no sistema baseado nos dados do arquivo
+    """
+    try:
+        # Mapear campos do arquivo para campos do modelo
+        numero = str(row_dict.get('numero') or row_dict.get('number') or row_dict.get('telefone') or '').strip()
+        iccid = str(row_dict.get('iccid') or row_dict.get('chip') or '').strip()
+        tipo_plano = str(row_dict.get('tipo_plano') or row_dict.get('plano') or row_dict.get('tipo') or '').strip()
+        valor_plano_str = str(row_dict.get('valor_plano') or row_dict.get('valor') or row_dict.get('price') or '0').strip()
+        rp = str(row_dict.get('rp') or row_dict.get('codigo_rp') or '').strip()
+        acao = str(row_dict.get('acao') or row_dict.get('action') or 'ESTOQUE').strip().upper()
+        
+        # Validações básicas
+        if not numero or len(numero) < 10:
+            return False
+            
+        # Verificar se a linha já existe
+        if Linha.objects.filter(numero=numero).exists():
+            return False
+        
+        # Converter valor do plano
+        try:
+            valor_plano_str = valor_plano_str.replace(',', '.').replace('R$', '').strip()
+            valor_plano = Decimal(valor_plano_str) if valor_plano_str else Decimal('0')
+        except (InvalidOperation, ValueError):
+            valor_plano = Decimal('0')
+        
+        # Mapear tipo de plano se necessário
+        if tipo_plano and tipo_plano not in [choice[0] for choice in Linha.TIPO_CHOICES]:
+            # Tentar encontrar correspondência parcial
+            for choice_key, choice_label in Linha.TIPO_CHOICES:
+                if any(word in tipo_plano.upper() for word in choice_key.split('_')):
+                    tipo_plano = choice_key
+                    break
+            else:
+                # Se não encontrou, usar o primeiro disponível
+                tipo_plano = Linha.TIPO_CHOICES[0][0]
+        
+        # Validar ação
+        if acao not in [choice[0] for choice in Linha.ACAO_CHOICES]:
+            acao = 'ESTOQUE'
+        
+        # Criar linha
+        linha = Linha.objects.create(
+            numero=numero,
+            iccid=iccid,
+            cnpj=cliente.cnpj,
+            empresa=cliente.empresa,
+            rp=rp,
+            tipo_plano=tipo_plano or Linha.TIPO_CHOICES[0][0],
+            valor_plano=valor_plano,
+            taxa_manutencao=Decimal('0'),
+            acao=acao,
+            ativa=True,
+            observacoes=f'Importado automaticamente do arquivo via cadastro de empresa',
+            criado_por=usuario,
+            cliente=cliente
+        )
+        
+        return True
+        
+    except Exception as e:
+        # Log do erro para debug, mas não interrompe o processo
+        print(f"Erro ao criar linha: {e}")
+        return False
+
+
+@login_required
+def preview_arquivo_linhas(request):
+    """
+    AJAX view para fazer preview do arquivo de linhas antes do upload
+    """
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Método não permitido'})
+    
+    arquivo = request.FILES.get('arquivo')
+    if not arquivo:
+        return JsonResponse({'success': False, 'error': 'Nenhum arquivo enviado'})
+    
+    try:
+        linhas_preview = []
+        
+        if arquivo.name.endswith('.csv'):
+            # Processar CSV
+            import csv
+            import io
+            
+            arquivo_texto = io.StringIO(arquivo.read().decode('utf-8'))
+            csv_reader = csv.DictReader(arquivo_texto)
+            
+            for i, row in enumerate(csv_reader):
+                if i >= 10:  # Limitar preview a 10 linhas
+                    break
+                    
+                linhas_preview.append({
+                    'numero': row.get('numero') or row.get('number') or '',
+                    'iccid': row.get('iccid') or row.get('chip') or '',
+                    'tipo_plano': row.get('tipo_plano') or row.get('plano') or '',
+                    'valor_plano': row.get('valor_plano') or row.get('valor') or '',
+                    'rp': row.get('rp') or '',
+                    'acao': row.get('acao') or row.get('action') or 'ESTOQUE'
+                })
+                
+        elif arquivo.name.endswith('.xlsx') or arquivo.name.endswith('.xls'):
+            # Processar Excel
+            try:
+                import openpyxl
+                from openpyxl import load_workbook
+                
+                workbook = load_workbook(arquivo)
+                worksheet = workbook.active
+                
+                # Obter cabeçalhos
+                headers = []
+                for cell in worksheet[1]:
+                    headers.append(str(cell.value).lower() if cell.value else '')
+                
+                # Processar linhas (máximo 10 para preview)
+                for i, row in enumerate(worksheet.iter_rows(min_row=2, values_only=True)):
+                    if i >= 10 or not any(row):
+                        break
+                        
+                    row_dict = {}
+                    for j, value in enumerate(row):
+                        if j < len(headers) and headers[j]:
+                            row_dict[headers[j]] = str(value) if value is not None else ''
+                    
+                    linhas_preview.append({
+                        'numero': row_dict.get('numero') or row_dict.get('number') or '',
+                        'iccid': row_dict.get('iccid') or row_dict.get('chip') or '',
+                        'tipo_plano': row_dict.get('tipo_plano') or row_dict.get('plano') or '',
+                        'valor_plano': row_dict.get('valor_plano') or row_dict.get('valor') or '',
+                        'rp': row_dict.get('rp') or '',
+                        'acao': row_dict.get('acao') or row_dict.get('action') or 'ESTOQUE'
+                    })
+                    
+            except ImportError:
+                return JsonResponse({'success': False, 'error': 'Biblioteca openpyxl não está instalada. Use arquivos CSV.'})
+        else:
+            return JsonResponse({'success': False, 'error': 'Formato de arquivo não suportado. Use .csv, .xlsx ou .xls'})
+        
+        return JsonResponse({
+            'success': True,
+            'linhas': linhas_preview,
+            'total_preview': len(linhas_preview),
+            'arquivo_nome': arquivo.name
+        })
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': f'Erro ao processar arquivo: {str(e)}'})
+
+
+@login_required  
+def processar_lista_estoque(request):
+    """
+    View específica para processar o arquivo 'Lista Estoque.xlsx'
+    """
+    if request.method == 'POST':
+        arquivo = request.FILES.get('lista_estoque')
+        empresa_id = request.POST.get('empresa_id')
+        
+        if not arquivo:
+            messages.error(request, 'Nenhum arquivo selecionado.')
+            return redirect('linhas:listar_empresas')
+            
+        if not empresa_id:
+            messages.error(request, 'Empresa não especificada.')
+            return redirect('linhas:listar_empresas')
+            
+        try:
+            cliente = Cliente.objects.get(id=empresa_id)
+            linhas_importadas = processar_arquivo_linhas(arquivo, cliente, request.user)
+            
+            if linhas_importadas > 0:
+                messages.success(request, f'{linhas_importadas} linha{"s" if linhas_importadas > 1 else ""} importada{"s" if linhas_importadas > 1 else ""} com sucesso para {cliente.empresa}!')
+            else:
+                messages.warning(request, 'Nenhuma linha válida foi encontrada no arquivo.')
+                
+        except Cliente.DoesNotExist:
+            messages.error(request, 'Empresa não encontrada.')
+        except Exception as e:
+            messages.error(request, f'Erro ao processar arquivo: {str(e)}')
+            
+    # Verificar se veio das configurações
+    if request.META.get('HTTP_REFERER', '').endswith('configuracoes/'):
+        return redirect('linhas:configuracoes')
+    return redirect('linhas:listar_empresas')
+

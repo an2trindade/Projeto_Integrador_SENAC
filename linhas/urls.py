@@ -40,4 +40,8 @@ urlpatterns = [
     path("configuracoes/excluir-usuario/<int:user_id>/", views.excluir_usuario, name="excluir_usuario"),
     path("configuracoes/alterar-senhas/", views.alterar_senhas, name="alterar_senhas"),
     path("configuracoes/alterar-senha-usuario/", views.alterar_senha_usuario, name="alterar_senha_usuario"),
+    path("cadastro-empresa/", views.cadastro_empresa, name="cadastro_empresa"),
+    path("listar-empresas/", views.listar_empresas, name="listar_empresas"),
+    path("preview-arquivo-linhas/", views.preview_arquivo_linhas, name="preview_arquivo_linhas"),
+    path("processar-lista-estoque/", views.processar_lista_estoque, name="processar_lista_estoque"),
 ]
