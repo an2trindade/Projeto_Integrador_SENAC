@@ -11,6 +11,19 @@
         border-radius: 15px;
         margin-bottom: 30px;
         box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+    .tech-header::after {
+        content: '';
+        position: absolute;
+        right: -60px;
+        top: -60px;
+        width: 180px;
+        height: 180px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 60%);
+        filter: blur(8px);
     }
     
     .tech-header h1 {
@@ -114,65 +127,127 @@
         backdrop-filter: blur(10px);
         border: 1px solid rgba(255,255,255,0.2);
         border-radius: 15px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        box-shadow: 0 8px 32px rgba(31,38,135,0.37);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
     }
-    
-    .filter-card .card-title {
+    .filter-card::before { display: none; }
+    .filter-card::after { display: none; }
+    /* Garantir que nenhum fundo branco do Bootstrap apareça */
+    .filter-card,
+    .filter-card .card,
+    .filter-card .card-header,
+    .filter-card .card-body {
+        background-color: transparent !important;
+    }
+    .filter-card .card-header,
+    .filter-card .card-body {
+        background: transparent !important;
+    }
+    .filter-card .card-header {
+        border-bottom: 1px solid rgba(255,255,255,0.15);
+        position: relative;
+    }
+    .filter-card .card-header .h5 {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
         color: rgba(255,255,255,0.95);
-        font-weight: 600;
+    }
+    .filter-card .card-header .h5 i {
+        color: rgba(255,255,255,0.9);
     }
     
     .filter-card .form-label {
         color: rgba(255,255,255,0.9);
         font-weight: 600;
     }
-    
     .filter-card .form-control,
     .filter-card .form-select {
-        background: rgba(255,255,255,0.1);
-        border: 1px solid rgba(255,255,255,0.2);
-        color: rgba(255,255,255,0.95);
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(102,126,234,0.35);
+        color: #fff;
+        box-shadow: none;
     }
-    
     .filter-card .form-control::placeholder {
-        color: rgba(255,255,255,0.5);
+        color: rgba(255,255,255,0.75);
     }
-    
+    .filter-card .form-select option {
+        color: #222;
+        background: #fff;
+    }
+    .filter-card .input-group-text {
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(102,126,234,0.35);
+        color: #fff;
+        backdrop-filter: blur(6px);
+        box-shadow: none;
+    }
     .filter-card .form-control:focus,
     .filter-card .form-select:focus {
-        background: rgba(255,255,255,0.15);
-        border-color: rgba(102, 126, 234, 0.5);
-        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-        color: rgba(255,255,255,0.95);
+        background: rgba(255,255,255,0.1);
+        border-color: rgba(118,75,162,0.45);
+        box-shadow: 0 0 0 0.15rem rgba(102,126,234,0.25);
+        outline: none;
     }
-    
     .filter-card .btn-primary {
         background: linear-gradient(45deg, #667eea, #764ba2);
         border: none;
         box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
         transition: all 0.3s ease;
+        border-radius: 10px;
     }
-    
     .filter-card .btn-primary:hover {
         transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        box-shadow: 0 8px 18px rgba(102, 126, 234, 0.5);
     }
     
     /* Cards de Pedidos */
     .request-card {
-        background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255,255,255,0.2);
+        background: transparent;
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255,255,255,0.16);
         border-left: 4px solid;
         transition: all 0.3s ease;
-        border-radius: 10px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        border-radius: 18px;
+        box-shadow: 0 10px 28px rgba(0,0,0,0.18);
+        position: relative;
+        overflow: hidden;
+    }
+    .request-card::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        padding: 1px;
+        background: linear-gradient(135deg, rgba(102,126,234,0.5), rgba(118,75,162,0.5));
+        -webkit-mask: 
+            linear-gradient(#000 0 0) content-box, 
+            linear-gradient(#000 0 0);
+        mask: 
+            linear-gradient(#000 0 0) content-box, 
+            linear-gradient(#000 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        pointer-events: none;
+    }
+    .request-card::after {
+        content: '';
+        position: absolute;
+        top: -40px;
+        left: -40px;
+        width: 140px;
+        height: 140px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(255,255,255,0.14), rgba(255,255,255,0));
+        filter: blur(8px);
+        pointer-events: none;
     }
     
     .request-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-        border-color: rgba(102, 126, 234, 0.5);
+        transform: translateY(-2px);
+        box-shadow: 0 12px 30px rgba(0,0,0,0.25);
     }
     
     .request-card .card-body {
@@ -189,19 +264,31 @@
     }
     
     .request-card.nova-linha {
-        border-left-color: #28a745;
+        border-left-color: transparent;
+    }
+    .request-card.nova-linha::before {
+        background: linear-gradient(135deg, rgba(17,153,142,0.6), rgba(56,239,125,0.6));
     }
     
     .request-card.fidelidade {
-        border-left-color: #007bff;
+        border-left-color: transparent;
+    }
+    .request-card.fidelidade::before {
+        background: linear-gradient(135deg, rgba(102,126,234,0.6), rgba(118,75,162,0.6));
     }
     
     .badge-nova-linha {
-        background-color: #28a745;
+        background: linear-gradient(135deg, #11998e, #38ef7d);
+        color: #fff;
+        border: 1px solid rgba(255,255,255,0.2);
+        box-shadow: 0 4px 12px rgba(17,153,142,0.35);
     }
     
     .badge-fidelidade {
-        background-color: #007bff;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: #fff;
+        border: 1px solid rgba(255,255,255,0.2);
+        box-shadow: 0 4px 12px rgba(102,126,234,0.35);
     }
     
     .obs-preview {
@@ -211,13 +298,36 @@
     }
     
     .empty-state {
-        background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+        background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%) !important;
         backdrop-filter: blur(10px);
         border: 1px solid rgba(255,255,255,0.2);
         border-radius: 15px;
         text-align: center;
         padding: 60px 20px;
-        color: rgba(255,255,255,0.8);
+        color: rgba(255,255,255,0.92);
+        box-shadow: 0 8px 32px rgba(31,38,135,0.37);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    /* Garantir que o container do empty-state não tenha fundo */
+    .empty-state-card,
+    .empty-state-card .card,
+    .empty-state-card .card-body {
+        background: transparent !important;
+        box-shadow: none !important;
+    }
+    .empty-state::before { display: none; }
+    .empty-state::after { display: none; }
+    .empty-state h4 {
+        color: #fff;
+        letter-spacing: 0.3px;
+    }
+    .empty-state p {
+        color: rgba(255,255,255,0.85);
+    }
+    .empty-state * {
+        background-color: transparent !important;
     }
     
     .empty-state i {
@@ -238,11 +348,19 @@
     
     .empty-state .btn {
         transition: all 0.3s ease;
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.15);
     }
-    
+    .empty-state .btn.btn-success {
+        background: linear-gradient(135deg, #11998e, #38ef7d);
+    }
+    .empty-state .btn.btn-info {
+        background: linear-gradient(135deg, #06beb6, #48b1bf);
+    }
     .empty-state .btn:hover {
         transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
     }
 </style>
 
@@ -395,7 +513,10 @@
                             </div>
                             
                             <!-- Botão para ver detalhes -->
-                            <button class="btn btn-sm btn-outline-primary" onclick="verDetalhes({{ request.id }}, '{{ request.tipo }}', {{ request|safe }})">
+                            <button class="btn btn-sm btn-outline-primary btn-detalhes" 
+                                    data-id="{{ request.id }}" 
+                                    data-tipo="{{ request.tipo }}" 
+                                    data-request='{{ request|escapejs }}'>
                                 <i class="fas fa-eye me-1"></i>Detalhes
                             </button>
                         </div>
@@ -405,7 +526,7 @@
         </div>
         {% empty %}
         <div class="col-12">
-            <div class="card">
+            <div class="card empty-state-card">
                 <div class="card-body empty-state">
                     <i class="fas fa-search fa-3x"></i>
                     <h4>Nenhum pedido encontrado</h4>
@@ -553,6 +674,23 @@
             `;
         }, 500);
     }
+
+    // Listener para botões de detalhes sem inline JS
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.btn-detalhes').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = this.dataset.id;
+                const tipo = this.dataset.tipo;
+                let requestData = {};
+                try {
+                    requestData = JSON.parse(this.dataset.request);
+                } catch (e) {
+                    // mantém objeto vazio se não for JSON válido
+                }
+                verDetalhes(id, tipo, requestData);
+            });
+        });
+    });
 
     // Auto-submit do formulário quando alterar o tipo
     document.getElementById('tipo').addEventListener('change', function() {
