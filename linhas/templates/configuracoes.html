@@ -466,6 +466,140 @@
             margin-right: 0;
             margin-bottom: 1rem;
         }
+        
+        .quick-access-cards {
+            padding: 1rem;
+            margin: 1rem;
+        }
+    }
+    
+    /* Cards de Acesso Rápido */
+    .quick-access-cards {
+        background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        padding: 2rem;
+        margin: 2rem;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    }
+    
+    .quick-access-title {
+        color: #ffffff;
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .quick-access-title i {
+        color: #00bfae;
+    }
+    
+    .menu-card {
+        background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 15px;
+        padding: 25px 20px;
+        text-decoration: none;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        height: 140px;
+        cursor: pointer;
+    }
+    
+    .menu-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+        transition: left 0.5s ease;
+    }
+    
+    .menu-card:hover::before {
+        left: 100%;
+    }
+    
+    .menu-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 45px rgba(102, 126, 234, 0.5);
+        border-color: rgba(102, 126, 234, 0.6);
+    }
+    
+    .menu-card-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        margin-bottom: 12px;
+        transition: all 0.3s ease;
+    }
+    
+    .menu-card:hover .menu-card-icon {
+        transform: scale(1.15) rotate(5deg);
+    }
+    
+    .menu-card-title {
+        color: #ffffff;
+        font-size: 1rem;
+        font-weight: 600;
+        margin: 0;
+        text-align: center;
+        transition: color 0.3s ease;
+    }
+    
+    .menu-card:hover .menu-card-title {
+        color: #00bfae;
+    }
+    
+    .menu-card-description {
+        color: rgba(255,255,255,0.6);
+        font-size: 0.75rem;
+        text-align: center;
+        margin-top: 5px;
+    }
+    
+    /* Cores específicas por card */
+    .menu-card.linhas .menu-card-icon {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: #ffffff;
+    }
+    
+    .menu-card.protocolo .menu-card-icon {
+        background: linear-gradient(135deg, #f093fb, #f5576c);
+        color: #ffffff;
+    }
+    
+    .menu-card.relatorios .menu-card-icon {
+        background: linear-gradient(135deg, #4facfe, #00f2fe);
+        color: #ffffff;
+    }
+    
+    .menu-card.configuracoes .menu-card-icon {
+        background: linear-gradient(135deg, #43e97b, #38f9d7);
+        color: #ffffff;
+    }
+    
+    .menu-card.fidelidade .menu-card-icon {
+        background: linear-gradient(135deg, #fa709a, #fee140);
+        color: #ffffff;
+    }
+    
+    .menu-card.nova-linha .menu-card-icon {
+        background: linear-gradient(135deg, #11998e, #38ef7d);
+        color: #ffffff;
     }
 </style>
 {% endblock %}
@@ -480,33 +614,687 @@
     <p class="config-subtitle">Gerencie configurações do sistema, usuários e associados</p>
 </div>
 
+<!-- Menu de Navegação Rápida -->
+<div class="container-fluid px-4 py-4" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
+    <h4 class="mb-4" style="color: #2d3748; font-weight: 600;">
+        <i class="fas fa-th-large me-2"></i>Áreas de Configuração
+    </h4>
+    <div class="row g-3">
+        <div class="col-md-3">
+            <div class="text-decoration-none" onclick="toggleUsuariosPanel()" style="cursor: pointer;">
+                <div class="card h-100 border-0 shadow-sm" style="transition: all 0.3s ease; cursor: pointer; border: 2px solid #667eea !important;">
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3" style="width: 70px; height: 70px; margin: 0 auto; border-radius: 15px; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
+                            <i class="fas fa-users fa-2x text-white"></i>
+                        </div>
+                        <h5 class="card-title mb-2" style="color: #2d3748; font-weight: 600;">Usuários</h5>
+                        <p class="card-text text-muted small">Gerenciar usuários e controle de acesso</p>
+                        <span class="badge bg-success">Ativo</span>
+                        <div class="mt-2">
+                            <small class="text-primary"><i class="fas fa-hand-pointer me-1"></i>Clique para abrir</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <a href="#linhas-content" class="text-decoration-none" onclick="document.getElementById('linhas-content').scrollIntoView({behavior: 'smooth'}); return false;">
+                <div class="card h-100 border-0 shadow-sm" style="transition: all 0.3s ease; cursor: pointer;">
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3" style="width: 70px; height: 70px; margin: 0 auto; border-radius: 15px; background: linear-gradient(135deg, #11998e, #38ef7d); display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-phone fa-2x text-white"></i>
+                        </div>
+                        <h5 class="card-title mb-2" style="color: #2d3748; font-weight: 600;">Linhas</h5>
+                        <p class="card-text text-muted small">Configurações de linhas telefônicas</p>
+                        <span class="badge bg-warning">Em Desenvolvimento</span>
+                    </div>
+                </div>
+            </a>
+        </div>
+        
+        <div class="col-md-3">
+            <a href="#protocolos-section" class="text-decoration-none" onclick="document.getElementById('protocolos-section').scrollIntoView({behavior: 'smooth'}); return false;">
+                <div class="card h-100 border-0 shadow-sm" style="transition: all 0.3s ease; cursor: pointer;">
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3" style="width: 70px; height: 70px; margin: 0 auto; border-radius: 15px; background: linear-gradient(135deg, #f093fb, #f5576c); display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-clipboard-list fa-2x text-white"></i>
+                        </div>
+                        <h5 class="card-title mb-2" style="color: #2d3748; font-weight: 600;">Protocolos</h5>
+                        <p class="card-text text-muted small">Gerenciamento de protocolos</p>
+                        <span class="badge bg-warning">Em Desenvolvimento</span>
+                    </div>
+                </div>
+            </a>
+        </div>
+        
+        <div class="col-md-3">
+            <a href="#associados-section" class="text-decoration-none" onclick="document.getElementById('associados-section').scrollIntoView({behavior: 'smooth'}); return false;">
+                <div class="card h-100 border-0 shadow-sm" style="transition: all 0.3s ease; cursor: pointer;">
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3" style="width: 70px; height: 70px; margin: 0 auto; border-radius: 15px; background: linear-gradient(135deg, #4facfe, #00f2fe); display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-handshake fa-2x text-white"></i>
+                        </div>
+                        <h5 class="card-title mb-2" style="color: #2d3748; font-weight: 600;">Associados</h5>
+                        <p class="card-text text-muted small">Gerenciar associados e parcerias</p>
+                        <span class="badge bg-warning">Em Desenvolvimento</span>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+    }
+    
+    .usuarios-panel {
+        display: none;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        padding: 2rem;
+        margin: 2rem 0;
+        animation: slideDown 0.3s ease-out;
+    }
+    
+    .usuarios-panel.active {
+        display: block;
+    }
+    
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .management-nav {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+    
+    .management-nav .nav-btn {
+        flex: 1;
+        min-width: 200px;
+        padding: 1rem;
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        background: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: center;
+    }
+    
+    .management-nav .nav-btn:hover {
+        border-color: #667eea;
+        background: #f8f9ff;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+    }
+    
+    .management-nav .nav-btn.active {
+        border-color: #667eea;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+    }
+    
+    .management-nav .nav-btn i {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .management-content {
+        display: none;
+        animation: fadeIn 0.3s ease-in;
+    }
+    
+    .management-content.active {
+        display: block;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+</style>
+
+<script>
+function toggleUsuariosPanel() {
+    const panel = document.getElementById('usuarios-panel');
+    panel.classList.toggle('active');
+    
+    if (panel.classList.contains('active')) {
+        setTimeout(() => {
+            panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+    }
+}
+
+function showManagementSection(sectionId) {
+    // Esconde todas as seções
+    document.querySelectorAll('.management-content').forEach(el => {
+        el.classList.remove('active');
+    });
+    
+    // Remove active de todos os botões
+    document.querySelectorAll('.management-nav .nav-btn').forEach(el => {
+        el.classList.remove('active');
+    });
+    
+    // Mostra a seção selecionada
+    document.getElementById(sectionId).classList.add('active');
+    
+    // Marca o botão como ativo
+    event.currentTarget.classList.add('active');
+}
+</script>
+
+<!-- Painel de Gerenciamento de Usuários -->
+<div id="usuarios-panel" class="usuarios-panel container-fluid px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 style="color: #2d3748; font-weight: 700;">
+            <i class="fas fa-users me-3" style="color: #667eea;"></i>
+            Gerenciamento de Usuários
+        </h2>
+        <button onclick="toggleUsuariosPanel()" class="btn btn-outline-secondary">
+            <i class="fas fa-times me-2"></i>Fechar
+        </button>
+    </div>
+    
+    <p class="text-muted mb-4">
+        <i class="fas fa-info-circle me-2"></i>
+        Gerencie usuários do sistema, controle de acesso e segurança.
+    </p>
+    
+    <!-- Menu de Navegação -->
+    <div class="management-nav">
+        <div class="nav-btn active" onclick="showManagementSection('listar-usuarios-section')">
+            <i class="fas fa-list text-primary"></i>
+            <h6 class="mb-0 mt-2">Listar Usuários</h6>
+            <small class="text-muted">Ver todos os usuários</small>
+        </div>
+        
+        <div class="nav-btn" onclick="showManagementSection('criar-usuario-section')">
+            <i class="fas fa-user-plus text-success"></i>
+            <h6 class="mb-0 mt-2">Criar Usuário</h6>
+            <small class="text-muted">Adicionar novo usuário</small>
+        </div>
+        
+        <div class="nav-btn" onclick="showManagementSection('bloqueados-section')">
+            <i class="fas fa-unlock-alt text-warning"></i>
+            <h6 class="mb-0 mt-2">Usuários Bloqueados</h6>
+            <small class="text-muted">Gerenciar bloqueios</small>
+        </div>
+        
+        <div class="nav-btn" onclick="showManagementSection('senhas-section')">
+            <i class="fas fa-key text-danger"></i>
+            <h6 class="mb-0 mt-2">Alterar Senhas</h6>
+            <small class="text-muted">Redefinir senhas</small>
+        </div>
+    </div>
+    
+    <!-- Seção: Listar Usuários -->
+    <div id="listar-usuarios-section" class="management-content active">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white;">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>Lista de Usuários do Sistema
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h6 class="text-muted mb-0">Usuários cadastrados no sistema</h6>
+                    </div>
+                    <a href="{% url 'linhas:listar_usuarios_empresa' %}" class="btn btn-primary">
+                        <i class="fas fa-external-link-alt me-2"></i>Ver Lista Completa
+                    </a>
+                </div>
+                
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Informação:</strong> Clique em "Ver Lista Completa" para acessar a página com todos os usuários cadastrados, onde você pode visualizar detalhes, editar e gerenciar permissões.
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-md-4">
+                        <div class="card bg-primary bg-opacity-10">
+                            <div class="card-body text-center">
+                                <i class="fas fa-users fa-3x text-primary mb-3"></i>
+                                <h6 class="text-muted">Total de Usuários</h6>
+                                <h3 class="text-primary">{{ total_usuarios|default:"N/A" }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-success bg-opacity-10">
+                            <div class="card-body text-center">
+                                <i class="fas fa-user-check fa-3x text-success mb-3"></i>
+                                <h6 class="text-muted">Usuários Ativos</h6>
+                                <h3 class="text-success">{{ usuarios_ativos|default:"N/A" }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-warning bg-opacity-10">
+                            <div class="card-body text-center">
+                                <i class="fas fa-user-shield fa-3x text-warning mb-3"></i>
+                                <h6 class="text-muted">Administradores</h6>
+                                <h3 class="text-warning">{{ administradores|default:"N/A" }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Seção: Criar Usuário -->
+    <div id="criar-usuario-section" class="management-content">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header" style="background: linear-gradient(135deg, #38ef7d, #11998e); color: white;">
+                <h5 class="mb-0">
+                    <i class="fas fa-user-plus me-2"></i>Criar Novo Usuário
+                </h5>
+            </div>
+            <div class="card-body">
+                <form id="createUserForm" method="post" action="{% url 'linhas:criar_usuario_empresa' %}" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    
+                    <!-- Área de Mensagens -->
+                    <div id="messageArea" class="alert alert-dismissible fade show d-none" role="alert">
+                        <span id="messageText"></span>
+                        <button type="button" class="btn-close" onclick="hideMessage()"></button>
+                    </div>
+                    
+                    <!-- Dados da Empresa -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2 mb-3">
+                                <i class="fas fa-building"></i> Dados da Empresa
+                            </h6>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="cnpj" class="form-label">
+                                <i class="fas fa-id-card"></i> CNPJ *
+                            </label>
+                            <input type="text" class="form-control" id="cnpj" name="cnpj" 
+                                   placeholder="00.000.000/0000-00" maxlength="18" required>
+                            <div class="invalid-feedback">
+                                Por favor, insira um CNPJ válido.
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="razaoSocial" class="form-label">
+                                <i class="fas fa-building"></i> Razão Social *
+                            </label>
+                            <input type="text" class="form-control" id="razaoSocial" name="razao_social" 
+                                   placeholder="Nome da empresa" required>
+                            <div class="invalid-feedback">
+                                Por favor, insira a razão social.
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="nomeFantasia" class="form-label">
+                                <i class="fas fa-store"></i> Nome Fantasia
+                            </label>
+                            <input type="text" class="form-control" id="nomeFantasia" name="nome_fantasia" 
+                                   placeholder="Nome fantasia (opcional)">
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="endereco" class="form-label">
+                                <i class="fas fa-map-marker-alt"></i> Endereço *
+                            </label>
+                            <input type="text" class="form-control" id="endereco" name="endereco" 
+                                   placeholder="Endereço completo" required>
+                            <div class="invalid-feedback">
+                                Por favor, insira o endereço.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dados de Contato -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2 mb-3">
+                                <i class="fas fa-phone"></i> Dados de Contato
+                            </h6>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="email" class="form-label">
+                                <i class="fas fa-envelope"></i> Email *
+                            </label>
+                            <input type="email" class="form-control" id="email" name="email" 
+                                   placeholder="email@empresa.com" required>
+                            <div class="invalid-feedback">
+                                Por favor, insira um email válido.
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="telefone" class="form-label">
+                                <i class="fas fa-phone"></i> Contato Principal *
+                            </label>
+                            <input type="text" class="form-control" id="telefone" name="telefone" 
+                                   placeholder="(00) 00000-0000" maxlength="15" required>
+                            <div class="invalid-feedback">
+                                Por favor, insira um telefone válido.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dados do Agente -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2 mb-3">
+                                <i class="fas fa-user"></i> Dados do Agente
+                            </h6>
+                        </div>
+                        
+                        <div class="col-md-12 mb-3">
+                            <label for="nomeCompletoAgente" class="form-label">
+                                <i class="fas fa-user"></i> Nome Completo do Agente *
+                            </label>
+                            <input type="text" class="form-control" id="nomeCompletoAgente" name="nome_completo_agente" 
+                                   placeholder="Nome completo do responsável" required>
+                            <div class="invalid-feedback">
+                                Por favor, insira o nome completo do agente.
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="cpfResponsavel" class="form-label">
+                                <i class="fas fa-id-badge"></i> CPF do Agente *
+                            </label>
+                            <input type="text" class="form-control" id="cpfResponsavel" name="cpf_responsavel" 
+                                   placeholder="000.000.000-00" maxlength="14" required>
+                            <div class="invalid-feedback">
+                                Por favor, insira um CPF válido.
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="dataNascimento" class="form-label">
+                                <i class="fas fa-calendar"></i> Data de Nascimento *
+                            </label>
+                            <input type="date" class="form-control" id="dataNascimento" name="data_nascimento" required>
+                            <div class="invalid-feedback">
+                                Por favor, selecione a data de nascimento.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Configurações de Acesso -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2 mb-3">
+                                <i class="fas fa-key"></i> Configurações de Acesso
+                            </h6>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="username" class="form-label">
+                                <i class="fas fa-user"></i> Nome de Usuário *
+                            </label>
+                            <input type="text" class="form-control" id="username" name="username" 
+                                   placeholder="usuario.login" required>
+                            <div class="invalid-feedback">
+                                Por favor, insira um nome de usuário.
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="senha" class="form-label">
+                                <i class="fas fa-lock"></i> Senha Inicial *
+                            </label>
+                            <input type="password" class="form-control" id="senha" name="senha" 
+                                   placeholder="Senha temporária" required>
+                            <div class="invalid-feedback">
+                                Por favor, defina uma senha inicial.
+                            </div>
+                        </div>
+                        
+                        <div class="col-12 mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="isAdministrador" name="is_administrador">
+                                <label class="form-check-label" for="isAdministrador">
+                                    <i class="fas fa-shield-alt text-warning"></i> 
+                                    <strong>Usuário Administrador</strong>
+                                    <small class="d-block" style="color: #000000 !important; font-weight: 600;">Concede acesso total ao sistema</small>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botões de Ação -->
+                    <div class="row">
+                        <div class="col-12 d-flex gap-2 justify-content-end">
+                            <button type="button" class="btn btn-secondary" onclick="document.getElementById('createUserForm').reset()">
+                                <i class="fas fa-times"></i> Limpar
+                            </button>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save"></i> Criar Usuário
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Seção: Usuários Bloqueados -->
+    <div id="bloqueados-section" class="management-content">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header" style="background: linear-gradient(135deg, #f5af19, #f12711); color: white;">
+                <h5 class="mb-0">
+                    <i class="fas fa-unlock-alt me-2"></i>Controle de Usuários Bloqueados
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-3">
+                    <i class="fas fa-info-circle me-2 text-info"></i>
+                    <strong>Sistema de Proteção:</strong> Usuários são bloqueados automaticamente após <span class="badge bg-danger">3 tentativas incorretas</span> de login. 
+                    Use esta ferramenta para gerenciar e desbloquear contas.
+                </p>
+                
+                {% if bloqueados %}
+                    <div class="alert alert-warning border-warning mb-4" role="alert">
+                        <div class="d-flex align-items-start">
+                            <i class="fas fa-exclamation-triangle me-3" style="font-size: 2rem; color: #856404;"></i>
+                            <div class="flex-grow-1">
+                                <h5 class="alert-heading mb-2">
+                                    <i class="fas fa-lock me-2"></i>Usuários Bloqueados Detectados
+                                </h5>
+                                <p class="mb-3">Os seguintes usuários estão atualmente bloqueados por excederem o limite de tentativas de login:</p>
+                                
+                                <!-- Lista de Usuários Bloqueados -->
+                                <div class="list-group">
+                                    {% for u in bloqueados %}
+                                    <div class="list-group-item list-group-item-warning d-flex justify-content-between align-items-center">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center" 
+                                                 style="width: 40px; height: 40px; flex-shrink: 0;">
+                                                <i class="fas fa-user-lock"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-0 fw-bold text-dark">{{ u }}</h6>
+                                                <small class="text-muted">
+                                                    <i class="fas fa-clock me-1"></i>Bloqueado por excesso de tentativas
+                                                </small>
+                                            </div>
+                                        </div>
+                                        <form method="post" action="{% url 'linhas:desbloquear_usuario' %}" style="margin: 0;">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="username" value="{{ u }}">
+                                            <button type="submit" class="btn btn-sm btn-success" title="Desbloquear {{ u }}">
+                                                <i class="fas fa-unlock me-1"></i>Desbloquear
+                                            </button>
+                                        </form>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                
+                                <div class="mt-3 p-3 bg-light rounded">
+                                    <small class="text-muted">
+                                        <i class="fas fa-lightbulb me-1 text-warning"></i>
+                                        <strong>Dica:</strong> Após desbloquear, oriente o usuário a usar a senha correta. 
+                                        Três novas tentativas incorretas resultarão em novo bloqueio automático.
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="alert alert-success border-success mb-4" role="alert">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-check-circle me-3" style="font-size: 2rem; color: #155724;"></i>
+                            <div>
+                                <h5 class="alert-heading mb-2">
+                                    <i class="fas fa-shield-check me-2"></i>Sistema Seguro
+                                </h5>
+                                <p class="mb-0">
+                                    Nenhum usuário está bloqueado no momento. Todos os acessos estão normalizados e funcionando corretamente.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+                
+                <!-- Formulário Manual de Desbloqueio -->
+                <div class="card border-primary mt-4">
+                    <div class="card-header bg-primary bg-opacity-10">
+                        <h6 class="mb-0">
+                            <i class="fas fa-unlock-alt me-2"></i>Desbloqueio Manual
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted mb-3">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Use este formulário para desbloquear um usuário específico digitando exatamente o nome de usuário.
+                        </p>
+                        <form method="post" action="{% url 'linhas:desbloquear_usuario' %}" class="row g-3">
+                            {% csrf_token %}
+                            <div class="col-md-8">
+                                <label for="unlockUsername" class="form-label">
+                                    <i class="fas fa-user me-1"></i>Nome de Usuário
+                                </label>
+                                <input type="text" id="unlockUsername" name="username" 
+                                       class="form-control" 
+                                       placeholder="Digite o nome do usuário bloqueado" 
+                                       required 
+                                       autocomplete="off">
+                                <div class="form-text">
+                                    Digite exatamente o nome de usuário como foi cadastrado no sistema
+                                </div>
+                            </div>
+                            <div class="col-md-4 d-flex align-items-end">
+                                <button type="submit" class="btn btn-warning w-100">
+                                    <i class="fas fa-unlock me-2"></i>Desbloquear Usuário
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Estatísticas -->
+                <div class="row mt-4">
+                    <div class="col-md-4">
+                        <div class="card bg-danger bg-opacity-10 border-danger">
+                            <div class="card-body text-center">
+                                <i class="fas fa-user-lock fa-2x text-danger mb-2"></i>
+                                <h3 class="mb-1 text-danger">{{ bloqueados|length|default:0 }}</h3>
+                                <small class="text-muted">Usuários Bloqueados</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-warning bg-opacity-10 border-warning">
+                            <div class="card-body text-center">
+                                <i class="fas fa-exclamation-triangle fa-2x text-warning mb-2"></i>
+                                <h3 class="mb-1 text-warning">3</h3>
+                                <small class="text-muted">Tentativas Máximas</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-info bg-opacity-10 border-info">
+                            <div class="card-body text-center">
+                                <i class="fas fa-shield-alt fa-2x text-info mb-2"></i>
+                                <h3 class="mb-1 text-info">Auto</h3>
+                                <small class="text-muted">Bloqueio Automático</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Seção: Alterar Senhas -->
+    <div id="senhas-section" class="management-content">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header" style="background: linear-gradient(135deg, #f093fb, #f5576c); color: white;">
+                <h5 class="mb-0">
+                    <i class="fas fa-key me-2"></i>Alterar Senhas de Usuários
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h6 class="text-muted mb-0">Redefinir senhas de usuários do sistema</h6>
+                    </div>
+                    <a href="{% url 'linhas:alterar_senhas' %}" class="btn btn-danger">
+                        <i class="fas fa-external-link-alt me-2"></i>Acessar Gerenciamento de Senhas
+                    </a>
+                </div>
+                
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Importante:</strong> A alteração de senhas é uma operação sensível. Certifique-se de ter as permissões adequadas antes de prosseguir.
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="card border-warning">
+                            <div class="card-body">
+                                <i class="fas fa-shield-alt fa-3x text-warning mb-3"></i>
+                                <h6>Segurança</h6>
+                                <p class="text-muted small">Senhas devem ter no mínimo 8 caracteres com letras e números</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card border-info">
+                            <div class="card-body">
+                                <i class="fas fa-history fa-3x text-info mb-3"></i>
+                                <h6>Histórico</h6>
+                                <p class="text-muted small">Todas as alterações são registradas no sistema</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Container Branco com Abas -->
 <div class="config-white-container">
-    <!-- Navegação das Abas -->
-    <ul class="nav nav-tabs-custom" id="configTabs" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link btn-outline-primary active" id="linhas-tab" data-bs-toggle="tab" data-bs-target="#linhas-content" type="button" role="tab">
-                        <i class="fas fa-phone"></i> Linhas
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link btn-outline-primary" id="usuarios-tab" data-bs-toggle="tab" data-bs-target="#usuarios-content" type="button" role="tab">
-                        <i class="fas fa-users"></i> Usuários
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link btn-outline-primary" id="protocolo-tab" data-bs-toggle="tab" data-bs-target="#protocolo-content" type="button" role="tab">
-                        <i class="fas fa-clipboard-list"></i> Protocolos
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link btn-outline-primary" id="associados-tab" data-bs-toggle="tab" data-bs-target="#associados-content" type="button" role="tab">
-                        <i class="fas fa-handshake"></i> Associados
-                    </button>
-                </li>
-            </ul>
-        </div>
-
         <div class="tab-content tab-content-area" id="configTabsContent">
             
             <!-- Aba Linhas -->
@@ -620,7 +1408,7 @@
 
             <!-- Aba Usuários -->
             <div class="tab-pane fade" id="usuarios-content" role="tabpanel">
-                <div class="section-title">
+                <div class="section-title" id="usuarios-section">
                     <i class="fas fa-users"></i>
                     Gerenciamento de Usuários
                 </div>
@@ -629,57 +1417,160 @@
                     Gerencie usuários do sistema e segurança de acesso.
                 </p>
                 
-                <span class="status-badge active">Ativo</span>
+                <div class="d-flex gap-2 mb-4">
+                    <span class="status-badge active">Ativo</span>
+                    <button class="btn btn-primary" onclick="document.getElementById('user-management-section').scrollIntoView({behavior: 'smooth'})">
+                        <i class="fas fa-users-cog me-2"></i>Gerenciar Usuários
+                    </button>
+                    <button class="btn btn-success" onclick="document.getElementById('createUserForm').scrollIntoView({behavior: 'smooth'})">
+                        <i class="fas fa-user-plus me-2"></i>Criar Novo Usuário
+                    </button>
+                    <button class="btn btn-warning" onclick="document.getElementById('usuarios-section').scrollIntoView({behavior: 'smooth'})">
+                        <i class="fas fa-unlock-alt me-2"></i>Usuários Bloqueados
+                    </button>
+                </div>
                         
                 <!-- Seção Desbloquear Usuários -->
                 <div class="form-section">
                     <h6 class="form-section-header">
-                        <i class="fas fa-shield-alt me-2"></i>Segurança e Controle de Acesso
+                        <i class="fas fa-shield-alt me-2"></i>Controle de Segurança - Usuários Bloqueados
                     </h6>
                     
-                    <p class="mb-3">Gerencie bloqueios de segurança e desbloqueie usuários que excederam tentativas de login.</p>
+                    <p class="mb-3">
+                        <i class="fas fa-info-circle me-2 text-info"></i>
+                        <strong>Sistema de Proteção:</strong> Usuários são bloqueados automaticamente após <span class="badge bg-danger">3 tentativas incorretas</span> de login. 
+                        Use esta ferramenta para gerenciar e desbloquear contas.
+                    </p>
                     
                     {% if bloqueados %}
-                        <div class="config-alert warning mb-3">
+                        <div class="alert alert-warning border-warning mb-4" role="alert">
                             <div class="d-flex align-items-start">
-                                <i class="fas fa-exclamation-triangle me-3" style="font-size: 1.5rem;"></i>
-                                <div>
-                                    <strong>Usuários Bloqueados Detectados</strong><br>
-                                    <span>Os seguintes usuários estão atualmente bloqueados por segurança:</span>
-                                    <ul class="mt-2 mb-0">
+                                <i class="fas fa-exclamation-triangle me-3" style="font-size: 2rem; color: #856404;"></i>
+                                <div class="flex-grow-1">
+                                    <h5 class="alert-heading mb-2">
+                                        <i class="fas fa-lock me-2"></i>Usuários Bloqueados Detectados
+                                    </h5>
+                                    <p class="mb-3">Os seguintes usuários estão atualmente bloqueados por excederem o limite de tentativas de login:</p>
+                                    
+                                    <!-- Lista de Usuários Bloqueados -->
+                                    <div class="list-group">
                                         {% for u in bloqueados %}
-                                            <li class="fw-bold">{{ u }}</li>
+                                        <div class="list-group-item list-group-item-warning d-flex justify-content-between align-items-center">
+                                            <div class="d-flex align-items-center gap-3">
+                                                <div class="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center" 
+                                                     style="width: 40px; height: 40px; flex-shrink: 0;">
+                                                    <i class="fas fa-user-lock"></i>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-0 fw-bold text-dark">{{ u }}</h6>
+                                                    <small class="text-muted">
+                                                        <i class="fas fa-clock me-1"></i>Bloqueado por excesso de tentativas
+                                                    </small>
+                                                </div>
+                                            </div>
+                                            <form method="post" action="{% url 'linhas:desbloquear_usuario' %}" style="margin: 0;">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="username" value="{{ u }}">
+                                                <button type="submit" class="btn btn-sm btn-success" title="Desbloquear {{ u }}">
+                                                    <i class="fas fa-unlock me-1"></i>Desbloquear
+                                                </button>
+                                            </form>
+                                        </div>
                                         {% endfor %}
-                                    </ul>
+                                    </div>
+                                    
+                                    <div class="mt-3 p-3 bg-light rounded">
+                                        <small class="text-muted">
+                                            <i class="fas fa-lightbulb me-1 text-warning"></i>
+                                            <strong>Dica:</strong> Após desbloquear, oriente o usuário a usar a senha correta. 
+                                            Três novas tentativas incorretas resultarão em novo bloqueio automático.
+                                        </small>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     {% else %}
-                        <div class="config-alert success mb-3">
+                        <div class="alert alert-success border-success mb-4" role="alert">
                             <div class="d-flex align-items-center">
-                                <i class="fas fa-check-circle me-3" style="font-size: 1.5rem;"></i>
+                                <i class="fas fa-check-circle me-3" style="font-size: 2rem; color: #155724;"></i>
                                 <div>
-                                    <strong>Sistema Seguro</strong><br>
-                                    <span>Nenhum usuário está bloqueado no momento. Todos os acessos estão normalizados.</span>
+                                    <h5 class="alert-heading mb-2">
+                                        <i class="fas fa-shield-check me-2"></i>Sistema Seguro
+                                    </h5>
+                                    <p class="mb-0">
+                                        Nenhum usuário está bloqueado no momento. Todos os acessos estão normalizados e funcionando corretamente.
+                                    </p>
                                 </div>
                             </div>
                         </div>
                     {% endif %}
                     
-                    <form method="post" action="{% url 'linhas:desbloquear_usuario' %}" class="row g-3">
-                        {% csrf_token %}
-                        <div class="col-md-8">
-                            <label for="unlockUsername" class="form-label-enhanced">
-                                <i class="fas fa-user"></i>Nome de usuário para desbloqueio
-                            </label>
-                            <input type="text" id="unlockUsername" name="username" class="form-control form-control-enhanced" placeholder="Digite exatamente o nome do usuário bloqueado" required>
+                    <!-- Formulário Manual de Desbloqueio -->
+                    <div class="card border-primary">
+                        <div class="card-header bg-primary bg-opacity-10">
+                            <h6 class="mb-0">
+                                <i class="fas fa-unlock-alt me-2"></i>Desbloqueio Manual
+                            </h6>
                         </div>
-                        <div class="col-md-4 d-flex align-items-end">
-                            <button type="submit" class="btn btn-feature warning w-100">
-                                <i class="fas fa-unlock"></i>Desbloquear Usuário
-                            </button>
+                        <div class="card-body">
+                            <p class="text-muted mb-3">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Use este formulário para desbloquear um usuário específico digitando exatamente o nome de usuário.
+                            </p>
+                            <form method="post" action="{% url 'linhas:desbloquear_usuario' %}" class="row g-3">
+                                {% csrf_token %}
+                                <div class="col-md-8">
+                                    <label for="unlockUsername" class="form-label">
+                                        <i class="fas fa-user me-1"></i>Nome de Usuário
+                                    </label>
+                                    <input type="text" id="unlockUsername" name="username" 
+                                           class="form-control" 
+                                           placeholder="Digite o nome do usuário bloqueado" 
+                                           required 
+                                           autocomplete="off">
+                                    <div class="form-text">
+                                        Digite exatamente o nome de usuário como foi cadastrado no sistema
+                                    </div>
+                                </div>
+                                <div class="col-md-4 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-warning w-100">
+                                        <i class="fas fa-unlock me-2"></i>Desbloquear Usuário
+                                    </button>
+                                </div>
+                            </form>
                         </div>
-                    </form>
+                    </div>
+                    
+                    <!-- Estatísticas e Informações -->
+                    <div class="row mt-4">
+                        <div class="col-md-4">
+                            <div class="card bg-danger bg-opacity-10 border-danger">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-user-lock fa-2x text-danger mb-2"></i>
+                                    <h3 class="mb-1 text-danger">{{ bloqueados|length|default:0 }}</h3>
+                                    <small class="text-muted">Usuários Bloqueados</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-warning bg-opacity-10 border-warning">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-exclamation-triangle fa-2x text-warning mb-2"></i>
+                                    <h3 class="mb-1 text-warning">3</h3>
+                                    <small class="text-muted">Tentativas Máximas</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-info bg-opacity-10 border-info">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-shield-alt fa-2x text-info mb-2"></i>
+                                    <h3 class="mb-1 text-info">Auto</h3>
+                                    <small class="text-muted">Bloqueio Automático</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                         <!-- Formulário de Criação de Usuário -->
@@ -876,6 +1767,13 @@
                             </div>
                         </div>
 
+                <!-- Seção de Gerenciamento de Usuários -->
+                <div id="user-management-section" class="mt-5 pt-4">
+                    <h5 class="mb-4">
+                        <i class="fas fa-users-cog me-2 text-primary"></i>
+                        Ações de Gerenciamento
+                    </h5>
+                </div>
                 
                 <div class="row mt-4">
                     <div class="col-md-6 mb-3">
@@ -908,7 +1806,7 @@
 
             <!-- Aba Protocolos -->
             <div class="tab-pane fade" id="protocolo-content" role="tabpanel">
-                <div class="section-title">
+                <div class="section-title" id="protocolos-section">
                     <i class="fas fa-clipboard-list"></i>
                     Gerenciamento de Protocolos
                 </div>
@@ -1036,7 +1934,7 @@
 
             <!-- Aba Associados -->
             <div class="tab-pane fade" id="associados-content" role="tabpanel">
-                <div class="section-title">
+                <div class="section-title" id="associados-section">
                     <i class="fas fa-handshake"></i>
                     Gerenciamento de Associados
                 </div>
