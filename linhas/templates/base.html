@@ -346,6 +346,62 @@
             .sidebar { width: 100%; flex-direction: row; flex-wrap: wrap; border-right: none; border-bottom: 3px solid #00bfae; }
             .nav-vertical li { flex: 1 1 45%; }
         }
+        
+        /* Estilos globais para textos informativos */
+        .form-text.text-primary {
+            color: #000000 !important;
+            font-weight: 600 !important;
+            font-size: 0.875rem !important;
+        }
+        
+        .form-text.text-success {
+            color: #000000 !important;
+            font-weight: 600 !important;
+        }
+        
+        .info-text {
+            color: #000000 !important;
+            font-weight: 500 !important;
+            font-size: 0.875rem !important;
+        }
+        
+        .example-text {
+            color: #000000 !important;
+            font-weight: 500 !important;
+            font-style: italic !important;
+        }
+        
+        .placeholder-enhanced::placeholder {
+            color: #000000 !important;
+            font-style: italic !important;
+            opacity: 0.7 !important;
+        }
+        
+        /* Textos pequenos em preto */
+        .text-primary.fw-bold,
+        .text-primary.fw-semibold {
+            color: #000000 !important;
+        }
+        
+        .text-success.fw-bold,
+        .text-success.fw-semibold {
+            color: #000000 !important;
+        }
+        
+        .text-info.fw-bold,
+        .text-info.fw-semibold {
+            color: #000000 !important;
+        }
+        
+        .text-warning.fw-bold,
+        .text-warning.fw-semibold {
+            color: #000000 !important;
+        }
+        
+        .text-secondary.fw-bold,
+        .text-secondary.fw-semibold {
+            color: #000000 !important;
+        }
     </style>
 </head>
 <body {% if request.resolver_match.url_name == 'login' %}class="login-bg"{% endif %}>

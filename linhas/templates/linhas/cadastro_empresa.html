@@ -1,0 +1,569 @@
+{% extends 'base.html' %}
+
+{% block title %}Cadastro de Empresa - Gestor de Linhas{% endblock %}
+
+{% block content %}
+<style>
+    /* Header Tecnológico */
+    .tech-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 25px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+    }
+    
+    .tech-header h1 {
+        color: #ffffff;
+        font-weight: 700;
+        font-size: 2rem;
+        margin: 0;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .tech-header p {
+        color: rgba(255,255,255,0.9);
+        margin: 10px 0 0 0;
+        font-size: 1.1rem;
+    }
+    
+    /* Formulário */
+    .form-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        padding: 30px;
+    }
+    
+    .form-section {
+        border-left: 4px solid #667eea;
+        padding-left: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .form-section h5 {
+        color: #667eea;
+        font-weight: 600;
+        margin-bottom: 20px;
+    }
+    
+    .btn-buscar-cnpj {
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        border: none;
+        color: white;
+        border-radius: 10px;
+    }
+    
+    .btn-buscar-cnpj:hover {
+        background: linear-gradient(45deg, #5a6fd8, #6941a0);
+        color: white;
+    }
+    
+    .loading-spinner {
+        display: none;
+    }
+    
+    .field-highlight {
+        background-color: #e8f5e8 !important;
+        border-color: #28a745 !important;
+    }
+    
+    /* Estilos para textos informativos */
+    .form-text.text-primary {
+        color: #000000 !important;
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+    
+    .form-text.text-success {
+        color: #000000 !important;
+        font-weight: 600;
+    }
+    
+    .placeholder-enhanced::placeholder {
+        color: #000000 !important;
+        font-style: italic;
+        opacity: 0.7;
+    }
+    
+    .info-text {
+        color: #000000 !important;
+        font-weight: 500;
+        font-size: 0.875rem;
+    }
+    
+    .example-text {
+        color: #000000 !important;
+        font-weight: 500;
+        font-style: italic;
+    }
+</style>
+
+<div class="tech-header">
+    <h1><i class="fas fa-building me-2"></i>Cadastro de Empresa</h1>
+    <p>Cadastre uma nova empresa no sistema</p>
+</div>
+
+<div class="form-card">
+    <form method="POST" id="formEmpresa" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <!-- Seção: Dados da Empresa -->
+        <div class="form-section">
+            <h5><i class="fas fa-building me-2"></i>Dados da Empresa</h5>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="cnpj" class="form-label">CNPJ *</label>
+                    <div class="input-group">
+                        <input type="text" name="cnpj" id="cnpj" class="form-control placeholder-enhanced" 
+                               placeholder="00.000.000/0000-00" maxlength="18" required>
+                        <button type="button" class="btn btn-buscar-cnpj" id="btnBuscarCnpj">
+                            <i class="fas fa-search me-1"></i>Buscar
+                            <span class="loading-spinner">
+                                <i class="fas fa-spinner fa-spin"></i>
+                            </span>
+                        </button>
+                    </div>
+                    <div class="form-text" style="color: #000000 !important; font-weight: 600;">Informe o CNPJ para buscar dados automaticamente</div>
+                </div>
+                
+                <div class="col-md-8 mb-3">
+                    <label for="razao_social" class="form-label">Razão Social *</label>
+                    <input type="text" name="razao_social" id="razao_social" class="form-control placeholder-enhanced" 
+                           placeholder="Ex: Associação Empresarial de Concórdia - ACIC" required>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="nome_fantasia" class="form-label">Nome Fantasia</label>
+                    <input type="text" name="nome_fantasia" id="nome_fantasia" class="form-control placeholder-enhanced" 
+                           placeholder="Ex: ACIC Concórdia">
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label for="email" class="form-label">E-mail *</label>
+                    <input type="email" name="email" id="email" class="form-control placeholder-enhanced" 
+                           placeholder="contato@empresa.com.br" required>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Seção: Dados do Proprietário/Responsável -->
+        <div class="form-section">
+            <h5><i class="fas fa-user me-2"></i>Dados do Proprietário/Responsável</h5>
+            <div class="row">
+                <div class="col-md-8 mb-3">
+                    <label for="nome_proprietario" class="form-label">Nome Completo *</label>
+                    <input type="text" name="nome_proprietario" id="nome_proprietario" class="form-control placeholder-enhanced" 
+                           placeholder="Ex: Ana Carolina Trindade Fausto" required>
+                </div>
+                
+                <div class="col-md-4 mb-3">
+                    <label for="cpf_proprietario" class="form-label">CPF *</label>
+                    <input type="text" name="cpf_proprietario" id="cpf_proprietario" class="form-control placeholder-enhanced" 
+                           placeholder="000.000.000-00" maxlength="14" required>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="data_nascimento" class="form-label">Data de Nascimento *</label>
+                    <input type="date" name="data_nascimento" id="data_nascimento" class="form-control" required>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label for="telefone" class="form-label">Telefone Principal *</label>
+                    <input type="text" name="telefone" id="telefone" class="form-control placeholder-enhanced" 
+                           placeholder="(47) 99999-9999" maxlength="15" required>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Seção: Endereço -->
+        <div class="form-section">
+            <h5><i class="fas fa-map-marker-alt me-2"></i>Endereço</h5>
+            <div class="row">
+                <div class="col-12 mb-3">
+                    <label for="endereco" class="form-label">Endereço Completo *</label>
+                    <textarea name="endereco" id="endereco" class="form-control" rows="3" 
+                              placeholder="Rua Anita Garibaldi, 1041 - Centro - Concórdia/SC - 89700-126" required></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Seção: Importar Linhas -->
+        <div class="form-section">
+            <h5><i class="fas fa-file-excel me-2"></i>Importar Linhas (Opcional)</h5>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="arquivo_linhas" class="form-label">Arquivo Excel com Linhas</label>
+                    <input type="file" name="arquivo_linhas" id="arquivo_linhas" class="form-control" 
+                           accept=".xlsx,.xls,.csv">
+                    <div class="form-text" style="color: #000000 !important; font-weight: 600;">
+                        Faça upload de um arquivo Excel (.xlsx, .xls) ou CSV com as linhas da empresa.
+                        <br><strong style="color: #000000 !important;">Colunas esperadas:</strong> Número, ICCID, Tipo Plano, Valor Plano, RP, Ação
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Preview das Linhas</label>
+                    <div id="preview-linhas" class="border rounded p-3" style="min-height: 100px; background: #f8f9fa;">
+                        <small class="text-info fw-semibold">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Selecione um arquivo para ver o preview das linhas que serão importadas.
+                        </small>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Modelo de arquivo -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-download me-2"></i>Modelo de Arquivo</h6>
+                        <p class="mb-2">Use este modelo para organizar suas linhas:</p>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Numero</th>
+                                        <th>ICCID</th>
+                                        <th>Tipo_Plano</th>
+                                        <th>Valor_Plano</th>
+                                        <th>RP</th>
+                                        <th>Acao</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>11999999999</td>
+                                        <td>89550000000000000001</td>
+                                        <td>BLACK_5GB_GW_800SMS</td>
+                                        <td>89.90</td>
+                                        <td>RP001</td>
+                                        <td>ESTOQUE</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="baixarModelo()">
+                            <i class="fas fa-download me-1"></i>Baixar Modelo Excel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Botões -->
+        <div class="row">
+            <div class="col-12 d-flex justify-content-end">
+                <button type="button" class="btn btn-secondary me-2" onclick="limparFormulario()">
+                    <i class="fas fa-eraser me-1"></i>Limpar
+                </button>
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-save me-1"></i>Cadastrar Empresa
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Modal de Sucesso -->
+<div class="modal fade" id="sucessoModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-check-circle me-2"></i>Empresa Cadastrada
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Empresa cadastrada com sucesso!</p>
+                <p><strong>Deseja:</strong></p>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'linhas:novalinha' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i>Criar Nova Linha para esta empresa
+                    </a>
+                    <a href="{% url 'linhas:listar_empresas' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-list me-1"></i>Ver Lista de Empresas
+                    </a>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        Continuar Cadastrando
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Máscaras
+    const cnpjInput = document.getElementById('cnpj');
+    const cpfInput = document.getElementById('cpf_proprietario');
+    const telefoneInput = document.getElementById('telefone');
+    
+    // Máscara CNPJ
+    cnpjInput.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        value = value.replace(/^(\d{2})(\d)/, '$1.$2');
+        value = value.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+        value = value.replace(/\.(\d{3})(\d)/, '.$1/$2');
+        value = value.replace(/(\d{4})(\d)/, '$1-$2');
+        e.target.value = value;
+    });
+    
+    // Máscara CPF
+    cpfInput.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        value = value.replace(/(\d{3})(\d)/, '$1.$2');
+        value = value.replace(/(\d{3})(\d)/, '$1.$2');
+        value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+        e.target.value = value;
+    });
+    
+    // Máscara Telefone
+    telefoneInput.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        value = value.replace(/(\d{2})(\d)/, '($1) $2');
+        value = value.replace(/(\d{4,5})(\d{4})$/, '$1-$2');
+        e.target.value = value;
+    });
+    
+    // Busca automática por CNPJ
+    document.getElementById('btnBuscarCnpj').addEventListener('click', function() {
+        const cnpj = cnpjInput.value.replace(/\D/g, '');
+        
+        if (cnpj.length !== 14) {
+            alert('CNPJ deve ter 14 dígitos');
+            return;
+        }
+        
+        const btn = this;
+        const spinner = btn.querySelector('.loading-spinner');
+        const btnText = btn.childNodes[0];
+        
+        // Mostrar loading
+        btnText.style.display = 'none';
+        spinner.style.display = 'inline';
+        btn.disabled = true;
+        
+        // Chamar API
+        fetch(`/linhas/buscar-cnpj-api/?cnpj=${cnpj}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const dados = data.dados;
+                    
+                    // Preencher campos
+                    document.getElementById('razao_social').value = dados.razao_social || dados.nome || '';
+                    document.getElementById('nome_fantasia').value = dados.fantasia || '';
+                    document.getElementById('endereco').value = 
+                        `${dados.endereco || ''} ${dados.numero || ''} - ${dados.bairro || ''} - ${dados.municipio || ''}/${dados.uf || ''} - ${dados.cep || ''}`.trim();
+                    document.getElementById('telefone').value = dados.telefone || '';
+                    document.getElementById('email').value = dados.email || '';
+                    
+                    // Destacar campos preenchidos
+                    ['razao_social', 'nome_fantasia', 'endereco', 'telefone', 'email'].forEach(id => {
+                        const field = document.getElementById(id);
+                        if (field.value) {
+                            field.classList.add('field-highlight');
+                            setTimeout(() => field.classList.remove('field-highlight'), 3000);
+                        }
+                    });
+                    
+                    alert(`Dados encontrados via ${dados.fonte}!`);
+                } else {
+                    alert(`Erro: ${data.error}`);
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                alert('Erro ao consultar CNPJ. Tente novamente.');
+            })
+            .finally(() => {
+                // Esconder loading
+                btnText.style.display = 'inline';
+                spinner.style.display = 'none';
+                btn.disabled = false;
+            });
+    });
+    
+    // Processar arquivo de linhas
+    document.getElementById('arquivo_linhas').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        const previewDiv = document.getElementById('preview-linhas');
+        
+        if (!file) {
+            previewDiv.innerHTML = `
+                <small style="color: #000000 !important; font-weight: 500;">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Selecione um arquivo para ver o preview das linhas que serão importadas.
+                </small>
+            `;
+            return;
+        }
+        
+        previewDiv.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Processando arquivo...</div>';
+        
+        // Usar AJAX para processar arquivo no servidor
+        const formData = new FormData();
+        formData.append('arquivo', file);
+        
+        fetch('/linhas/preview-arquivo-linhas/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                mostrarPreviewLinhas(data.linhas, data.arquivo_nome);
+            } else {
+                previewDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-times-circle me-1"></i>
+                        ${data.error}
+                    </div>
+                `;
+            }
+        });
+    });
+        .catch(error => {
+            console.error('Erro:', error);
+            previewDiv.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-times-circle me-1"></i>
+                    Erro ao processar arquivo. Tente novamente.
+                </div>
+            `;
+        })
+    });
+});
+
+function mostrarPreviewLinhas(linhas, nomeArquivo) {
+    const previewDiv = document.getElementById('preview-linhas');
+    
+    if (!linhas || linhas.length === 0) {
+        previewDiv.innerHTML = `
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle me-1"></i>
+                Nenhuma linha encontrada no arquivo.
+            </div>
+        `;
+        return;
+    }
+    
+    let html = `
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+                <strong>${linhas.length} linha${linhas.length > 1 ? 's' : ''} encontrada${linhas.length > 1 ? 's' : ''}</strong>
+                ${nomeArquivo ? `<br><small class="text-muted">Arquivo: ${nomeArquivo}</small>` : ''}
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removerArquivo()">
+                <i class="fas fa-times me-1"></i>Remover
+            </button>
+        </div>
+        <div class="table-responsive" style="max-height: 200px; overflow-y: auto;">
+            <table class="table table-sm table-bordered">
+                <thead class="table-light sticky-top">
+                    <tr>
+                        <th>Número</th>
+                        <th>ICCID</th>
+                        <th>Plano</th>
+                        <th>Valor</th>
+                        <th>RP</th>
+                        <th>Ação</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+    
+    // Mostrar apenas as primeiras 5 linhas no preview
+    const preview = linhas.slice(0, 5);
+    preview.forEach(linha => {
+        html += `
+            <tr>
+                <td>${linha.numero || ''}</td>
+                <td>${linha.iccid || ''}</td>
+                <td>${linha.tipo_plano || ''}</td>
+                <td>${linha.valor_plano || ''}</td>
+                <td>${linha.rp || ''}</td>
+                <td>${linha.acao || 'ESTOQUE'}</td>
+            </tr>
+        `;
+    });
+    
+    if (linhas.length > 5) {
+        html += `
+            <tr>
+                <td colspan="6" class="text-center text-muted">
+                    <i class="fas fa-ellipsis-h"></i> E mais ${linhas.length - 5} linha${linhas.length - 5 > 1 ? 's' : ''}...
+                </td>
+            </tr>
+        `;
+    }
+    
+    html += `
+                </tbody>
+            </table>
+        </div>
+        <div class="mt-2">
+            <small class="text-success">
+                <i class="fas fa-check-circle me-1"></i>
+                Arquivo pronto para importação. As linhas serão criadas automaticamente quando a empresa for cadastrada.
+            </small>
+        </div>
+    `;
+    
+    previewDiv.innerHTML = html;
+}
+
+function removerArquivo() {
+    document.getElementById('arquivo_linhas').value = '';
+    document.getElementById('preview-linhas').innerHTML = `
+        <small style="color: #000000 !important; font-weight: 500;">
+            <i class="fas fa-info-circle me-1"></i>
+            Selecione um arquivo para ver o preview das linhas que serão importadas.
+        </small>
+    `;
+}
+
+function baixarModelo() {
+    // Criar CSV de exemplo
+    const csvContent = `Numero,ICCID,Tipo_Plano,Valor_Plano,RP,Acao
+11999999999,89550000000000000001,BLACK_5GB_GW_800SMS,89.90,RP001,ESTOQUE
+11888888888,89550000000000000002,BLACK_10GB_GW_800SMS,129.90,RP002,PORTABILIDADE
+11777777777,89550000000000000003,BLACK_20GB_GW_800SMS,199.90,RP003,TT`;
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'modelo_linhas.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function limparFormulario() {
+    if (confirm('Tem certeza que deseja limpar todos os campos?')) {
+        document.getElementById('formEmpresa').reset();
+    }
+}
+
+// Mostrar modal de sucesso se houver mensagem
+{% if messages %}
+    {% for message in messages %}
+        {% if message.tags == 'success' %}
+            const sucessoModal = new bootstrap.Modal(document.getElementById('sucessoModal'));
+            sucessoModal.show();
+        {% endif %}
+    {% endfor %}
+{% endif %}
+</script>
+{% endblock %}
