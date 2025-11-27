@@ -96,6 +96,30 @@ class Linha(models.Model):
     criado_em = models.DateTimeField(auto_now_add=True, verbose_name="Criado em")
     atualizado_em = models.DateTimeField(auto_now=True, verbose_name="Atualizado em")
     cliente = models.ForeignKey(Cliente, null=True, blank=True, on_delete=models.SET_NULL, verbose_name='Cliente vinculado')
+    
+    def save(self, *args, **kwargs):
+        """Override save para atualizar automaticamente o nome do cliente baseado no CNPJ"""
+        if self.cnpj:
+            # Remove caracteres não numéricos do CNPJ para busca
+            cnpj_limpo = ''.join(filter(str.isdigit, self.cnpj))
+            
+            # Buscar cliente pelo CNPJ
+            try:
+                cliente = Cliente.objects.get(cnpj__icontains=cnpj_limpo[-14:])  # últimos 14 dígitos
+                self.empresa = cliente.empresa
+                self.cliente = cliente
+            except Cliente.DoesNotExist:
+                # Se não encontrar, manter o nome atual
+                pass
+            except Cliente.MultipleObjectsReturned:
+                # Se houver múltiplos, usar o primeiro
+                cliente = Cliente.objects.filter(cnpj__icontains=cnpj_limpo[-14:]).first()
+                if cliente:
+                    self.empresa = cliente.empresa
+                    self.cliente = cliente
+        
+        super().save(*args, **kwargs)
+    
     # restore representation and meta for Linha
     def __str__(self):
         # fallback if nome_titular does not exist on all records

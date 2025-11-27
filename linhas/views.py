@@ -309,8 +309,102 @@ def buscar_clientes(request):
         qs = qs.filter(models.Q(empresa__icontains=q) | models.Q(cnpj__icontains=q) | models.Q(fantasia__icontains=q) | models.Q(razao_social__icontains=q))
     results = []
     for c in qs[:50]:
-        results.append({'id': c.id, 'empresa': c.empresa, 'cnpj': c.cnpj, 'fantasia': c.fantasia, 'razao_social': c.razao_social})
+        results.append({
+            'id': c.id, 
+            'empresa': c.empresa, 
+            'cnpj': c.cnpj, 
+            'fantasia': c.fantasia, 
+            'razao_social': c.razao_social,
+            'endereco_completo': c.endereco_completo or '',
+            'contato': c.contato or '',
+            'email': c.email or '',
+            'telefone': c.telefone or '',
+            'valor_taxa_manutencao': str(c.valor_taxa_manutencao) if c.valor_taxa_manutencao else '0.00'
+        })
     return JsonResponse(results, safe=False)
+
+@login_required
+def buscar_cliente_completo(request):
+    """AJAX: Buscar cliente por nome, CNPJ ou número de linha e retornar dados completos
+    Permite busca por:
+    - Nome da empresa/cliente
+    - CNPJ
+    - Número da linha (busca o cliente associado à linha)
+    """
+    from django.http import JsonResponse
+    
+    q = request.GET.get('q', '').strip()
+    if not q or len(q) < 2:
+        return JsonResponse({'success': False, 'message': 'Digite pelo menos 2 caracteres'})
+    
+    # Remover caracteres especiais para busca de CNPJ/telefone
+    q_digits = ''.join(filter(str.isdigit, q))
+    
+    cliente = None
+    found_via = None
+    
+    # 1. Tentar buscar por número da linha primeiro
+    if q_digits and len(q_digits) >= 8:  # Mínimo para ser um número de telefone
+        try:
+            linha = Linha.objects.filter(
+                Q(numero__icontains=q) | Q(numero__icontains=q_digits)
+            ).select_related('cliente').first()
+            
+            if linha and linha.cliente:
+                cliente = linha.cliente
+                found_via = f'linha {linha.numero}'
+        except:
+            pass
+    
+    # 2. Se não encontrou por linha, buscar diretamente no Cliente
+    if not cliente:
+        try:
+            # Buscar por CNPJ (completo ou parcial)
+            if q_digits and len(q_digits) >= 8:
+                cliente = Cliente.objects.filter(
+                    Q(cnpj__icontains=q_digits) | Q(cnpj__icontains=q)
+                ).first()
+                if cliente:
+                    found_via = 'CNPJ'
+            
+            # Se não encontrou por CNPJ, buscar por nome/empresa
+            if not cliente:
+                cliente = Cliente.objects.filter(
+                    Q(empresa__icontains=q) | 
+                    Q(fantasia__icontains=q) |
+                    Q(razao_social__icontains=q)
+                ).first()
+                if cliente:
+                    found_via = 'nome da empresa'
+        except:
+            pass
+    
+    if not cliente:
+        return JsonResponse({
+            'success': False, 
+            'message': f'Nenhum cliente encontrado para "{q}"'
+        })
+    
+    # Retornar dados completos do cliente
+    return JsonResponse({
+        'success': True,
+        'found_via': found_via,
+        'cliente': {
+            'id': cliente.id,
+            'empresa': cliente.empresa or '',
+            'cnpj': cliente.cnpj or '',
+            'razao_social': cliente.razao_social or '',
+            'fantasia': cliente.fantasia or '',
+            'endereco_completo': cliente.endereco_completo or '',
+            'contato': cliente.contato or '',
+            'email': cliente.email or '',
+            'telefone': cliente.telefone or '',
+            'nome_dono': cliente.nome_dono or '',
+            'cpf_dono': cliente.cpf_dono or '',
+            'data_nascimento_dono': cliente.data_nascimento_dono.strftime('%d/%m/%Y') if cliente.data_nascimento_dono else '',
+            'valor_taxa_manutencao': str(cliente.valor_taxa_manutencao) if cliente.valor_taxa_manutencao else '0.00'
+        }
+    })
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator
 from django.db.models import Q
@@ -1147,6 +1241,60 @@ def buscar_linha_dados(request):
             'error': f'Erro ao buscar dados da linha: {str(e)}'
         })
 
+@login_required
+def apagar_fidelidade(request):
+    """
+    AJAX endpoint para apagar todas as fidelidades de uma linha específica
+    """
+    if request.method != 'POST':
+        return JsonResponse({
+            'success': False,
+            'error': 'Método não permitido'
+        })
+    
+    numero = request.GET.get('numero', '')
+    
+    if not numero:
+        return JsonResponse({
+            'success': False,
+            'error': 'Número da linha não informado'
+        })
+    
+    try:
+        from .models import Linha, Fidelidade
+        
+        # Buscar a linha
+        linha = Linha.objects.filter(numero=numero).first()
+        
+        if not linha:
+            return JsonResponse({
+                'success': False,
+                'error': f'Linha {numero} não encontrada'
+            })
+        
+        # Buscar e contar fidelidades da linha
+        fidelidades = Fidelidade.objects.filter(linha=linha)
+        count = fidelidades.count()
+        
+        if count == 0:
+            return JsonResponse({
+                'success': False,
+                'error': f'Nenhuma fidelidade encontrada para a linha {numero}'
+            })
+        
+        # Apagar todas as fidelidades da linha
+        fidelidades.delete()
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'{count} fidelidade(s) apagada(s) com sucesso para a linha {numero}'
+        })
+            
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'Erro ao apagar fidelidade: {str(e)}'
+        })
 
 @login_required
 def criar_usuario_empresa(request):

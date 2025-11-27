@@ -31,15 +31,14 @@
         box-shadow: 0 6px 20px rgba(255,255,255,0.3);
     }
     
-    /* Card Formulário Glassmorphism */
+    /* Card Formulário Glassmorphism - Largura completa como cabeçalho */
     .form-card {
         background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
         backdrop-filter: blur(10px);
         border: 1px solid rgba(255,255,255,0.2);
         border-radius: 20px;
         padding: 30px;
-        margin: 0 auto;
-        max-width: 700px;
+        width: 100%;
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     }
     
@@ -107,13 +106,96 @@
         border-radius: 10px;
         border: none;
     }
+    
+    /* Estilos para botões de ação */
+    .btn-success {
+        background: linear-gradient(45deg, #28a745, #20c997);
+        border: none;
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+        transition: all 0.3s ease;
+    }
+    
+    .btn-success:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(40, 167, 69, 0.6);
+        background: linear-gradient(45deg, #20c997, #28a745);
+    }
+    
+    .btn-danger {
+        background: linear-gradient(45deg, #dc3545, #c82333);
+        border: none;
+        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);
+        transition: all 0.3s ease;
+    }
+    
+    .btn-danger:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(220, 53, 69, 0.6);
+        background: linear-gradient(45deg, #c82333, #dc3545);
+    }
+    
+    /* Estilos para formulários de linha dinâmicos */
+    .linha-form-card {
+        background: linear-gradient(135deg, rgba(40, 167, 69, 0.1) 0%, rgba(32, 201, 151, 0.05) 100%);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(40, 167, 69, 0.3);
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 15px;
+        position: relative;
+        transition: all 0.3s ease;
+    }
+    
+    .linha-form-card:hover {
+        border-color: rgba(40, 167, 69, 0.5);
+        box-shadow: 0 4px 20px rgba(40, 167, 69, 0.2);
+    }
+    
+    .linha-form-header {
+        display: flex;
+        justify-content: between;
+        align-items: center;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid rgba(40, 167, 69, 0.2);
+    }
+    
+    .linha-form-title {
+        color: rgba(255,255,255,0.9);
+        font-weight: 600;
+        font-size: 1.1rem;
+        margin: 0;
+    }
+    
+    .btn-remove-linha {
+        background: linear-gradient(45deg, #dc3545, #c82333);
+        border: none;
+        color: white;
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-remove-linha:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+    }
 </style>
 
 <div class="tech-header d-flex justify-content-between align-items-center">
     <h1><i class="fas fa-clock"></i> Fidelidade</h1>
-    <a href="{% url 'linhas:listalinhas' %}" class="btn btn-light">
-        <i class="fas fa-arrow-left"></i> Voltar
-    </a>
+    <div class="d-flex gap-2">
+        <button type="button" id="btn-apagar-fidelidade" class="btn btn-danger" title="Apagar fidelidade selecionada">
+            <i class="fas fa-trash"></i> Apagar
+        </button>
+        <a href="{% url 'linhas:listalinhas' %}" class="btn btn-light">
+            <i class="fas fa-arrow-left"></i> Voltar
+        </a>
+    </div>
 </div>
 
 {% if messages %}
@@ -123,55 +205,73 @@
 {% endif %}
 
 <div class="form-card">
-    <form method="post" novalidate>
+    <form method="post" novalidate id="form-fidelidade">
         {% csrf_token %}
+        <input type="hidden" name="linhas_count" id="linhas_count" value="0">
         
-        <div class="mb-3">
-            <label class="form-label"><i class="fas fa-phone"></i> Número da Linha *</label>
-            <div class="input-group">
-                <span class="input-group-text"><i class="fas fa-phone"></i></span>
-                <input type="text" id="numero_linha" name="numero_linha" class="form-control" placeholder="Ex: 11999998888" required>
-                <button type="button" id="btn-buscar-linha" class="btn btn-outline-secondary" title="Buscar dados da linha">
-                    <i class="fas fa-search"></i>
-                </button>
+        <!-- Linha de busca - largura completa -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <label class="form-label"><i class="fas fa-phone"></i> Número da Linha *</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                    <input type="text" id="numero_linha" name="numero_linha" class="form-control" placeholder="Ex: 11999998888" required>
+                    <button type="button" id="btn-buscar-linha" class="btn btn-outline-secondary" title="Buscar dados da linha">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+                <div id="linha-alert" class="mt-2" style="display:none;"></div>
             </div>
-            <div id="linha-alert" class="mt-2" style="display:none;"></div>
         </div>
 
-        <div class="row">
-            <div class="col-md-6 mb-3">
+        <!-- Dados da linha em 3 colunas para melhor aproveitamento -->
+        <div class="row mb-4">
+            <div class="col-lg-4 col-md-6 mb-3">
                 <label class="form-label"><i class="fas fa-building"></i> Cliente</label>
                 <div class="input-group">
                     <span class="input-group-text"><i class="fas fa-user-tie"></i></span>
                     <input type="text" id="cliente" class="form-control" placeholder="Preenchido automaticamente" readonly>
                 </div>
             </div>
-            <div class="col-md-6 mb-3">
+            <div class="col-lg-4 col-md-6 mb-3">
                 <label class="form-label"><i class="fas fa-id-badge"></i> RP</label>
                 <div class="input-group">
                     <span class="input-group-text"><i class="fas fa-hashtag"></i></span>
                     <input type="text" id="rp" class="form-control" placeholder="Preenchido automaticamente" readonly>
                 </div>
             </div>
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label"><i class="fas fa-info-circle"></i> Status da Linha</label>
-            <div class="input-group">
-                <span class="input-group-text"><i class="fas fa-signal"></i></span>
-                <input type="text" id="status_linha" class="form-control" placeholder="Preenchido automaticamente" readonly>
+            <div class="col-lg-4 col-md-12 mb-3">
+                <label class="form-label"><i class="fas fa-info-circle"></i> Status da Linha</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-signal"></i></span>
+                    <input type="text" id="status_linha" class="form-control" placeholder="Preenchido automaticamente" readonly>
+                </div>
             </div>
         </div>
         
-        <div class="mb-4">
-            <label class="form-label"><i class="fas fa-sticky-note"></i> Observações *</label>
-            <textarea name="observacoes" rows="4" class="form-control" placeholder="Digite observações sobre a fidelidade" required></textarea>
+        <!-- Container para formulários de linha dinâmicos -->
+        <div id="linhas-container" class="mb-4">
+            <!-- Formulários de linha serão adicionados aqui -->
         </div>
         
-        <div class="text-end">
-            <button type="submit" class="btn btn-primary btn-lg">
-                <i class="fas fa-save"></i> Salvar Fidelidade
-            </button>
+        <!-- Observações ocupando largura completa -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <label class="form-label"><i class="fas fa-sticky-note"></i> Observações *</label>
+                <textarea name="observacoes" rows="6" class="form-control" placeholder="Digite observações detalhadas sobre a fidelidade desta linha..." required></textarea>
+            </div>
+        </div>
+        
+        <!-- Botões de ação -->
+        <div class="row">
+            <div class="col-12 d-flex justify-content-between align-items-center">
+                <button type="button" id="btn-inserir-linha" class="btn btn-success btn-lg px-4" title="Inserir nova linha">
+                    <i class="fas fa-plus"></i> Inserir Linha
+                </button>
+                <button type="submit" class="btn btn-primary btn-lg px-5">
+                    <i class="fas fa-save"></i> Salvar Fidelidade
+                </button>
+            </div>
         </div>
     </form>
 </div>
@@ -260,6 +360,249 @@ document.addEventListener('DOMContentLoaded', function() {
         statusInput.value = '';
         linhaAlert.style.display = 'none';
     }
+    
+    let linhaCounter = 0;
+    
+    // Função para inserir nova linha
+    document.getElementById('btn-inserir-linha').addEventListener('click', function() {
+        adicionarFormularioLinha();
+    });
+    
+    function adicionarFormularioLinha() {
+        linhaCounter++;
+        const container = document.getElementById('linhas-container');
+        
+        const linhaForm = document.createElement('div');
+        linhaForm.className = 'linha-form-card';
+        linhaForm.id = `linha-form-${linhaCounter}`;
+        
+        linhaForm.innerHTML = `
+            <div class="linha-form-header">
+                <h5 class="linha-form-title">
+                    <i class="fas fa-mobile-alt"></i> Linha #${linhaCounter}
+                </h5>
+                <button type="button" class="btn btn-remove-linha" onclick="removerFormularioLinha(${linhaCounter})" title="Remover linha">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="row">
+                <div class="col-lg-4 col-md-6 mb-3">
+                    <label class="form-label"><i class="fas fa-phone"></i> Número *</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                        <input type="text" name="linha_numero_${linhaCounter}" class="form-control" placeholder="(11) 99999-9999" required>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 col-md-6 mb-3">
+                    <label class="form-label"><i class="fas fa-sim-card"></i> ICCID</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-sim-card"></i></span>
+                        <input type="text" name="linha_iccid_${linhaCounter}" class="form-control" placeholder="ICCID do chip">
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 col-md-12 mb-3">
+                    <label class="form-label"><i class="fas fa-building"></i> Cliente</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-user-tie"></i></span>
+                        <input type="text" name="linha_cliente_${linhaCounter}" class="form-control" placeholder="Nome do cliente" required>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <label class="form-label"><i class="fas fa-id-badge"></i> RP</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-hashtag"></i></span>
+                        <input type="text" name="linha_rp_${linhaCounter}" class="form-control" placeholder="RP">
+                    </div>
+                </div>
+                
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <label class="form-label"><i class="fas fa-list"></i> Tipo Plano *</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-list"></i></span>
+                        <select name="linha_tipo_plano_${linhaCounter}" class="form-control" required>
+                            <option value="">Selecione...</option>
+                            <option value="BLACK_VOZ_GW_800SMS">BLACK VOZ + GW + 800SMS</option>
+                            <option value="BLACK_1GB_GW_800SMS">BLACK 1GB + GW + 800SMS</option>
+                            <option value="BLACK_5GB_GW_800SMS">BLACK 5GB + GW + 800SMS</option>
+                            <option value="BLACK_10GB_GW_800SMS">BLACK 10GB + GW + 800SMS</option>
+                            <option value="BLACK_20GB_GW_800SMS">BLACK 20GB + GW + 800SMS</option>
+                            <option value="BLACK_50GB_GW_800SMS">BLACK 50GB + GW + 800SMS</option>
+                            <option value="BLACK_ILIMITADO_GB_GW_800SMS">BLACK ILIMITADO GB + GW + 800SMS</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <label class="form-label"><i class="fas fa-dollar-sign"></i> Valor R$</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-dollar-sign"></i></span>
+                        <input type="number" name="linha_valor_${linhaCounter}" class="form-control" step="0.01" min="0" placeholder="0,00" readonly>
+                    </div>
+                    <small class="text-white mt-1 d-block"><i class="fas fa-info-circle"></i> O valor será definido automaticamente pelo tipo de plano.</small>
+                </div>
+                
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <label class="form-label"><i class="fas fa-toggle-on"></i> Status</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-toggle-on"></i></span>
+                        <select name="linha_ativa_${linhaCounter}" class="form-control">
+                            <option value="true" selected>Ativa</option>
+                            <option value="false">Inativa</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        container.appendChild(linhaForm);
+        
+        // Adicionar evento para atualizar valor automaticamente
+        const selectTipoPlano = linhaForm.querySelector(`select[name="linha_tipo_plano_${linhaCounter}"]`);
+        const inputValor = linhaForm.querySelector(`input[name="linha_valor_${linhaCounter}"]`);
+        
+        selectTipoPlano.addEventListener('change', function() {
+            const valores = {
+                'BLACK_VOZ_GW_800SMS': '14.00',
+                'BLACK_1GB_GW_800SMS': '15.90',
+                'BLACK_5GB_GW_800SMS': '25.90',
+                'BLACK_10GB_GW_800SMS': '29.90',
+                'BLACK_20GB_GW_800SMS': '39.90',
+                'BLACK_50GB_GW_800SMS': '69.90',
+                'BLACK_ILIMITADO_GB_GW_800SMS': '164.00'
+            };
+            
+            if (valores[this.value]) {
+                inputValor.value = valores[this.value];
+            } else {
+                inputValor.value = '';
+            }
+        });
+        
+        // Animar a entrada do novo formulário
+        setTimeout(() => {
+            linhaForm.style.opacity = '0';
+            linhaForm.style.transform = 'translateY(-20px)';
+            linhaForm.style.transition = 'all 0.3s ease';
+            
+            requestAnimationFrame(() => {
+                linhaForm.style.opacity = '1';
+                linhaForm.style.transform = 'translateY(0)';
+            });
+        }, 10);
+        
+        // Atualizar contador
+        atualizarContadorLinhas();
+    }
+    
+    function removerFormularioLinha(id) {
+        const formElement = document.getElementById(`linha-form-${id}`);
+        if (formElement) {
+            // Animação de saída
+            formElement.style.transition = 'all 0.3s ease';
+            formElement.style.opacity = '0';
+            formElement.style.transform = 'translateY(-20px)';
+            
+            setTimeout(() => {
+                formElement.remove();
+            }, 300);
+        }
+    }
+    
+    // Função para apagar fidelidade
+    document.getElementById('btn-apagar-fidelidade').addEventListener('click', function() {
+        const numeroLinha = numeroInput.value.trim();
+        
+        if (!numeroLinha) {
+            alert('Por favor, insira o número da linha para apagar a fidelidade.');
+            return;
+        }
+        
+        if (confirm(`Tem certeza que deseja apagar todas as fidelidades da linha ${numeroLinha}? Esta ação não pode ser desfeita.`)) {
+            // Aqui você pode implementar a lógica de exclusão
+            // Por enquanto, vamos mostrar uma mensagem
+            fetch(`/linhas/apagar-fidelidade/?numero=${encodeURIComponent(numeroLinha)}`, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    mostrarAlerta('Fidelidade apagada com sucesso!', 'success');
+                    limparCampos();
+                    numeroInput.value = '';
+                    document.querySelector('textarea[name="observacoes"]').value = '';
+                } else {
+                    mostrarAlerta(result.error || 'Erro ao apagar fidelidade', 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                mostrarAlerta('Erro ao apagar fidelidade: ' + error.message, 'danger');
+            });
+        }
+    });
+    
+    function atualizarContadorLinhas() {
+        const formsAtivos = document.querySelectorAll('.linha-form-card');
+        document.getElementById('linhas_count').value = formsAtivos.length;
+    }
+    
+    // Interceptar submit do formulário para validar linhas
+    document.getElementById('form-fidelidade').addEventListener('submit', function(e) {
+        const formsAtivos = document.querySelectorAll('.linha-form-card');
+        
+        if (formsAtivos.length === 0) {
+            e.preventDefault();
+            alert('Adicione pelo menos uma linha antes de salvar a fidelidade.');
+            return false;
+        }
+        
+        // Validar campos obrigatórios de cada linha
+        let todosValidos = true;
+        formsAtivos.forEach((form, index) => {
+            const numero = form.querySelector('input[name^="linha_numero_"]');
+            const cliente = form.querySelector('input[name^="linha_cliente_"]');
+            const tipoPlano = form.querySelector('select[name^="linha_tipo_plano_"]');
+            
+            if (!numero.value.trim()) {
+                alert(`Linha #${index + 1}: Número é obrigatório`);
+                numero.focus();
+                todosValidos = false;
+                return false;
+            }
+            
+            if (!cliente.value.trim()) {
+                alert(`Linha #${index + 1}: Cliente é obrigatório`);
+                cliente.focus();
+                todosValidos = false;
+                return false;
+            }
+            
+            if (!tipoPlano.value) {
+                alert(`Linha #${index + 1}: Tipo de plano é obrigatório`);
+                tipoPlano.focus();
+                todosValidos = false;
+                return false;
+            }
+        });
+        
+        if (!todosValidos) {
+            e.preventDefault();
+            return false;
+        }
+        
+        atualizarContadorLinhas();
+    });
 });
 </script>
 {% endblock %}

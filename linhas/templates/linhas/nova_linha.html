@@ -111,8 +111,32 @@
 
                     <!-- FATURA -->
                     <h5 class="mt-4 mb-2"><i class="fas fa-building"></i> FATURA</h5>
+                    
+                    <!-- Campo de Busca Inteligente -->
+                    <div class="mb-4">
+                        <div class="col-md-12 position-relative">
+                            <label for="busca-cliente-completa" class="form-label">
+                                <i class="fas fa-search"></i> Buscar Cliente (Por Nome, CNPJ ou Número da Linha)
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                <input type="text" id="busca-cliente-completa" class="form-control" 
+                                       placeholder="Digite o nome da empresa, CNPJ ou número da linha para autocompletar..." 
+                                       autocomplete="off">
+                                <button type="button" id="limpar-busca" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times"></i> Limpar
+                                </button>
+                            </div>
+                            <div id="busca-resultado" class="alert alert-info mt-2" style="display:none;">
+                                <i class="fas fa-info-circle"></i> <span id="busca-resultado-texto"></span>
+                            </div>
+                            <div id="busca-suggestions" class="list-group position-absolute w-100 mt-1" style="z-index:1000; display:none; max-height:240px; overflow:auto;"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Campos do Cliente (preenchidos automaticamente) -->
                     <div class="row">
-                        <div class="col-md-6 mb-3 position-relative">
+                        <div class="col-md-6 mb-3">
                             <label for="{{ form.empresa.id_for_label }}" class="form-label small">
                                 <i class="fas fa-building"></i> {{ form.empresa.label }} *
                             </label>
@@ -120,12 +144,11 @@
                                 <span class="input-group-text"><i class="fas fa-building"></i></span>
                                 {{ form.empresa }}
                             </div>
-                            <div id="empresa-suggestions" class="list-group position-absolute w-100 mt-1" style="z-index:1000; display:none; max-height:240px; overflow:auto;"></div>
                             {% if form.empresa.errors %}
                                 <div class="text-danger small">{{ form.empresa.errors.0 }}</div>
                             {% endif %}
                         </div>
-                        <div class="col-md-6 mb-3 position-relative">
+                        <div class="col-md-6 mb-3">
                             <label for="{{ form.cnpj.id_for_label }}" class="form-label small">
                                 <i class="fas fa-id-card"></i> {{ form.cnpj.label }} *
                             </label>
@@ -133,7 +156,6 @@
                                 <span class="input-group-text"><i class="fas fa-id-card"></i></span>
                                 {{ form.cnpj }}
                             </div>
-                            <div id="cnpj-suggestions" class="list-group position-absolute w-100 mt-1" style="z-index:1000; display:none; max-height:240px; overflow:auto;"></div>
                             {% if form.cnpj.errors %}
                                 <div class="text-danger small">{{ form.cnpj.errors.0 }}</div>
                             {% endif %}
@@ -270,87 +292,140 @@
                         // Adiciona um grupo inicial
                         addLinha();
 
-                        // Autocomplete para empresa/cliente
+                        // Sistema de Busca Inteligente para Cliente
+                        var buscaClienteInput = document.getElementById('busca-cliente-completa');
+                        var buscaSuggestions = document.getElementById('busca-suggestions');
+                        var buscaResultado = document.getElementById('busca-resultado');
+                        var buscaResultadoTexto = document.getElementById('busca-resultado-texto');
+                        var limparBuscaBtn = document.getElementById('limpar-busca');
+                        
+                        // Campos do formulário
                         var empresaInput = document.getElementById('{{ form.empresa.id_for_label }}');
-                        var empresaSuggestions = document.getElementById('empresa-suggestions');
                         var cnpjInput = document.getElementById('{{ form.cnpj.id_for_label }}');
                         var taxaInput = document.getElementById('{{ form.taxa_manutencao.id_for_label }}');
                         var rpSelect = document.getElementById('rp-select');
+                        
+                        var clienteAtualId = null;
+                        var timeoutBusca = null;
 
-                        empresaInput.addEventListener('input', function() {
-                            var query = empresaInput.value.trim();
-                            if (query.length >= 2) {
-                                fetch('/linhas/autocomplete-cliente/?q=' + encodeURIComponent(query))
+                        // Função para limpar todos os campos
+                        function limparCamposCliente() {
+                            empresaInput.value = '';
+                            cnpjInput.value = '';
+                            if (taxaInput) taxaInput.value = '';
+                            if (rpSelect) rpSelect.selectedIndex = 0;
+                            clienteAtualId = null;
+                            buscaResultado.style.display = 'none';
+                            buscaSuggestions.style.display = 'none';
+                        }
+
+                        // Função para preencher campos com dados do cliente
+                        function preencherDadosCliente(cliente, foundVia) {
+                            empresaInput.value = cliente.empresa || '';
+                            cnpjInput.value = cliente.cnpj || '';
+                            if (taxaInput) taxaInput.value = cliente.valor_taxa_manutencao || '0.00';
+                            
+                            clienteAtualId = cliente.id;
+                            
+                            // Mostrar resultado da busca
+                            buscaResultadoTexto.textContent = `Cliente encontrado via ${foundVia}: ${cliente.empresa}`;
+                            buscaResultado.className = 'alert alert-success mt-2';
+                            buscaResultado.style.display = 'block';
+                            
+                            buscaSuggestions.style.display = 'none';
+                        }
+
+                        // Event listener para busca inteligente
+                        buscaClienteInput.addEventListener('input', function() {
+                            var query = buscaClienteInput.value.trim();
+                            
+                            // Limpar timeout anterior
+                            if (timeoutBusca) {
+                                clearTimeout(timeoutBusca);
+                            }
+                            
+                            if (query.length < 2) {
+                                buscaSuggestions.style.display = 'none';
+                                buscaResultado.style.display = 'none';
+                                return;
+                            }
+                            
+                            // Debounce - aguardar 300ms antes de fazer a busca
+                            timeoutBusca = setTimeout(function() {
+                                fetch('/linhas/buscar-cliente-completo/?q=' + encodeURIComponent(query))
                                     .then(response => response.json())
                                     .then(data => {
-                                        empresaSuggestions.innerHTML = '';
-                                        if (data.length > 0) {
-                                            data.forEach(function(item) {
-                                                var el = document.createElement('a');
-                                                el.className = 'list-group-item list-group-item-action';
-                                                el.textContent = item.nome + (item.cnpj ? ' - ' + item.cnpj : '');
-                                                el.onclick = function() {
-                                                    empresaInput.value = item.nome;
-                                                    if (item.cnpj) cnpjInput.value = item.cnpj;
-                                                    if (item.taxa_manutencao) taxaInput.value = item.taxa_manutencao;
-                                                    if (item.rp) {
-                                                        rpSelect.innerHTML = '<option value="">Selecione um RP</option><option value="novo">Novo RP</option>';
-                                                        var elrp = document.createElement('option');
-                                                        elrp.value = item.rp;
-                                                        elrp.textContent = item.rp;
-                                                        rpSelect.appendChild(elrp);
-                                                        rpSelect.value = item.rp;
-                                                    }
-                                                    empresaSuggestions.style.display = 'none';
-                                                };
-                                                empresaSuggestions.appendChild(el);
-                                            });
-                                            empresaSuggestions.style.display = '';
+                                        if (data.success) {
+                                            // Cliente encontrado - preencher automaticamente
+                                            preencherDadosCliente(data.cliente, data.found_via);
                                         } else {
-                                            empresaSuggestions.style.display = 'none';
+                                            // Não encontrou - mostrar sugestões
+                                            mostrarSugestoes(query);
                                         }
+                                    })
+                                    .catch(error => {
+                                        console.error('Erro na busca:', error);
+                                        mostrarSugestoes(query);
                                     });
-                            } else {
-                                empresaSuggestions.style.display = 'none';
-                            }
+                            }, 300);
                         });
-                        document.addEventListener('click', function(e) {
-                            if (!empresaInput.contains(e.target)) {
-                                empresaSuggestions.style.display = 'none';
-                            }
-                        });
-                        // Autocomplete clientes (fills hidden cliente id + empresa + cnpj)
-                        var clienteSearch = document.getElementById('cliente-search');
-                        var clienteSuggestions = document.getElementById('cliente-suggestions');
-                        var clienteIdInput = document.getElementById('cliente-id');
-                        clienteSearch && clienteSearch.addEventListener('input', function() {
-                            var q = clienteSearch.value.trim();
-                            if (q.length < 2) { clienteSuggestions.style.display = 'none'; return; }
-                            fetch('/linhas/buscar-clientes/?q=' + encodeURIComponent(q))
-                                .then(r => r.json())
+
+                        // Função para mostrar sugestões de clientes
+                        function mostrarSugestoes(query) {
+                            fetch('/linhas/buscar-clientes/?q=' + encodeURIComponent(query))
+                                .then(response => response.json())
                                 .then(data => {
-                                    clienteSuggestions.innerHTML = '';
-                                    if (!data || data.length === 0) { clienteSuggestions.style.display = 'none'; return; }
-                                    data.forEach(function(it) {
-                                        var el = document.createElement('a');
-                                        el.className = 'list-group-item list-group-item-action';
-                                        el.textContent = it.empresa + (it.cnpj ? ' - ' + it.cnpj : '');
-                                        el.href = '#';
-                                        el.onclick = function(ev) {
-                                            ev.preventDefault();
-                                            clienteIdInput.value = it.id;
-                                            var empresaInput = document.getElementById('{{ form.empresa.id_for_label }}');
-                                            var cnpjInput = document.getElementById('{{ form.cnpj.id_for_label }}');
-                                            if (empresaInput) empresaInput.value = it.empresa || '';
-                                            if (cnpjInput) cnpjInput.value = it.cnpj || '';
-                                            clienteSuggestions.style.display = 'none';
-                                        };
-                                        clienteSuggestions.appendChild(el);
-                                    });
-                                    clienteSuggestions.style.display = '';
-                                }).catch(() => { clienteSuggestions.style.display = 'none'; });
+                                    buscaSuggestions.innerHTML = '';
+                                    
+                                    if (data && data.length > 0) {
+                                        data.forEach(function(cliente) {
+                                            var el = document.createElement('a');
+                                            el.className = 'list-group-item list-group-item-action';
+                                            el.innerHTML = `
+                                                <div class="d-flex w-100 justify-content-between">
+                                                    <h6 class="mb-1">${cliente.empresa}</h6>
+                                                    <small>${cliente.cnpj || 'Sem CNPJ'}</small>
+                                                </div>
+                                                <p class="mb-1">${cliente.fantasia || cliente.razao_social || ''}</p>
+                                            `;
+                                            el.onclick = function() {
+                                                preencherDadosCliente(cliente, 'seleção manual');
+                                                buscaClienteInput.value = cliente.empresa;
+                                            };
+                                            buscaSuggestions.appendChild(el);
+                                        });
+                                        buscaSuggestions.style.display = 'block';
+                                        
+                                        // Mostrar mensagem de "não encontrado diretamente"
+                                        buscaResultadoTexto.textContent = `Nenhum resultado direto. ${data.length} sugestão(ões) disponível(eis) abaixo.`;
+                                        buscaResultado.className = 'alert alert-warning mt-2';
+                                        buscaResultado.style.display = 'block';
+                                    } else {
+                                        buscaSuggestions.style.display = 'none';
+                                        buscaResultadoTexto.textContent = 'Nenhum cliente encontrado. Certifique-se de cadastrar o cliente antes de criar a linha.';
+                                        buscaResultado.className = 'alert alert-danger mt-2';
+                                        buscaResultado.style.display = 'block';
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Erro ao buscar sugestões:', error);
+                                    buscaSuggestions.style.display = 'none';
+                                });
+                        }
+
+                        // Botão limpar
+                        limparBuscaBtn.addEventListener('click', function() {
+                            buscaClienteInput.value = '';
+                            limparCamposCliente();
                         });
-                        document.addEventListener('click', function(e) { if (!clienteSearch.contains(e.target)) clienteSuggestions.style.display = 'none'; });
+
+                        // Fechar sugestões ao clicar fora
+                        document.addEventListener('click', function(e) {
+                            if (!buscaClienteInput.contains(e.target) && !buscaSuggestions.contains(e.target)) {
+                                buscaSuggestions.style.display = 'none';
+                            }
+                        });
+
                     });
                     </script>
                     
