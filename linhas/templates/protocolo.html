@@ -362,6 +362,45 @@
         transform: translateY(-2px);
         box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
     }
+    /* ====== Media Queries Responsivas ====== */
+    @media (max-width: 992px) {
+        .tech-header { padding:20px; }
+        .tech-header h1 { font-size:1.6rem; }
+        .stat-card { padding:20px; }
+        .stat-card h2 { font-size:2rem; }
+        .filter-card .form-label { font-size:.85rem; }
+    }
+    @media (max-width: 768px) {
+        .stat-card .icon-wrapper { width:50px; height:50px; font-size:22px; }
+        .request-card .row.align-items-center > div { margin-bottom:.75rem; }
+        .request-card .card-body { padding:1rem 1rem; }
+        .filter-card form .row > [class*='col-'] { flex:0 0 50%; max-width:50%; }
+        .filter-card form .row > .col-lg-1 { flex:0 0 50%; max-width:50%; }
+    }
+    @media (max-width: 576px) {
+        .tech-header { padding:16px; border-radius:12px; }
+        .tech-header h1 { font-size:1.35rem; }
+        .tech-header p { font-size:.9rem; }
+        .stat-card { padding:16px; border-radius:16px; }
+        .stat-card h5 { font-size:.75rem; }
+        .stat-card h2 { font-size:1.6rem; }
+        .filter-card { border-radius:12px; }
+        .filter-card .card-body { padding:1rem .85rem; }
+        .filter-card form .row > [class*='col-'] { flex:0 0 100%; max-width:100%; }
+        .filter-card button.btn { margin-top:.25rem; }
+        .request-card { border-radius:14px; }
+        .request-card .card-body { padding:1rem .85rem; }
+        .request-card h6 { font-size:.85rem; }
+        .request-card small { font-size:.7rem; }
+        .request-card .btn-detalhes { font-size:.65rem; padding:.35rem .5rem; }
+        .badge-nova-linha, .badge-fidelidade { font-size:.55rem; }
+        nav .pagination .page-link { padding:.4rem .55rem; font-size:.7rem; }
+    }
+    @media (min-width:1400px) {
+        .row.mb-4 > .col-lg-3 { flex:0 0 25%; max-width:25%; }
+        .stat-card h2 { font-size:2.8rem; }
+    }
+    /* ====== Fim Media Queries ====== */
 </style>
 
 <div class="tech-header">
