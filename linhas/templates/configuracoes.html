@@ -615,10 +615,30 @@
 </div>
 
 <!-- Menu de Navegação Rápida -->
-<div class="container-fluid px-4 py-4" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
+<div id="areas-configuracao" class="container-fluid px-4 py-4" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.18); backdrop-filter: blur(14px) saturate(140%); -webkit-backdrop-filter: blur(14px) saturate(140%); border-radius: 22px;">
     <h4 class="mb-4" style="color: #2d3748; font-weight: 600;">
         <i class="fas fa-th-large me-2"></i>Áreas de Configuração
     </h4>
+    <style>
+        /* Escopo apenas para a área de configuração inicial */
+        #areas-configuracao .card {
+            background: rgba(255,255,255,0.10) !important;
+            border: 1px solid rgba(255,255,255,0.22) !important;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.25) !important;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all .35s ease;
+        }
+        #areas-configuracao .card:hover {
+            background: rgba(255,255,255,0.18) !important;
+            transform: translateY(-6px) !important;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.35) !important;
+        }
+        #areas-configuracao h5.card-title {color:#000000 !important; text-shadow:none; font-weight:700;}
+        #areas-configuracao p.card-text {color:#000000 !important; font-weight:500;}
+        #areas-configuracao small.text-primary {color:#000000 !important; font-weight:600;}
+        #areas-configuracao .badge.bg-success {background: linear-gradient(135deg,#16a34a,#4ade80) !important; border:1px solid rgba(0,0,0,0.15); color:#fff;}
+    </style>
     <div class="row g-3">
         <div class="col-md-3">
             <div class="text-decoration-none" onclick="toggleUsuariosPanel()" style="cursor: pointer;">
@@ -693,12 +713,16 @@
     
     .usuarios-panel {
         display: none;
-        background: white;
-        border-radius: 15px;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-        padding: 2rem;
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.25);
+        border-radius: 18px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+        padding: 2.25rem 2rem 2.5rem 2rem;
         margin: 2rem 0;
         animation: slideDown 0.3s ease-out;
+        backdrop-filter: blur(14px) saturate(140%);
+        -webkit-backdrop-filter: blur(14px) saturate(140%);
+        color:#000;
     }
     
     .usuarios-panel.active {
@@ -743,15 +767,45 @@
     }
     
     .management-nav .nav-btn.active {
-        border-color: #667eea;
-        background: linear-gradient(135deg, #667eea, #764ba2);
-        color: white;
+        border-color: #6366f1;
+        background: #ffffff;
+        color: #000 !important;
+        box-shadow: 0 0 0 3px rgba(99,102,241,0.25);
+        position: relative;
     }
+    .management-nav .nav-btn.active::after {
+        content: '';
+        position: absolute;
+        left: 10%;
+        bottom: 6px;
+        width: 80%;
+        height: 3px;
+        border-radius: 3px;
+        background: linear-gradient(90deg,#6366f1,#818cf8);
+    }
+    .management-nav .nav-btn h6,
+    .management-nav .nav-btn small { color:#000 !important; font-weight:600; }
+    #usuarios-panel h2,
+    #usuarios-panel h5,
+    #usuarios-panel h6,
+    #usuarios-panel p,
+    #usuarios-panel label,
+    #usuarios-panel strong,
+    #usuarios-panel small { color:#000 !important; }
+    #usuarios-panel .text-muted { color:#000 !important; opacity:.85; }
+    #usuarios-panel .card-header { background: rgba(255,255,255,0.30) !important; color:#000 !important; border:1px solid rgba(0,0,0,0.15); backdrop-filter: blur(12px); }
+    #usuarios-panel .alert-info, 
+    #usuarios-panel .alert-warning, 
+    #usuarios-panel .alert-success { color:#000; }
     
     .management-nav .nav-btn i {
         font-size: 2rem;
         margin-bottom: 0.5rem;
     }
+
+    /* Título e subtítulo em branco dentro do painel de usuários */
+    #usuarios-panel .panel-title-white { color:#ffffff !important; text-shadow:0 2px 6px rgba(0,0,0,0.45); }
+    #usuarios-panel .panel-subtitle-white { color:#ffffff !important; opacity:0.92; font-weight:500; }
     
     .management-content {
         display: none;
@@ -802,8 +856,8 @@ function showManagementSection(sectionId) {
 <!-- Painel de Gerenciamento de Usuários -->
 <div id="usuarios-panel" class="usuarios-panel container-fluid px-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 style="color: #2d3748; font-weight: 700;">
-            <i class="fas fa-users me-3" style="color: #667eea;"></i>
+        <h2 class="panel-title-white" style="font-weight:700;">
+            <i class="fas fa-users me-3" style="color: #9fb3ff;"></i>
             Gerenciamento de Usuários
         </h2>
         <button onclick="toggleUsuariosPanel()" class="btn btn-outline-secondary">
@@ -811,8 +865,8 @@ function showManagementSection(sectionId) {
         </button>
     </div>
     
-    <p class="text-muted mb-4">
-        <i class="fas fa-info-circle me-2"></i>
+    <p class="panel-subtitle-white mb-4">
+        <i class="fas fa-info-circle me-2" style="color:#9fb3ff;"></i>
         Gerencie usuários do sistema, controle de acesso e segurança.
     </p>
     
