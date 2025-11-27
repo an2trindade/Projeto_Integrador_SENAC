@@ -10,7 +10,7 @@
     <ul>
         {% for linha in linhas %}
             <li>
-                {{ linha.numero }} - {{ linha.operadora }} - {{ linha.plano }} - 
+                {{ linha.numero }} - {{ linha.tipo_plano }} - 
                 {% if linha.usuario %}{{ linha.usuario.username }}{% else %}Sem usuário{% endif %} - 
                 {% if linha.ativa %}Ativa{% else %}Inativa{% endif %}
             </li>

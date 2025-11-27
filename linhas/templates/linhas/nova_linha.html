@@ -93,9 +93,9 @@
                         </div>
                         <div class="col-md-6 mb-3" id="linha-provisoria-group" style="display:none;">
                             <label for="linha-provisoria" class="form-label">
-                                <i class="fas fa-search"></i> Pesquisar Linha Provisória (Estoque)
+                                <i class="fas fa-search"></i> Pesquisar Linha Provisória (Estoque - RP: 7.1255217.10.11)
                             </label>
-                            <input type="text" class="form-control" id="linha-provisoria" name="linha_provisoria" placeholder="Digite para buscar..." autocomplete="off">
+                            <input type="text" class="form-control" id="linha-provisoria" name="linha_provisoria" placeholder="Digite para buscar linha de estoque..." autocomplete="off">
                             <div id="provisoria-suggestions" class="list-group" style="position:absolute; z-index:1000;"></div>
                         </div>
                     </div>
@@ -180,9 +180,13 @@
                             </label>
                             <select class="form-select" id="rp-select" name="rp">
                                 <option value="">Selecione um RP</option>
+                                <option value="7.1255217.10.11">7.1255217.10.11 (ESTOQUE)</option>
                                 <option value="novo">Novo RP</option>
                             </select>
                             <input type="text" class="form-control mt-2" id="rp-novo" name="rp_novo" placeholder="Digite novo RP" style="display:none;">
+                            <small class="text-info" id="rp-auto-info" style="display:none;">
+                                <i class="fas fa-info-circle"></i> RP selecionado automaticamente para movimentação de estoque/portabilidade
+                            </small>
                             {% if form.rp.errors %}
                                 <div class="text-danger small">{{ form.rp.errors.0 }}</div>
                             {% endif %}
@@ -197,7 +201,6 @@
                     </button>
                     <template id="linha-template">
                         <div class="linha-grupo mb-4 border rounded p-3 position-relative">
-                            <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 remover-linha" title="Remover" style="z-index:2;"><i class="fas fa-trash"></i></button>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label"><i class="fas fa-mobile-alt"></i> Número da Linha *</label>
@@ -266,10 +269,6 @@
                                 tipoPlano.addEventListener('change', function() {
                                     var tipo = tipoPlano.value;
                                     valorPlano.value = valoresPlano[tipo] || '';
-                                });
-                                var removerBtn = grupo.querySelector('.remover-linha');
-                                removerBtn.addEventListener('click', function() {
-                                    grupo.remove();
                                 });
 
                                 // Mostrar/ocultar campo Linha a ser portada conforme ação principal
@@ -666,6 +665,23 @@
         var anexoArea = document.getElementById('anexo-area');
         function atualizarObsArea() {
             if (acaoPrincipal) {
+                // Configurar RP automaticamente para ESTOQUE e PORTABILIDADE
+                var rpSelect = document.getElementById('rp-select');
+                var rpAutoInfo = document.getElementById('rp-auto-info');
+                
+                if (acaoPrincipal.value === 'ESTOQUE' || acaoPrincipal.value === 'PORTABILIDADE') {
+                    if (rpSelect) {
+                        rpSelect.value = '7.1255217.10.11';
+                    }
+                    if (rpAutoInfo) {
+                        rpAutoInfo.style.display = 'block';
+                    }
+                } else {
+                    if (rpAutoInfo) {
+                        rpAutoInfo.style.display = 'none';
+                    }
+                }
+                
                 if (acaoPrincipal.value === 'TT') {
                     obsArea.style.display = '';
                     textoObs.innerHTML = '<i class="fas fa-info-circle"></i> Insira o documento pessoal do titular da linha a ser transferida e o documento de Transferência de Titularidade - TT assinada.';

@@ -2,14 +2,13 @@ from rest_framework import serializers
 from .models import Linha
 
 class LinhaSerializer(serializers.ModelSerializer):
-    operadora_display = serializers.CharField(source='get_operadora_display', read_only=True)
     tipo_plano_display = serializers.CharField(source='get_tipo_plano_display', read_only=True)
     criado_por_nome = serializers.CharField(source='criado_por.username', read_only=True)
     
     class Meta:
         model = Linha
         fields = [
-            'id', 'numero', 'nome_titular', 'operadora', 'operadora_display',
+            'id', 'numero', 'nome_titular',
             'tipo_plano', 'tipo_plano_display', 'valor_plano', 'data_contratacao',
             'data_vencimento', 'ativa', 'observacoes', 'criado_por', 'criado_por_nome',
             'criado_em', 'atualizado_em'
@@ -42,7 +41,7 @@ class LinhaCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Linha
         fields = [
-            'numero', 'nome_titular', 'operadora', 'tipo_plano', 
+            'numero', 'nome_titular', 'tipo_plano', 
             'valor_plano', 'data_contratacao', 'data_vencimento', 
             'ativa', 'observacoes'
         ]

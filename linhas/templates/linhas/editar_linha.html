@@ -10,6 +10,27 @@
     </a>
 </div>
 
+<!-- Exibição de mensagens -->
+{% if messages %}
+    <div class="alert-container mb-4">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {% if message.tags == 'success' %}
+                    <i class="fas fa-check-circle"></i>
+                {% elif message.tags == 'error' %}
+                    <i class="fas fa-exclamation-triangle"></i>
+                {% elif message.tags == 'warning' %}
+                    <i class="fas fa-exclamation-circle"></i>
+                {% else %}
+                    <i class="fas fa-info-circle"></i>
+                {% endif %}
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
 <div class="card">
     <div class="card-body">
         <form method="post" action="".>
@@ -157,16 +178,31 @@
             </div>
 
             <div class="d-flex gap-2">
-                <input type="submit" class="btn btn-primary" value="Salvar Alterações">
+                <input type="submit" class="btn btn-primary" id="btn-salvar" value="Salvar Alterações">
                 <a href="{% url 'linhas:listalinhas' %}" class="btn btn-secondary">
                     <i class="fas fa-times"></i> Cancelar
-                </a>
-                <a href="{% url 'linhas:detalheslinha' linha.pk %}" class="btn btn-info">
-                    <i class="fas fa-eye"></i> Ver Detalhes
                 </a>
             </div>
         </form>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var form = document.querySelector('form');
+    var btnSalvar = document.getElementById('btn-salvar');
+    
+    form.addEventListener('submit', function(e) {
+        // Alterar botão durante o envio
+        btnSalvar.disabled = true;
+        btnSalvar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+        btnSalvar.className = 'btn btn-primary disabled';
+        
+        // Permitir o envio do formulário
+        return true;
+    });
+});
+</script>
+
 {% endblock %}
 

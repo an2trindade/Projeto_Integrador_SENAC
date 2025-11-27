@@ -409,7 +409,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator
 from django.db.models import Q
 from .models import Linha, Protocolo, Cliente
-from .forms import LinhaForm, BuscaLinhaForm, ClienteForm
+from .forms import LinhaForm, LinhaEditForm, BuscaLinhaForm, ClienteForm
 from django.urls import reverse
 
 @login_required
@@ -419,7 +419,7 @@ def lista_linhas(request):
     
     if form_busca.is_valid():
         busca = form_busca.cleaned_data.get('busca')
-        operadora = form_busca.cleaned_data.get('operadora')
+        # operadora removido - trabalhamos com operadora única
         tipo_plano = form_busca.cleaned_data.get('tipo_plano')
         ativa = form_busca.cleaned_data.get('ativa')
         
@@ -431,8 +431,7 @@ def lista_linhas(request):
                 Q(rp__icontains=busca)
             )
         
-        if operadora:
-            linhas = linhas.filter(operadora=operadora)
+        # Filtro por operadora removido - operadora única
             
         if tipo_plano:
             linhas = linhas.filter(tipo_plano=tipo_plano)
@@ -445,7 +444,7 @@ def lista_linhas(request):
             else:
                 linhas = linhas.filter(acao__iexact=ativa)
     
-    paginator = Paginator(linhas, 10)
+    paginator = Paginator(linhas, 25)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
@@ -574,17 +573,63 @@ def nova_linha(request):
     return render(request, 'linhas/nova_linha.html', {'form': form})
 
 @login_required
+@login_required
 def editar_linha(request, pk):
     linha = get_object_or_404(Linha, pk=pk)
     
     if request.method == 'POST':
-        form = LinhaForm(request.POST, instance=linha)
+        form = LinhaEditForm(request.POST, instance=linha)
         if form.is_valid():
-            form.save()
-            messages.success(request, f'Linha {linha.numero} atualizada com sucesso!')
-            return redirect('linhas:detalheslinha', pk=linha.pk)
+            linha_atualizada = form.save(commit=False)
+            # Manter o usuário original que criou a linha
+            linha_atualizada.criado_por = linha.criado_por
+            linha_atualizada.save()
+            
+            # Tentar associar cliente automaticamente se houver CNPJ
+            try:
+                import re
+                cliente = None
+                if linha_atualizada.cnpj:
+                    cnpj_digits = re.sub(r"\D", "", linha_atualizada.cnpj)
+                    cliente = Cliente.objects.filter(cnpj__icontains=cnpj_digits).first()
+                
+                if not cliente and linha_atualizada.empresa:
+                    cliente = Cliente.objects.filter(empresa__iexact=linha_atualizada.empresa).first()
+                
+                if cliente:
+                    linha_atualizada.cliente = cliente
+                    linha_atualizada.save()
+            except Exception:
+                pass
+            
+            messages.success(request, f'✅ Linha {linha_atualizada.numero} foi atualizada com sucesso!')
+            return redirect('linhas:listalinhas')
+        else:
+            # Debug: log dos erros para diagnóstico
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Erros no formulário de edição da linha {linha.numero}: {form.errors}")
+            
+            # Mostrar erros específicos do formulário
+            error_messages = []
+            for field_name, field_errors in form.errors.items():
+                field_label = field_name
+                if hasattr(form.fields.get(field_name), 'label') and form.fields[field_name].label:
+                    field_label = form.fields[field_name].label
+                for error in field_errors:
+                    error_messages.append(f"{field_label}: {error}")
+            
+            if error_messages:
+                messages.error(request, f'❌ Erro ao salvar: {"; ".join(error_messages[:5])}')
+            else:
+                messages.error(request, '❌ Erro ao salvar. Verifique os dados informados.')
+            
+            # Também adicionar erros não relacionados a campos específicos
+            if form.non_field_errors():
+                for error in form.non_field_errors():
+                    messages.error(request, f'❌ {error}')
     else:
-        form = LinhaForm(instance=linha)
+        form = LinhaEditForm(instance=linha)
     
     return render(request, 'linhas/editar_linha.html', {'form': form, 'linha': linha})
 
@@ -1166,27 +1211,60 @@ def export_protocolos_pendentes_csv(request):
 
 @login_required
 def fidelidade(request):
-    """Página limpa para registro simples de fidelidade: número da linha + observações."""
+    """Página para registro de fidelidade com múltiplas linhas."""
     if request.method == 'POST':
         from .models import Linha, Fidelidade
-        numero = request.POST.get('numero_linha', '').strip()
-        observacoes = request.POST.get('observacoes', '').strip()
-
-        if not numero:
-            messages.error(request, 'Informe o número da linha.')
-        elif not observacoes:
-            messages.error(request, 'Informe as observações.')
-        elif len(observacoes) < 5:
-            messages.error(request, 'Observações devem ter pelo menos 5 caracteres.')
-        else:
+        
+        # Observações gerais (opcional)
+        observacoes_gerais = request.POST.get('observacoes', '').strip()
+        
+        # Contar quantas linhas foram enviadas
+        linhas_count = int(request.POST.get('linhas_count', 0))
+        
+        # Linha principal (se preenchida)
+        numero_principal = request.POST.get('numero_linha', '').strip()
+        
+        linhas_processadas = []
+        
+        # Processar linha principal se informada
+        if numero_principal:
             try:
-                linha = Linha.objects.get(numero=numero)
+                linha = Linha.objects.get(numero=numero_principal)
+                linhas_processadas.append(linha)
             except Linha.DoesNotExist:
-                messages.error(request, f'Linha {numero} não encontrada.')
+                messages.error(request, f'Linha principal {numero_principal} não encontrada.')
+                return render(request, 'linhas/fidelidade.html')
+        
+        # Processar linhas dinâmicas
+        for i in range(1, linhas_count + 1):
+            numero_linha = request.POST.get(f'linha_numero_{i}', '').strip()
+            if numero_linha:
+                try:
+                    linha = Linha.objects.get(numero=numero_linha)
+                    linhas_processadas.append(linha)
+                except Linha.DoesNotExist:
+                    messages.error(request, f'Linha {numero_linha} não encontrada.')
+                    return render(request, 'linhas/fidelidade.html')
+        
+        if not linhas_processadas:
+            messages.error(request, 'Informe pelo menos uma linha para registrar a fidelidade.')
+        else:
+            # Criar fidelidade para cada linha
+            fidelidades_criadas = 0
+            for linha in linhas_processadas:
+                Fidelidade.objects.create(
+                    linha=linha, 
+                    observacoes=observacoes_gerais or f'Fidelidade registrada para linha {linha.numero}',
+                    criado_por=request.user
+                )
+                fidelidades_criadas += 1
+            
+            if fidelidades_criadas == 1:
+                messages.success(request, f'Fidelidade registrada com sucesso para 1 linha.')
             else:
-                Fidelidade.objects.create(linha=linha, observacoes=observacoes, criado_por=request.user)
-                messages.success(request, f'Fidelidade registrada para a linha {numero}.')
-                return redirect('linhas:fidelidade')
+                messages.success(request, f'Fidelidade registrada com sucesso para {fidelidades_criadas} linhas.')
+            
+            return redirect('linhas:fidelidade')
 
     return render(request, 'linhas/fidelidade.html')
 
@@ -1223,7 +1301,6 @@ def buscar_linha_dados(request):
                     'cnpj': linha.cnpj or '',
                     'ativa': linha.ativa,
                     'tipo_plano': linha.tipo_plano or '',
-                    'operadora': linha.operadora or '',
                     'valor_plano': str(linha.valor_plano) if linha.valor_plano else '',
                     'iccid': linha.iccid or '',
                     'status': 'Ativa' if linha.ativa else 'Inativa'

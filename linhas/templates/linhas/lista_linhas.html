@@ -285,7 +285,7 @@
                         <td><strong>{{ linha.numero }}</strong></td>
                         <td>{{ linha.empresa }}</td>
                         <td>{{ linha.cnpj }}</td>
-                        <td>{{ linha.RP }}</td>
+                        <td>{{ linha.rp }}</td>
                         <td>{{ linha.get_tipo_plano_display }}</td>
                         <td>R$ {{ linha.valor_plano }}</td>
                         <td>R$ {{ linha.taxa_manutencao }}</td>
@@ -308,10 +308,6 @@
                                 <a href="{% url 'linhas:editarlinha' linha.pk %}" class="btn btn-warning" title="Editar">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                                <a href="{% url 'linhas:excluirlinha' linha.pk %}" class="btn btn-danger" title="Excluir"
-                                   onclick="return confirm('Tem certeza que deseja excluir esta linha?')">
-                                    <i class="fas fa-trash"></i>
-                                </a>
                             </div>
                         </td>
                     </tr>
@@ -333,12 +329,12 @@
     <ul class="pagination justify-content-center">
         {% if page_obj.has_previous %}
             <li class="page-item">
-                <a class="page-link" href="?page=1{% if request.GET.busca %}&busca={{ request.GET.busca }}{% endif %}{% if request.GET.operadora %}&operadora={{ request.GET.operadora }}{% endif %}{% if request.GET.tipo_plano %}&tipo_plano={{ request.GET.tipo_plano }}{% endif %}{% if request.GET.ativa %}&ativa={{ request.GET.ativa }}{% endif %}">
+                <a class="page-link" href="?page=1{% if request.GET.busca %}&busca={{ request.GET.busca }}{% endif %}{% if request.GET.tipo_plano %}&tipo_plano={{ request.GET.tipo_plano }}{% endif %}{% if request.GET.ativa %}&ativa={{ request.GET.ativa }}{% endif %}">
                     <i class="fas fa-angle-double-left"></i> Primeira
                 </a>
             </li>
             <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.busca %}&busca={{ request.GET.busca }}{% endif %}{% if request.GET.operadora %}&operadora={{ request.GET.operadora }}{% endif %}{% if request.GET.tipo_plano %}&tipo_plano={{ request.GET.tipo_plano }}{% endif %}{% if request.GET.ativa %}&ativa={{ request.GET.ativa }}{% endif %}">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.busca %}&busca={{ request.GET.busca }}{% endif %}{% if request.GET.tipo_plano %}&tipo_plano={{ request.GET.tipo_plano }}{% endif %}{% if request.GET.ativa %}&ativa={{ request.GET.ativa }}{% endif %}">
                     <i class="fas fa-angle-left"></i> Anterior
                 </a>
             </li>
@@ -352,12 +348,12 @@
 
         {% if page_obj.has_next %}
             <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.busca %}&busca={{ request.GET.busca }}{% endif %}{% if request.GET.operadora %}&operadora={{ request.GET.operadora }}{% endif %}{% if request.GET.tipo_plano %}&tipo_plano={{ request.GET.tipo_plano }}{% endif %}{% if request.GET.ativa %}&ativa={{ request.GET.ativa }}{% endif %}">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.busca %}&busca={{ request.GET.busca }}{% endif %}{% if request.GET.tipo_plano %}&tipo_plano={{ request.GET.tipo_plano }}{% endif %}{% if request.GET.ativa %}&ativa={{ request.GET.ativa }}{% endif %}">
                     Próxima <i class="fas fa-angle-right"></i>
                 </a>
             </li>
             <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.busca %}&busca={{ request.GET.busca }}{% endif %}{% if request.GET.operadora %}&operadora={{ request.GET.operadora }}{% endif %}{% if request.GET.tipo_plano %}&tipo_plano={{ request.GET.tipo_plano }}{% endif %}{% if request.GET.ativa %}&ativa={{ request.GET.ativa }}{% endif %}">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.busca %}&busca={{ request.GET.busca }}{% endif %}{% if request.GET.tipo_plano %}&tipo_plano={{ request.GET.tipo_plano }}{% endif %}{% if request.GET.ativa %}&ativa={{ request.GET.ativa }}{% endif %}">
                     Última <i class="fas fa-angle-double-right"></i>
                 </a>
             </li>
