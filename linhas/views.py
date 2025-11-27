@@ -72,6 +72,14 @@ def login_view(request):
                     })
                 login_attempt.save()
                 print(f"Saved attempt count: {login_attempt.attempt_count}")
+                
+                # Calcular tentativas restantes
+                remaining_attempts = 3 - login_attempt.attempt_count
+                return render(request, 'login.html', {
+                    'error': f'Usuário ou senha incorretos. {remaining_attempts} tentativa(s) restante(s) antes do bloqueio.',
+                    'remaining_attempts': remaining_attempts,
+                    'attempt_count': login_attempt.attempt_count
+                })
             else:
                 print("Creating new login attempt record")
                 login_attempt = LoginAttempt.objects.create(
@@ -79,10 +87,12 @@ def login_view(request):
                     ip_address=ip_address
                 )
                 print(f"Created new attempt record: {login_attempt.id}")
-
-            return render(request, 'login.html', {
-                'error': 'Usuário ou senha incorretos'
-            })
+                
+                return render(request, 'login.html', {
+                    'error': 'Usuário ou senha incorretos. 2 tentativa(s) restante(s) antes do bloqueio.',
+                    'remaining_attempts': 2,
+                    'attempt_count': 1
+                })
 
     return render(request, 'login.html')
 

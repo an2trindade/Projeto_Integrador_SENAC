@@ -659,18 +659,21 @@
         </div>
         
         <div class="col-md-3">
-            <a href="#linhas-content" class="text-decoration-none" onclick="document.getElementById('linhas-content').scrollIntoView({behavior: 'smooth'}); return false;">
-                <div class="card h-100 border-0 shadow-sm" style="transition: all 0.3s ease; cursor: pointer;">
+            <div class="text-decoration-none" onclick="toggleLinhasPanel()" style="cursor: pointer;">
+                <div class="card h-100 border-0 shadow-sm" style="transition: all 0.3s ease; cursor: pointer; border: 2px solid #11998e !important;">
                     <div class="card-body text-center p-4">
-                        <div class="mb-3" style="width: 70px; height: 70px; margin: 0 auto; border-radius: 15px; background: linear-gradient(135deg, #11998e, #38ef7d); display: flex; align-items: center; justify-content: center;">
+                        <div class="mb-3" style="width: 70px; height: 70px; margin: 0 auto; border-radius: 15px; background: linear-gradient(135deg, #11998e, #38ef7d); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(17, 153, 142, 0.3);">
                             <i class="fas fa-phone fa-2x text-white"></i>
                         </div>
                         <h5 class="card-title mb-2" style="color: #2d3748; font-weight: 600;">Linhas</h5>
                         <p class="card-text text-muted small">Configurações de linhas telefônicas</p>
-                        <span class="badge bg-warning">Em Desenvolvimento</span>
+                        <span class="badge bg-success">Ativo</span>
+                        <div class="mt-2">
+                            <small class="text-primary"><i class="fas fa-hand-pointer me-1"></i>Clique para abrir</small>
+                        </div>
                     </div>
                 </div>
-            </a>
+            </div>
         </div>
         
         <div class="col-md-3">
@@ -820,6 +823,60 @@
         from { opacity: 0; }
         to { opacity: 1; }
     }
+    
+    /* Painel de Linhas - igual ao de usuários */
+    .linhas-panel {
+        display: none;
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.25);
+        border-radius: 18px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+        padding: 2.25rem 2rem 2.5rem 2rem;
+        margin: 2rem 0;
+        animation: slideDown 0.3s ease-out;
+        backdrop-filter: blur(14px) saturate(140%);
+        -webkit-backdrop-filter: blur(14px) saturate(140%);
+        color:#000;
+    }
+    
+    .linhas-panel.active {
+        display: block;
+    }
+    
+    #linhas-panel .panel-title-white { color:#ffffff !important; text-shadow:0 2px 6px rgba(0,0,0,0.45); }
+    #linhas-panel .panel-subtitle-white { color:#ffffff !important; opacity:0.92; font-weight:500; }
+
+    /* ====== Media Queries Responsivas Específicas da Página ====== */
+    @media (max-width: 1200px) {
+        .management-nav .nav-btn { min-width:180px; }
+    }
+    @media (max-width: 992px) {
+        .usuarios-panel, .linhas-panel { padding: 1.75rem 1.25rem; }
+        .management-nav { gap:.75rem; }
+        .management-nav .nav-btn { flex:1 1 calc(50% - .75rem); padding:.85rem .75rem; }
+        .management-nav .nav-btn i { font-size:1.6rem; }
+        #areas-configuracao .card-body { padding:1.75rem 1.25rem !important; }
+    }
+    @media (max-width: 768px) {
+        .management-nav .nav-btn { flex:1 1 100%; }
+        .management-nav .nav-btn h6 { font-size:.9rem; }
+        .usuarios-panel h2, .linhas-panel h2 { font-size:1.35rem; }
+        .usuarios-panel .card-header h5, .linhas-panel .card-header h5 { font-size:1rem; }
+        .linhas-panel .row.align-items-end > div { margin-bottom: .75rem !important; }
+    }
+    @media (max-width: 576px) {
+        #areas-configuracao h4 { font-size:1rem; }
+        #areas-configuracao .card .mb-3 { width:56px !important; height:56px !important; }
+        .usuarios-panel, .linhas-panel { padding:1.25rem .85rem; border-radius:14px; }
+        .linhas-panel h5, .linhas-panel h6, .usuarios-panel h5, .usuarios-panel h6 { font-size:.95rem; }
+        .linhas-panel .card-body p, .usuarios-panel .card-body p { font-size:.8rem; }
+        .linhas-panel button.btn, .usuarios-panel button.btn { font-size:.7rem; padding:.45rem .6rem; }
+        .management-nav .nav-btn { padding:.7rem .6rem; }
+        .management-nav .nav-btn i { font-size:1.4rem; margin-bottom:.25rem; }
+        .card.border-0.shadow-sm.mb-4 { margin-bottom:1rem !important; }
+        .alert .row { flex-direction: column; }
+    }
+    /* ====== Fim Media Queries ====== */
 </style>
 
 <script>
@@ -851,7 +908,161 @@ function showManagementSection(sectionId) {
     // Marca o botão como ativo
     event.currentTarget.classList.add('active');
 }
+
+function toggleLinhasPanel() {
+    const panel = document.getElementById('linhas-panel');
+    panel.classList.toggle('active');
+    
+    if (panel.classList.contains('active')) {
+        setTimeout(() => {
+            panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+    }
+}
 </script>
+
+<!-- Painel de Gerenciamento de Linhas -->
+<div id="linhas-panel" class="linhas-panel container-fluid px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="panel-title-white" style="font-weight:700;">
+            <i class="fas fa-phone me-3" style="color: #6ee7b7;"></i>
+            Gerenciamento de Linhas
+        </h2>
+        <button onclick="toggleLinhasPanel()" class="btn btn-outline-secondary">
+            <i class="fas fa-times me-2"></i>Fechar
+        </button>
+    </div>
+    
+    <p class="panel-subtitle-white mb-4">
+        <i class="fas fa-info-circle me-2" style="color:#6ee7b7;"></i>
+        Configure parâmetros relacionados ao gerenciamento de linhas telefônicas
+    </p>
+    
+    <!-- Card Principal de Importar Linhas -->
+    <div class="card border-0 shadow-sm mb-4" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-left: 4px solid #10b981 !important;">
+        <div class="card-body p-4">
+            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                <div style="width: 50px; height: 50px; border-radius: 12px; background: linear-gradient(135deg, #10b981, #059669); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">
+                    <i class="fas fa-file-upload fa-lg text-white"></i>
+                </div>
+                <div>
+                    <h5 style="margin: 0; font-weight: 700; color: #065f46;">
+                        <i class="fas fa-phone me-2"></i>Importar Linhas
+                    </h5>
+                    <span class="badge bg-success mt-1">Ativo</span>
+                </div>
+            </div>
+            
+            <p style="color: #047857; font-size: 0.95rem; margin-bottom: 1.5rem; font-weight: 500;">
+                Importe linhas em lote através de arquivos Excel ou CSV
+            </p>
+            
+            <!-- Formulário de Importação -->
+            <div class="card bg-white border-success mb-3">
+                <div class="card-body">
+                    <form id="importLinhasForm" enctype="multipart/form-data" style="margin-bottom: 1rem;">
+                        {% csrf_token %}
+                        
+                        <div class="row align-items-end">
+                            <div class="col-md-4 mb-3">
+                                <label for="empresa_select" class="form-label fw-semibold">
+                                    <i class="fas fa-building me-1 text-success"></i>Empresa de Destino *
+                                </label>
+                                <select name="empresa_id" id="empresa_select" class="form-select" required>
+                                    <option value="">Selecione uma empresa...</option>
+                                    <!-- Será preenchido via AJAX -->
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label for="arquivo_import" class="form-label fw-semibold">
+                                    <i class="fas fa-file-excel me-1 text-success"></i>Arquivo de Linhas *
+                                </label>
+                                <input type="file" name="arquivo_linhas" id="arquivo_import" 
+                                       class="form-control" accept=".xlsx,.xls,.csv" required>
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <button type="button" id="btnImportarLinhas" class="btn btn-success w-100">
+                                    <i class="fas fa-upload me-2"></i>Importar Linhas
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-light border mb-0" style="background: #f8fafc;">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong class="text-success">
+                                        <i class="fas fa-check-circle me-1"></i>Formatos aceitos:
+                                    </strong> Excel (.xlsx, .xls) ou CSV
+                                </div>
+                                <div class="col-md-6">
+                                    <strong class="text-success">
+                                        <i class="fas fa-table me-1"></i>Colunas esperadas:
+                                    </strong> Numero, ICCID, Tipo_Plano, Valor_Plano, RP, Acao
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                    
+                    <!-- Preview do arquivo -->
+                    <div id="preview_import_linhas" style="display: none;">
+                        <hr>
+                        <h6><i class="fas fa-eye me-2"></i>Preview do Arquivo</h6>
+                        <div id="preview_content"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Dica -->
+            <div class="alert alert-info border-info mb-0">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Dica:</strong> Use o <a href="{% url 'linhas:cadastro_empresa' %}" class="alert-link fw-bold">cadastro de empresa</a> 
+                para importar linhas automaticamente ao criar uma nova empresa.
+            </div>
+        </div>
+    </div>
+    
+    <!-- Card Parâmetros Gerais -->
+    <div class="card border-0 shadow-sm mb-4" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-left: 4px solid #3b82f6 !important;">
+        <div class="card-body p-4">
+            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                <div style="width: 50px; height: 50px; border-radius: 12px; background: linear-gradient(135deg, #3b82f6, #2563eb); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
+                    <i class="fas fa-cogs fa-lg text-white"></i>
+                </div>
+                <div>
+                    <h6 style="margin: 0; font-weight: 700; color: #1e40af;">Parâmetros Gerais</h6>
+                </div>
+            </div>
+            <p style="color: #1e40af; font-size: 0.95rem; margin-bottom: 1rem; font-weight: 500;">
+                Configurações globais do sistema de linhas
+            </p>
+            <button class="btn btn-outline-primary">
+                <i class="fas fa-external-link-alt me-2"></i> Configurar
+            </button>
+        </div>
+    </div>
+    
+    <!-- Card Relatórios -->
+    <div class="card border-0 shadow-sm mb-4" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-left: 4px solid #f59e0b !important;">
+        <div class="card-body p-4">
+            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                <div style="width: 50px; height: 50px; border-radius: 12px; background: linear-gradient(135deg, #f59e0b, #d97706); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);">
+                    <i class="fas fa-chart-line fa-lg text-white"></i>
+                </div>
+                <div>
+                    <h6 style="margin: 0; font-weight: 700; color: #92400e;">Relatórios</h6>
+                </div>
+            </div>
+            <p style="color: #92400e; font-size: 0.95rem; margin-bottom: 1rem; font-weight: 500;">
+                Configurações de relatórios e exportações
+            </p>
+            <button class="btn btn-outline-warning">
+                <i class="fas fa-external-link-alt me-2"></i> Configurar
+            </button>
+        </div>
+    </div>
+</div>
 
 <!-- Painel de Gerenciamento de Usuários -->
 <div id="usuarios-panel" class="usuarios-panel container-fluid px-4">
@@ -1351,114 +1562,7 @@ function showManagementSection(sectionId) {
 <div class="config-white-container">
         <div class="tab-content tab-content-area" id="configTabsContent">
             
-            <!-- Aba Linhas -->
-            <div class="tab-pane fade show active" id="linhas-content" role="tabpanel">
-                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-                    <i class="fas fa-phone" style="font-size: 1.5rem;"></i>
-                    <h5 style="margin: 0; font-weight: 600;">Configurações de Linhas</h5>
-                </div>
-                
-                <p style="color: #6c757d; margin-bottom: 2rem;">
-                    Configure parâmetros relacionados ao gerenciamento de linhas telefônicas
-                </p>
-                
-                <div class="development-alert">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <span><strong>Em desenvolvimento:</strong> Configurações de linhas serão implementadas em breve.</span>
-                </div>
-                
-                <!-- Importar Linhas -->
-                <div style="margin-bottom: 2.5rem;">
-                    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
-                        <i class="fas fa-file-upload" style="font-size: 1.2rem; color: #28a745;"></i>
-                        <h6 style="margin: 0; font-weight: 600;">Importar Linhas</h6>
-                        <span class="status-badge active">Ativo</span>
-                    </div>
-                    <p style="color: #6c757d; font-size: 0.95rem; margin-bottom: 1rem;">
-                        Importe linhas em lote através de arquivos Excel ou CSV
-                    </p>
-                    
-                    <div class="card border-success" style="margin-bottom: 1rem;">
-                        <div class="card-body">
-                            <form id="importLinhasForm" enctype="multipart/form-data" style="margin-bottom: 1rem;">
-                                {% csrf_token %}
-                                
-                                <div class="row align-items-end">
-                                    <div class="col-md-4 mb-3">
-                                        <label for="empresa_select" class="form-label">
-                                            <i class="fas fa-building me-1"></i>Empresa de Destino *
-                                        </label>
-                                        <select name="empresa_id" id="empresa_select" class="form-select" required>
-                                            <option value="">Selecione uma empresa...</option>
-                                            <!-- Será preenchido via AJAX -->
-                                        </select>
-                                    </div>
-                                    
-                                    <div class="col-md-4 mb-3">
-                                        <label for="arquivo_import" class="form-label">
-                                            <i class="fas fa-file-excel me-1"></i>Arquivo de Linhas *
-                                        </label>
-                                        <input type="file" name="arquivo_linhas" id="arquivo_import" 
-                                               class="form-control" accept=".xlsx,.xls,.csv" required>
-                                    </div>
-                                    
-                                    <div class="col-md-4 mb-3">
-                                        <button type="button" id="btnImportarLinhas" class="btn btn-success w-100">
-                                            <i class="fas fa-upload me-1"></i>Importar Linhas
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <div class="form-text">
-                                    <strong>Formatos aceitos:</strong> Excel (.xlsx, .xls) ou CSV<br>
-                                    <strong>Colunas esperadas:</strong> Numero, ICCID, Tipo_Plano, Valor_Plano, RP, Acao
-                                </div>
-                            </form>
-                            
-                            <!-- Preview do arquivo -->
-                            <div id="preview_import_linhas" style="display: none;">
-                                <hr>
-                                <h6><i class="fas fa-eye me-2"></i>Preview do Arquivo</h6>
-                                <div id="preview_content"></div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle me-2"></i>
-                        <strong>Dica:</strong> Use o <a href="{% url 'linhas:cadastro_empresa' %}" class="alert-link">cadastro de empresa</a> 
-                        para importar linhas automaticamente ao criar uma nova empresa.
-                    </div>
-                </div>
-                
-                <!-- Parâmetros Gerais -->
-                <div style="margin-bottom: 2.5rem;">
-                    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
-                        <i class="fas fa-cogs" style="font-size: 1.2rem;"></i>
-                        <h6 style="margin: 0; font-weight: 600;">Parâmetros Gerais</h6>
-                    </div>
-                    <p style="color: #6c757d; font-size: 0.95rem; margin-bottom: 1rem;">
-                        Configurações globais do sistema de linhas
-                    </p>
-                    <button class="btn btn-outline-primary" style="display: inline-flex; align-items: center; gap: 0.5rem;">
-                        <i class="fas fa-external-link-alt"></i> Configurar
-                    </button>
-                </div>
-                
-                <!-- Relatórios -->
-                <div style="margin-bottom: 2.5rem;">
-                    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
-                        <i class="fas fa-chart-line" style="font-size: 1.2rem;"></i>
-                        <h6 style="margin: 0; font-weight: 600;">Relatórios</h6>
-                    </div>
-                    <p style="color: #6c757d; font-size: 0.95rem; margin-bottom: 1rem;">
-                        Configurações de relatórios e exportações
-                    </p>
-                    <button class="btn btn-outline-primary" style="display: inline-flex; align-items: center; gap: 0.5rem;">
-                        <i class="fas fa-external-link-alt"></i> Configurar
-                    </button>
-                </div>
-            </div>
+            <!-- Aba Linhas removida: conteúdo agora apenas dentro do painel expansível de Linhas -->
 
             <!-- Aba Usuários -->
             <div class="tab-pane fade" id="usuarios-content" role="tabpanel">
