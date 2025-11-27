@@ -362,6 +362,12 @@
         transform: translateY(-2px);
         box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
     }
+    /* Forçar azul específico para botão Nova Linha no estado vazio */
+    .btn-nova-linha {
+        background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+        border: none !important;
+        color: #ffffff !important;
+    }
     /* ====== Media Queries Responsivas ====== */
     @media (max-width: 992px) {
         .tech-header { padding:20px; }
@@ -571,10 +577,10 @@
                     <h4>Nenhum pedido encontrado</h4>
                     <p class="mb-4">Tente ajustar os filtros ou criar novos pedidos nos menus Nova Linha ou Fidelidade.</p>
                     <div>
-                        <a href="{% url 'linhas:novalinha' %}" class="btn btn-success me-2">
+                        <a href="{% url 'linhas:novalinha' %}" class="btn btn-primary btn-nova-linha me-2">
                             <i class="fas fa-plus me-1"></i>Nova Linha
                         </a>
-                        <a href="{% url 'linhas:fidelidade' %}" class="btn btn-primary">
+                        <a href="{% url 'linhas:fidelidade' %}" class="btn btn-success">
                             <i class="fas fa-heart me-1"></i>Fidelidade
                         </a>
                     </div>
@@ -636,10 +642,10 @@
             <h4>Nenhum pedido cadastrado</h4>
             <p class="mb-4">Ainda não há pedidos criados no sistema. Comece criando novos pedidos nos menus Nova Linha ou Fidelidade.</p>
             <div>
-                <a href="{% url 'linhas:novalinha' %}" class="btn btn-success me-2">
+                <a href="{% url 'linhas:novalinha' %}" class="btn btn-primary btn-nova-linha me-2">
                     <i class="fas fa-plus me-1"></i>Nova Linha
                 </a>
-                <a href="{% url 'linhas:fidelidade' %}" class="btn btn-primary">
+                <a href="{% url 'linhas:fidelidade' %}" class="btn btn-success">
                     <i class="fas fa-heart me-1"></i>Fidelidade
                 </a>
             </div>
