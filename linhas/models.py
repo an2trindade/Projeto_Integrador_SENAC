@@ -91,7 +91,23 @@ class Linha(models.Model):
     valor_plano = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Valor do Plano (R$)")
     taxa_manutencao = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Taxa de Manutenção (R$)", default=0)
     ativa = models.BooleanField(default=True, verbose_name="Linha Ativa")
+    cancelada = models.BooleanField(default=False, verbose_name="Linha Cancelada")
+    data_cancelamento = models.DateTimeField(null=True, blank=True, verbose_name="Data do Cancelamento")
     observacoes = models.TextField(blank=True, null=True, verbose_name="Observações")
+    
+    # Status do protocolo
+    STATUS_PROTOCOLO_CHOICES = [
+        ('pendente', 'Pendente'),
+        ('concluido', 'Concluído'),
+        ('cancelado', 'Cancelado'),
+    ]
+    status_protocolo = models.CharField(
+        max_length=20, 
+        choices=STATUS_PROTOCOLO_CHOICES, 
+        default='pendente', 
+        verbose_name='Status do Protocolo'
+    )
+    
     criado_por = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Criado por")
     criado_em = models.DateTimeField(auto_now_add=True, verbose_name="Criado em")
     atualizado_em = models.DateTimeField(auto_now=True, verbose_name="Atualizado em")
@@ -163,6 +179,32 @@ class Fidelidade(models.Model):
     observacoes = models.TextField(verbose_name='Observações', help_text='Observações sobre a fidelidade da linha')
     criado_por = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Criado por')
     criado_em = models.DateTimeField(auto_now_add=True, verbose_name='Criado em')
+    
+    # Status do protocolo
+    STATUS_PROTOCOLO_CHOICES = [
+        ('pendente', 'Pendente'),
+        ('concluido', 'Concluído'),
+        ('cancelado', 'Cancelado'),
+    ]
+    status_protocolo = models.CharField(
+        max_length=20, 
+        choices=STATUS_PROTOCOLO_CHOICES, 
+        default='pendente', 
+        verbose_name='Status do Protocolo'
+    )
+    
+    # Status do protocolo
+    STATUS_PROTOCOLO_CHOICES = [
+        ('pendente', 'Pendente'),
+        ('concluido', 'Concluído'),
+        ('cancelado', 'Cancelado'),
+    ]
+    status_protocolo = models.CharField(
+        max_length=20, 
+        choices=STATUS_PROTOCOLO_CHOICES, 
+        default='pendente', 
+        verbose_name='Status do Protocolo'
+    )
     atualizado_em = models.DateTimeField(auto_now=True, verbose_name='Atualizado em')
     
     class Meta:

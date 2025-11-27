@@ -147,6 +147,10 @@
         background: linear-gradient(90deg, #11998e, #38ef7d);
     }
     
+    .protocol-card.cancelado::before {
+        background: linear-gradient(90deg, #ff6b6b, #ee5a24);
+    }
+    
     .protocol-card h5 {
         color: #ffffff;
         font-weight: 600;
@@ -253,9 +257,9 @@
     </div>
 </div>
 
-<!-- Protocolos pendentes e concluídos -->
+<!-- Protocolos pendentes, concluídos e cancelados -->
 <div class="row g-4 mb-4">
-    <div class="col-md-6">
+    <div class="col-lg-4 col-md-6">
         <div class="protocol-card pendente">
             <h5><i class="fas fa-hourglass-half"></i> Protocolos Pendentes</h5>
             <div class="protocol-number">{{ protocolos_pendentes_count|default:0 }}</div>
@@ -263,12 +267,20 @@
             <i class="fas fa-hourglass-half protocol-icon"></i>
         </div>
     </div>
-    <div class="col-md-6">
+    <div class="col-lg-4 col-md-6">
         <div class="protocol-card concluido">
             <h5><i class="fas fa-check-double"></i> Protocolos Concluídos</h5>
             <div class="protocol-number">{{ protocolos_concluidos_count|default:0 }}</div>
             <div class="protocol-status">Finalizados com sucesso</div>
             <i class="fas fa-check-double protocol-icon"></i>
+        </div>
+    </div>
+    <div class="col-lg-4 col-md-12">
+        <div class="protocol-card cancelado">
+            <h5><i class="fas fa-times-circle"></i> Protocolos Cancelados</h5>
+            <div class="protocol-number">{{ protocolos_cancelados_count|default:0 }}</div>
+            <div class="protocol-status">Cancelados ou rejeitados</div>
+            <i class="fas fa-times-circle protocol-icon"></i>
         </div>
     </div>
 </div>
@@ -347,7 +359,7 @@
 
     const protocolosDias = JSON.parse('{{ protocolos_dias_labels_json|escapejs }}');
     const protocolosPendente = JSON.parse('{{ protocolos_pendente_series_json|escapejs }}');
-    const protocolosResolvido = JSON.parse('{{ protocolos_resolvido_series_json|escapejs }}');
+    const protocolosConcluido = JSON.parse('{{ protocolos_concluido_series_json|escapejs }}');
     const protocolosCancelado = JSON.parse('{{ protocolos_cancelado_series_json|escapejs }}');
 
     const ctx2 = document.getElementById('protocolosChart').getContext('2d');
@@ -363,8 +375,8 @@
                     borderColor: 'rgba(255, 99, 132, 0.9)'
                 },
                 {
-                    label: 'Resolvido',
-                    data: protocolosResolvido,
+                    label: 'Concluído',
+                    data: protocolosConcluido,
                     fill: false,
                     borderColor: 'rgba(54, 162, 235, 0.9)'
                 },

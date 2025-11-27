@@ -193,6 +193,12 @@
         border: 1px solid rgba(255, 106, 0, 0.5);
         color: #ff6a00;
     }
+    
+    .status-badge.cancelada {
+        background: linear-gradient(135deg, rgba(220, 53, 69, 0.3), rgba(169, 68, 66, 0.3));
+        border: 1px solid rgba(220, 53, 69, 0.5);
+        color: #dc3545;
+    }
 </style>
 
 <!-- Header Tecnológico -->
@@ -290,7 +296,11 @@
                         <td>R$ {{ linha.valor_plano }}</td>
                         <td>R$ {{ linha.taxa_manutencao }}</td>
                         <td>
-                            {% if linha.ativa %}
+                            {% if linha.cancelada %}
+                                <span class="status-badge cancelada">
+                                    <i class="fas fa-ban"></i> Cancelada
+                                </span>
+                            {% elif linha.ativa %}
                                 <span class="status-badge ativa">
                                     <i class="fas fa-check-circle"></i> Ativa
                                 </span>

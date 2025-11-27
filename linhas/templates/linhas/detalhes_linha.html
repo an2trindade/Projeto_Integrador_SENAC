@@ -64,10 +64,23 @@
                     <div class="row">
                         <div class="col-md-6">
                             <p><strong><i class="fas fa-check-circle"></i> Status:</strong></p>
-                            {% if linha.ativa %}
-                                <span class="badge bg-success fs-6">Ativa</span>
+                            {% if linha.cancelada %}
+                                <span class="badge bg-dark fs-6">
+                                    <i class="fas fa-ban"></i> Cancelada
+                                </span>
+                                {% if linha.data_cancelamento %}
+                                    <small class="text-muted d-block mt-1">
+                                        Cancelada em: {{ linha.data_cancelamento|date:"d/m/Y H:i" }}
+                                    </small>
+                                {% endif %}
+                            {% elif linha.ativa %}
+                                <span class="badge bg-success fs-6">
+                                    <i class="fas fa-check-circle"></i> Ativa
+                                </span>
                             {% else %}
-                                <span class="badge bg-danger fs-6">Inativa</span>
+                                <span class="badge bg-danger fs-6">
+                                    <i class="fas fa-times-circle"></i> Inativa
+                                </span>
                             {% endif %}
                         </div>
                     </div>

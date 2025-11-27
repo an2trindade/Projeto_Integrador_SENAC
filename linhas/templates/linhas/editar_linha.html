@@ -177,10 +177,25 @@
                 </div>
             </div>
 
-            <div class="d-flex gap-2">
+            <div class="d-flex gap-2 flex-wrap">
                 <input type="submit" class="btn btn-primary" id="btn-salvar" value="Salvar Alterações">
+                
+                {% if not linha.cancelada %}
+                <button type="button" class="btn btn-danger" id="btn-cancelar-linha" 
+                        onclick="confirmarCancelamento({{ linha.pk }}, '{{ linha.numero }}')">
+                    <i class="fas fa-ban"></i> Cancelar Linha
+                </button>
+                {% else %}
+                <span class="btn btn-warning disabled">
+                    <i class="fas fa-exclamation-triangle"></i> Linha Cancelada
+                    {% if linha.data_cancelamento %}
+                        ({{ linha.data_cancelamento|date:"d/m/Y H:i" }})
+                    {% endif %}
+                </span>
+                {% endif %}
+                
                 <a href="{% url 'linhas:listalinhas' %}" class="btn btn-secondary">
-                    <i class="fas fa-times"></i> Cancelar
+                    <i class="fas fa-arrow-left"></i> Voltar
                 </a>
             </div>
         </form>
@@ -202,6 +217,47 @@ document.addEventListener('DOMContentLoaded', function() {
         return true;
     });
 });
+
+// Função para confirmar cancelamento da linha
+function confirmarCancelamento(linhaId, numeroLinha) {
+    const confirmacao = confirm(
+        `ATENÇÃO!\n\n` +
+        `Tem certeza que deseja CANCELAR a linha ${numeroLinha}?\n\n` +
+        `⚠️ CONSEQUÊNCIAS DO CANCELAMENTO:\n` +
+        `• A linha será marcada como CANCELADA\n` +
+        `• NÃO serão mais cobrados valores de plano\n` +
+        `• NÃO serão mais cobradas taxas de manutenção\n` +
+        `• A linha permanecerá no sistema para histórico\n` +
+        `• Esta ação não pode ser desfeita facilmente\n\n` +
+        `Digite OK para confirmar o cancelamento:`
+    );
+    
+    if (confirmacao) {
+        const segundaConfirmacao = prompt(
+            `Para confirmar o cancelamento da linha ${numeroLinha}, digite: CANCELAR`
+        );
+        
+        if (segundaConfirmacao === 'CANCELAR') {
+            // Criar formulário para envio POST
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `{% url 'linhas:cancelar_linha' 0 %}`.replace('0', linhaId);
+            
+            // Adicionar token CSRF
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrfmiddlewaretoken';
+            csrfInput.value = '{{ csrf_token }}';
+            form.appendChild(csrfInput);
+            
+            // Submeter formulário
+            document.body.appendChild(form);
+            form.submit();
+        } else if (segundaConfirmacao !== null) {
+            alert('Cancelamento não confirmado. Texto incorreto digitado.');
+        }
+    }
+}
 </script>
 
 {% endblock %}

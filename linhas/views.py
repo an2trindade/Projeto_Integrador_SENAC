@@ -7,6 +7,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.conf import settings
 from django.db import models
+from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
+from django.urls import reverse
 
 def get_client_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
@@ -691,7 +694,8 @@ def dashboard(request):
     dt_start = datetime.combine(ciclo_start, time.min)
     dt_end = datetime.combine(ciclo_end, time.max)
 
-    qs = Linha.objects.filter(criado_em__gte=dt_start, criado_em__lte=dt_end)
+    # Excluir linhas de estoque com RP específico
+    qs = Linha.objects.filter(criado_em__gte=dt_start, criado_em__lte=dt_end).exclude(rp='7.1255217.10.12')
 
     total_linhas = qs.count()
     linhas_ativas = qs.filter(ativa=True).count()
@@ -723,28 +727,39 @@ def dashboard(request):
     total_days = (ciclo_end - ciclo_start).days + 1
     for i in range(total_days):
         dia = ciclo_start + timedelta(days=i)
-        # count only actions ESTOQUE or PORTABILIDADE on that day
-        dia_qs = Linha.objects.filter(criado_em__date=dia, acao__in=action_values)
+        # count only actions ESTOQUE or PORTABILIDADE on that day (excluding estoque RP)
+        dia_qs = Linha.objects.filter(criado_em__date=dia, acao__in=action_values).exclude(rp='7.1255217.10.12')
         count = dia_qs.count()
         dias.append(dia.strftime('%d/%m'))
         contagens_dias.append(count)
 
-    # Protocol counts per day by status for the ciclo period
-    protocolo_statuses = ['pendente', 'resolvido', 'cancelado']
+    # Protocol counts per day by status for the ciclo period (Linhas + Fidelidades)
+    from .models import Fidelidade
+    protocolo_statuses = ['pendente', 'concluido', 'cancelado']
     protocolos_por_status = {s: [] for s in protocolo_statuses}
+    
     for i in range(total_days):
         dia = ciclo_start + timedelta(days=i)
         for s in protocolo_statuses:
-            c = Protocolo.objects.filter(status=s, criado_em__date=dia).count()
-            protocolos_por_status[s].append(c)
+            # Contar linhas com status específico no dia (excluindo estoque)
+            linhas_count = Linha.objects.filter(status_protocolo=s, criado_em__date=dia).exclude(rp='7.1255217.10.12').count()
+            # Contar fidelidades com status específico no dia  
+            fidelidades_count = Fidelidade.objects.filter(status_protocolo=s, criado_em__date=dia).count()
+            total_count = linhas_count + fidelidades_count
+            protocolos_por_status[s].append(total_count)
 
-    # Pending protocols
-    protocolos_pendentes_qs = Protocolo.objects.filter(status='pendente').order_by('-criado_em')
-    protocolos_pendentes_count = protocolos_pendentes_qs.count()
+    # Contagem total de protocolos por status (Linhas + Fidelidades)
+    linhas_pendentes = Linha.objects.filter(status_protocolo='pendente').exclude(rp='7.1255217.10.12').count()
+    fidelidades_pendentes = Fidelidade.objects.filter(status_protocolo='pendente').count()
+    protocolos_pendentes_count = linhas_pendentes + fidelidades_pendentes
     
-    # Completed protocols (resolvido status)
-    protocolos_concluidos_qs = Protocolo.objects.filter(status='resolvido').order_by('-criado_em')
-    protocolos_concluidos_count = protocolos_concluidos_qs.count()
+    linhas_concluidas = Linha.objects.filter(status_protocolo='concluido').exclude(rp='7.1255217.10.12').count()
+    fidelidades_concluidas = Fidelidade.objects.filter(status_protocolo='concluido').count()
+    protocolos_concluidos_count = linhas_concluidas + fidelidades_concluidas
+    
+    linhas_canceladas = Linha.objects.filter(status_protocolo='cancelado').exclude(rp='7.1255217.10.12').count()
+    fidelidades_canceladas = Fidelidade.objects.filter(status_protocolo='cancelado').count()
+    protocolos_cancelados_count = linhas_canceladas + fidelidades_canceladas
 
     import json
 
@@ -771,10 +786,11 @@ def dashboard(request):
         'contagens_dias_json': json.dumps(contagens_dias),
     'protocolos_pendentes_count': protocolos_pendentes_count,
     'protocolos_concluidos_count': protocolos_concluidos_count,
+    'protocolos_cancelados_count': protocolos_cancelados_count,
     # protocol time series for charts
     'protocolos_dias_labels_json': json.dumps(dias, ensure_ascii=False),
     'protocolos_pendente_series_json': json.dumps(protocolos_por_status['pendente']),
-    'protocolos_resolvido_series_json': json.dumps(protocolos_por_status['resolvido']),
+    'protocolos_concluido_series_json': json.dumps(protocolos_por_status['concluido']),
     'protocolos_cancelado_series_json': json.dumps(protocolos_por_status['cancelado']),
     }
     return render(request, 'dashboard.html', context)
@@ -793,6 +809,7 @@ def protocolo(request):
     
     # Buscar parâmetros de filtro
     filtro_tipo = request.GET.get('tipo', 'todos')  # todos, linhas, fidelidades
+    filtro_status = request.GET.get('status', 'todos')  # todos, pendente, concluido, cancelado
     busca = request.GET.get('busca', '').strip()
     data_inicio = request.GET.get('data_inicio', '')
     data_fim = request.GET.get('data_fim', '')
@@ -826,6 +843,11 @@ def protocolo(request):
         linhas_qs = linhas_qs.filter(criado_por__username__icontains=usuario_criador)
         fidelidades_qs = fidelidades_qs.filter(criado_por__username__icontains=usuario_criador)
     
+    # Filtro por status
+    if filtro_status != 'todos':
+        linhas_qs = linhas_qs.filter(status_protocolo=filtro_status)
+        fidelidades_qs = fidelidades_qs.filter(status_protocolo=filtro_status)
+    
     # Filtro de busca (número, empresa, observações)
     if busca:
         linhas_qs = linhas_qs.filter(
@@ -857,7 +879,7 @@ def protocolo(request):
                 'tipo_plano': linha.tipo_plano,
                 'valor': linha.valor_plano,
                 'acao': linha.acao,
-                'status': 'Ativa' if linha.ativa else 'Inativa',
+                'status': linha.get_status_protocolo_display(),
                 'observacoes': linha.observacoes or 'Sem observações',
                 'criado_por': linha.criado_por.username if linha.criado_por else 'Sistema',
                 'criado_em': linha.criado_em,
@@ -880,7 +902,7 @@ def protocolo(request):
                 'tipo_plano': fidelidade.linha.tipo_plano,
                 'valor': fidelidade.linha.valor_plano,
                 'acao': 'FIDELIDADE',
-                'status': 'Processada',
+                'status': fidelidade.get_status_protocolo_display(),
                 'observacoes': fidelidade.observacoes,
                 'criado_por': fidelidade.criado_por.username if fidelidade.criado_por else 'Sistema',
                 'criado_em': fidelidade.criado_em,
@@ -905,7 +927,7 @@ def protocolo(request):
     
     # Requests do último mês
     ultimo_mes = timezone.now() - timedelta(days=30)
-    linhas_ultimo_mes = Linha.objects.filter(criado_em__gte=ultimo_mes).count()
+    linhas_ultimo_mes = Linha.objects.filter(criado_em__gte=ultimo_mes).exclude(rp='7.1255217.10.12').count()
     fidelidades_ultimo_mes = Fidelidade.objects.filter(criado_em__gte=ultimo_mes).count()
     
     # Lista de usuários para filtro
@@ -916,6 +938,7 @@ def protocolo(request):
     context = {
         'page_obj': page_obj,
         'filtro_tipo': filtro_tipo,
+        'filtro_status': filtro_status,
         'busca': busca,
         'data_inicio': data_inicio,
         'data_fim': data_fim,
@@ -2232,4 +2255,176 @@ def processar_lista_estoque(request):
     if request.META.get('HTTP_REFERER', '').endswith('configuracoes/'):
         return redirect('linhas:configuracoes')
     return redirect('linhas:listar_empresas')
+
+@login_required
+def alterar_status_protocolo(request):
+    """
+    AJAX endpoint para alterar o status de pedidos no protocolo
+    """
+    if request.method != 'POST':
+        return JsonResponse({
+            'success': False,
+            'error': 'Método não permitido'
+        })
+    
+    try:
+        tipo = request.POST.get('tipo')
+        item_id = request.POST.get('id')
+        novo_status = request.POST.get('status')
+        
+        if not all([tipo, item_id, novo_status]):
+            return JsonResponse({
+                'success': False,
+                'error': 'Parâmetros obrigatórios não informados'
+            })
+        
+        if novo_status not in ['pendente', 'concluido', 'cancelado']:
+            return JsonResponse({
+                'success': False,
+                'error': 'Status inválido'
+            })
+        
+        if tipo == 'Nova Linha':
+            from .models import Linha
+            linha = Linha.objects.get(id=item_id)
+            linha.status_protocolo = novo_status
+            linha.save()
+            return JsonResponse({
+                'success': True,
+                'message': f'Status da linha {linha.numero} alterado para {linha.get_status_protocolo_display()}'
+            })
+        
+        elif tipo == 'Fidelidade':
+            from .models import Fidelidade
+            fidelidade = Fidelidade.objects.get(id=item_id)
+            fidelidade.status_protocolo = novo_status
+            fidelidade.save()
+            return JsonResponse({
+                'success': True,
+                'message': f'Status da fidelidade alterado para {fidelidade.get_status_protocolo_display()}'
+            })
+        
+        else:
+            return JsonResponse({
+                'success': False,
+                'error': 'Tipo de pedido não reconhecido'
+            })
+            
+    except (Linha.DoesNotExist, Fidelidade.DoesNotExist):
+        return JsonResponse({
+            'success': False,
+            'error': 'Pedido não encontrado'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'Erro ao alterar status: {str(e)}'
+        })
+
+@login_required
+def cancelar_linha(request, pk):
+    """
+    View para cancelar uma linha (não exclui, apenas marca como cancelada)
+    """
+    from django.shortcuts import get_object_or_404
+    
+    if request.method != 'POST':
+        messages.error(request, 'Método não permitido.')
+        return redirect('linhas:listalinhas')
+    
+    try:
+        linha = get_object_or_404(Linha, pk=pk)
+        
+        if linha.cancelada:
+            messages.warning(request, f'A linha {linha.numero} já está cancelada.')
+        else:
+            # Marcar como cancelada
+            linha.cancelada = True
+            linha.data_cancelamento = timezone.now()
+            linha.ativa = False  # Também marcar como inativa
+            linha.save()
+            
+            messages.success(request, f'Linha {linha.numero} cancelada com sucesso. A partir de agora não serão mais cobrados valores de plano ou taxa de manutenção.')
+        
+        return redirect('linhas:editarlinha', pk=pk)
+        
+    except Exception as e:
+        messages.error(request, f'Erro ao cancelar linha: {str(e)}')
+        return redirect('linhas:listalinhas')
+
+
+@require_http_methods(["POST"])
+@login_required
+def enviar_pedido(request):
+    """
+    Cria uma nova linha e automaticamente define seu status_protocolo como 'pendente'
+    """
+    try:
+        form = LinhaForm(request.POST, request.FILES)
+        observacoes_lateral = request.POST.get('observacoes_lateral', '')
+        anexos = request.FILES.getlist('anexos')
+        
+        if form.is_valid():
+            linha = form.save(commit=False)
+            linha.criado_por = request.user
+            linha.status_protocolo = 'pendente'  # Define automaticamente como pendente
+            
+            # Adiciona observações da lateral se ação for TT ou PORTABILIDADE
+            if linha.acao in ['TT', 'PORTABILIDADE'] and observacoes_lateral:
+                if linha.observacoes:
+                    linha.observacoes += '\n' + observacoes_lateral
+                else:
+                    linha.observacoes = observacoes_lateral
+            
+            linha.save()
+            
+            # Attempt to attach a Cliente if one exists with the same CNPJ or empresa
+            try:
+                import re
+                cliente = None
+                if linha.cnpj:
+                    cnpj_digits = re.sub(r"\D", "", linha.cnpj)
+                    cliente = Cliente.objects.filter(cnpj__icontains=cnpj_digits).first()
+                if not cliente and linha.empresa:
+                    cliente = Cliente.objects.filter(empresa__iexact=linha.empresa).first()
+                if cliente:
+                    linha.cliente = cliente
+                    linha.save()
+            except Exception:
+                # don't block save on any lookup error
+                pass
+            
+            # Salvar anexos
+            for arquivo in anexos:
+                with open(f'media/anexos/{arquivo.name}', 'wb+') as dest:
+                    for chunk in arquivo.chunks():
+                        dest.write(chunk)
+            
+            return JsonResponse({
+                'status': 'success',
+                'message': f'✅ Pedido enviado com sucesso! Linha {linha.numero} está agora pendente no protocolo.',
+                'linha_id': linha.id,
+                'redirect_url': reverse('linhas:protocolo')
+            })
+        else:
+            # Retorna erros do formulário
+            errors = []
+            for field_name, field_errors in form.errors.items():
+                field_label = field_name
+                if hasattr(form.fields.get(field_name), 'label') and form.fields[field_name].label:
+                    field_label = form.fields[field_name].label
+                for error in field_errors:
+                    errors.append(f"{field_label}: {error}")
+            
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Erro nos dados do formulário',
+                'errors': errors
+            }, status=400)
+            
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': f'Erro interno: {str(e)}'
+        }, status=500)
 

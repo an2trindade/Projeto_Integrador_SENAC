@@ -469,6 +469,15 @@
                     <option value="fidelidades" {% if filtro_tipo == 'fidelidades' %}selected{% endif %}>Fidelidade</option>
                 </select>
             </div>
+            <div class="col-lg-2 col-md-3">
+                <label for="status" class="form-label">Status</label>
+                <select name="status" id="status" class="form-select">
+                    <option value="todos" {% if filtro_status == 'todos' %}selected{% endif %}>Todos</option>
+                    <option value="pendente" {% if filtro_status == 'pendente' %}selected{% endif %}>Pendente</option>
+                    <option value="concluido" {% if filtro_status == 'concluido' %}selected{% endif %}>Concluído</option>
+                    <option value="cancelado" {% if filtro_status == 'cancelado' %}selected{% endif %}>Cancelado</option>
+                </select>
+            </div>
             <div class="col-lg-3 col-md-4">
                 <label for="busca" class="form-label">Buscar</label>
                 <input type="text" name="busca" id="busca" class="form-control" value="{{ busca }}" 
@@ -531,10 +540,15 @@
                                     <small class="text-muted">
                                         <strong>Valor:</strong> R$ {{ request.valor|floatformat:2 }}<br>
                                         <strong>Ação:</strong> {{ request.acao }}<br>
-                                        <strong>Status:</strong> 
-                                        <span class="{% if request.status == 'Ativa' %}text-success{% elif request.status == 'Processada' %}text-primary{% else %}text-danger{% endif %}">
-                                            {{ request.status }}
-                                        </span>
+                                        <strong>Status:</strong>
+                                        <select class="form-select form-select-sm status-select" 
+                                                data-tipo="{{ request.tipo }}" 
+                                                data-id="{{ request.id }}"
+                                                style="width: auto; display: inline-block; font-size: 0.8rem;">
+                                            <option value="pendente" {% if request.status == 'Pendente' %}selected{% endif %}>Pendente</option>
+                                            <option value="concluido" {% if request.status == 'Concluído' %}selected{% endif %}>Concluído</option>
+                                            <option value="cancelado" {% if request.status == 'Cancelado' %}selected{% endif %}>Cancelado</option>
+                                        </select>
                                     </small>
                                 </div>
                             </div>
@@ -737,8 +751,12 @@
         });
     });
 
-    // Auto-submit do formulário quando alterar o tipo
+    // Auto-submit do formulário quando alterar o tipo ou status
     document.getElementById('tipo').addEventListener('change', function() {
+        this.form.submit();
+    });
+    
+    document.getElementById('status').addEventListener('change', function() {
         this.form.submit();
     });
     
@@ -752,6 +770,74 @@
                 // Auto-submit quando alterar datas (opcional)
                 // form.submit();
             });
+        });
+        
+        // Gerenciar alteração de status
+        const statusSelects = document.querySelectorAll('.status-select');
+        
+        statusSelects.forEach(select => {
+            select.addEventListener('change', function() {
+                const tipo = this.dataset.tipo;
+                const id = this.dataset.id;
+                const novoStatus = this.value;
+                
+                // Desabilitar o select temporariamente
+                this.disabled = true;
+                
+                // Fazer requisição AJAX
+                fetch('{% url "linhas:alterar_status_protocolo" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: `tipo=${encodeURIComponent(tipo)}&id=${encodeURIComponent(id)}&status=${encodeURIComponent(novoStatus)}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Alterar cor do select baseado no status
+                        this.className = 'form-select form-select-sm status-select';
+                        if (novoStatus === 'concluido') {
+                            this.classList.add('text-success');
+                        } else if (novoStatus === 'cancelado') {
+                            this.classList.add('text-danger');
+                        } else {
+                            this.classList.add('text-warning');
+                        }
+                        
+                        // Mostrar mensagem de sucesso (opcional)
+                        console.log(data.message);
+                    } else {
+                        alert('Erro: ' + data.error);
+                        // Reverter seleção se houver erro
+                        this.value = this.dataset.originalValue || 'pendente';
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro na requisição:', error);
+                    alert('Erro ao alterar status. Tente novamente.');
+                    // Reverter seleção se houver erro
+                    this.value = this.dataset.originalValue || 'pendente';
+                })
+                .finally(() => {
+                    // Reabilitar o select
+                    this.disabled = false;
+                });
+                
+                // Guardar valor original para caso de erro
+                this.dataset.originalValue = this.value;
+            });
+            
+            // Aplicar cores iniciais baseadas no status atual
+            const currentValue = select.value;
+            if (currentValue === 'concluido') {
+                select.classList.add('text-success');
+            } else if (currentValue === 'cancelado') {
+                select.classList.add('text-danger');
+            } else {
+                select.classList.add('text-warning');
+            }
         });
     });
 </script>

@@ -46,4 +46,7 @@ urlpatterns = [
     path("listar-empresas/", views.listar_empresas, name="listar_empresas"),
     path("preview-arquivo-linhas/", views.preview_arquivo_linhas, name="preview_arquivo_linhas"),
     path("processar-lista-estoque/", views.processar_lista_estoque, name="processar_lista_estoque"),
+    path("alterar-status-protocolo/", views.alterar_status_protocolo, name="alterar_status_protocolo"),
+    path("cancelar/<int:pk>/", views.cancelar_linha, name="cancelar_linha"),
+    path("enviar-pedido/", views.enviar_pedido, name="enviar_pedido"),
 ]
