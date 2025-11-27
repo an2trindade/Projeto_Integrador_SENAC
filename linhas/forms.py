@@ -189,10 +189,9 @@ class ClienteForm(forms.ModelForm):
 
     Regras:
     - Campo tipo_pessoa controla validação.
-    - Para PF: cnpj, razao_social, fantasia não são obrigatórios.
-    - Para PJ: cnpj e razao_social obrigatórios; fantasia opcional.
-    - Campos comuns (empresa, nome_dono, cpf_dono, data_nascimento_dono, endereco_completo, contato) sempre obrigatórios.
-    - email é opcional (mas validado se presente).
+    - Para PF: TODOS os campos são obrigatórios (exceto cnpj e razao_social que não se aplicam a PF).
+    - Para PJ: TODOS os campos são obrigatórios (cnpj, razao_social, fantasia, email, telefone).
+    - Campos comuns (empresa, nome_dono, cpf_dono, data_nascimento_dono, endereco_completo, contato, valor_taxa_manutencao) sempre obrigatórios.
     """
 
     tipo_pessoa = forms.ChoiceField(
@@ -212,7 +211,7 @@ class ClienteForm(forms.ModelForm):
 
     class Meta:
         model = Cliente
-        fields = ['tipo_pessoa', 'empresa', 'cnpj', 'razao_social', 'fantasia', 'endereco_completo', 'contato', 'email', 'telefone', 'nome_dono', 'cpf_dono', 'data_nascimento_dono']
+        fields = ['tipo_pessoa', 'empresa', 'cnpj', 'razao_social', 'fantasia', 'endereco_completo', 'contato', 'email', 'nome_dono', 'cpf_dono', 'data_nascimento_dono', 'valor_taxa_manutencao']
         widgets = {
             'empresa': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome / Razão social'}),
             'cnpj': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '00.000.000/0000-00'}),
@@ -220,10 +219,10 @@ class ClienteForm(forms.ModelForm):
             'fantasia': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome fantasia'}),
             'endereco_completo': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Logradouro, número, complemento, bairro, cidade - UF'}),
             'contato': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Telefone de contato (somente número)', 'inputmode': 'tel', 'maxlength': '15'}),
-            'telefone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '(11) 99999-9999', 'inputmode': 'tel'}),
             'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'contato@exemplo.com'}),
             'nome_dono': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome do proprietário'}),
             'cpf_dono': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '000.000.000-00'}),
+            'valor_taxa_manutencao': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0', 'placeholder': '0,00'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -232,16 +231,23 @@ class ClienteForm(forms.ModelForm):
         self.fields['tipo_pessoa'].initial = tipo
         # Definir obrigatoriedade condicional
         is_pf = (tipo == 'PF')
-        # Campos sempre obrigatórios
-        for nome in ['empresa', 'nome_dono', 'cpf_dono', 'data_nascimento_dono', 'endereco_completo', 'contato']:
+        # Campos sempre obrigatórios (exceto empresa que será preenchida automaticamente)
+        for nome in ['nome_dono', 'cpf_dono', 'data_nascimento_dono', 'endereco_completo', 'contato', 'valor_taxa_manutencao']:
             self.fields[nome].required = True
-        # Email opcional
-        self.fields['email'].required = False
-        self.fields['telefone'].required = False
-        # Campos PJ condicionais
-        self.fields['cnpj'].required = not is_pf
-        self.fields['razao_social'].required = not is_pf
-        self.fields['fantasia'].required = False  # opcional para ambos
+        # Empresa não é obrigatória - será preenchida no clean() baseada em razao_social ou nome_dono
+        self.fields['empresa'].required = False
+        
+        # Para PJ: TODOS os campos são obrigatórios
+        if not is_pf:  # PJ
+            self.fields['cnpj'].required = True
+            self.fields['razao_social'].required = True
+            self.fields['fantasia'].required = True
+            self.fields['email'].required = True
+        else:  # PF - TODOS os campos obrigatórios (exceto cnpj e razao_social)
+            self.fields['cnpj'].required = False
+            self.fields['razao_social'].required = False
+            self.fields['fantasia'].required = True  # agora obrigatório para PF
+            self.fields['email'].required = True     # agora obrigatório para PF
 
     def clean_cpf_dono(self):
         cpf = self.cleaned_data.get('cpf_dono', '').strip()
@@ -271,6 +277,36 @@ class ClienteForm(forms.ModelForm):
             raise forms.ValidationError('CNPJ inválido.')
         return cnpj
 
+    def clean_fantasia(self):
+        tipo = self.cleaned_data.get('tipo_pessoa') or self.fields['tipo_pessoa'].initial
+        valor = self.cleaned_data.get('fantasia', '').strip()
+        if not valor:
+            if tipo == 'PF':
+                raise forms.ValidationError('Nome fantasia obrigatório para PF.')
+            else:
+                raise forms.ValidationError('Nome fantasia obrigatório para PJ.')
+        return valor
+    
+    def clean_email(self):
+        tipo = self.cleaned_data.get('tipo_pessoa') or self.fields['tipo_pessoa'].initial
+        valor = self.cleaned_data.get('email', '').strip()
+        if not valor:
+            if tipo == 'PF':
+                raise forms.ValidationError('Email obrigatório para PF.')
+            else:
+                raise forms.ValidationError('Email obrigatório para PJ.')
+        return valor
+    
+
+    
+    def clean_valor_taxa_manutencao(self):
+        valor = self.cleaned_data.get('valor_taxa_manutencao')
+        if valor is None:
+            raise forms.ValidationError('Valor da taxa de manutenção obrigatório.')
+        if valor < 0:
+            raise forms.ValidationError('Valor da taxa de manutenção não pode ser negativo.')
+        return valor
+
     def clean_razao_social(self):
         tipo = self.cleaned_data.get('tipo_pessoa') or self.fields['tipo_pessoa'].initial
         valor = self.cleaned_data.get('razao_social', '').strip()
@@ -292,8 +328,16 @@ class ClienteForm(forms.ModelForm):
     def clean(self):
         cleaned = super().clean()
         tipo = cleaned.get('tipo_pessoa') or self.fields['tipo_pessoa'].initial
+        
+        # Para PJ: garantir que empresa reflita razão social se vazio
+        if tipo == 'PJ':
+            empresa = cleaned.get('empresa', '').strip()
+            razao_social = cleaned.get('razao_social', '').strip()
+            if not empresa and razao_social:
+                cleaned['empresa'] = razao_social
+                
         # Para PF: garantir que empresa reflita nome do titular se vazio
-        if tipo == 'PF':
+        elif tipo == 'PF':
             empresa = cleaned.get('empresa', '').strip()
             nome = cleaned.get('nome_dono', '').strip()
             if not empresa and nome:

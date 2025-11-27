@@ -165,13 +165,272 @@ function bloqueiarLetrasContato(event) {
     return false;
 }
 
-console.log('Funções CPF e Contato carregadas');
+function somenteNumerosCNPJ(event) {
+    // Bloquear TUDO exceto números e teclas especiais para CNPJ (14 dígitos)
+    var char = String.fromCharCode(event.which || event.keyCode);
+    var campo = event.target;
+    
+    // Contar números atuais
+    var numerosAtuais = campo.value.replace(/[^0-9]/g, '');
+    
+    // Teclas especiais permitidas (backspace, delete, setas, etc.)
+    var teclasPermitidas = [8, 9, 13, 27, 35, 36, 37, 38, 39, 40, 46];
+    if (teclasPermitidas.indexOf(event.keyCode) !== -1) {
+        return true;
+    }
+    
+    // Ctrl + teclas (copiar, colar, etc.)
+    if (event.ctrlKey) {
+        return true;
+    }
+    
+    // Se é um número e não ultrapassou 14 dígitos
+    if (/[0-9]/.test(char) && numerosAtuais.length < 14) {
+        return true;
+    }
+    
+    // Bloquear tudo o resto
+    console.log('🚫 CNPJ BLOQUEADO:', char, 'Atual:', numerosAtuais.length, 'dígitos');
+    event.preventDefault();
+    return false;
+}
+
+// Função para validar CPF
+function validarCPF(cpf) {
+    cpf = cpf.replace(/[^\d]+/g, '');
+    if (cpf.length !== 11) return false;
+    
+    // Eliminar CPFs conhecidos que são inválidos
+    if (/^(\d)\1+$/.test(cpf)) return false;
+    
+    // Validar 1º dígito verificador
+    var soma = 0;
+    for (var i = 0; i < 9; i++) {
+        soma += parseInt(cpf.charAt(i)) * (10 - i);
+    }
+    var resto = 11 - (soma % 11);
+    var dv1 = (resto < 2) ? 0 : resto;
+    
+    if (dv1 !== parseInt(cpf.charAt(9))) return false;
+    
+    // Validar 2º dígito verificador
+    soma = 0;
+    for (var i = 0; i < 10; i++) {
+        soma += parseInt(cpf.charAt(i)) * (11 - i);
+    }
+    resto = 11 - (soma % 11);
+    var dv2 = (resto < 2) ? 0 : resto;
+    
+    return dv2 === parseInt(cpf.charAt(10));
+}
+
+// Função para aplicar validação visual no campo CPF
+function aplicarValidacaoCPF(campoId, msgId) {
+    var campo = document.getElementById(campoId);
+    if (!campo) return;
+    
+    campo.addEventListener('blur', function() {
+        var cpfValue = this.value.replace(/[^0-9]/g, '');
+        var msgDiv = document.getElementById(msgId) || criarMensagemValidacao(this, msgId);
+        
+        if (cpfValue.length === 11) {
+            if (validarCPF(cpfValue)) {
+                msgDiv.textContent = '✅ CPF válido';
+                msgDiv.className = 'form-text mt-1 text-success';
+                msgDiv.style.display = 'block';
+                this.classList.remove('is-invalid');
+                this.classList.add('is-valid');
+            } else {
+                msgDiv.textContent = '❌ CPF inválido';
+                msgDiv.className = 'form-text mt-1 text-danger';
+                msgDiv.style.display = 'block';
+                this.classList.remove('is-valid');
+                this.classList.add('is-invalid');
+            }
+        } else if (cpfValue.length > 0) {
+            msgDiv.textContent = '⚠️ CPF incompleto (' + cpfValue.length + '/11 dígitos)';
+            msgDiv.className = 'form-text mt-1 text-warning';
+            msgDiv.style.display = 'block';
+            this.classList.remove('is-valid', 'is-invalid');
+        } else {
+            msgDiv.style.display = 'none';
+            this.classList.remove('is-valid', 'is-invalid');
+        }
+    });
+}
+
+// Função para criar div de mensagem de validação
+function criarMensagemValidacao(campo, msgId) {
+    var msgDiv = document.createElement('div');
+    msgDiv.id = msgId;
+    msgDiv.className = 'form-text mt-1';
+    msgDiv.style.display = 'none';
+    campo.parentNode.parentNode.appendChild(msgDiv);
+    return msgDiv;
+}
+
+console.log('Funções CPF, Contato, CNPJ e Validação carregadas');
 </script>
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1><i class="fas fa-user-plus"></i> Novo Cliente</h1>
-    <a href="{% url 'linhas:novalinha' %}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Voltar</a>
+<style>
+    /* Dashboard Tecnológico */
+    .dashboard-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 25px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .dashboard-header h1 {
+        color: #ffffff;
+        font-weight: 700;
+        font-size: 2rem;
+        margin: 0;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .dashboard-header .btn {
+        background: rgba(255,255,255,0.2);
+        border: 1px solid rgba(255,255,255,0.3);
+        color: white;
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+    }
+    
+    .dashboard-header .btn:hover {
+        background: rgba(255,255,255,0.3);
+        border-color: rgba(255,255,255,0.5);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    
+    /* Card transparente */
+    .card {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+    
+    .card-header {
+        background: transparent !important;
+        border: none !important;
+        padding: 0 0 20px 0;
+    }
+    
+    .card-body {
+        background: transparent !important;
+        backdrop-filter: none;
+        border-radius: 15px;
+        border: none;
+        box-shadow: none;
+        padding: 0;
+    }
+    
+    /* Estilo dos campos de entrada */
+    .form-control, .form-select {
+        background: rgba(255,255,255,0.9) !important;
+        border: 1px solid rgba(255,255,255,0.3) !important;
+        backdrop-filter: blur(10px);
+    }
+    
+    .form-control:focus, .form-select:focus {
+        background: rgba(255,255,255,0.95) !important;
+        border-color: #667eea !important;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25) !important;
+    }
+    
+    /* Labels e textos em branco com máxima prioridade */
+    * label, * .form-label, .card-body label, .card-body .form-label,
+    .tab-pane label, .tab-pane .form-label, .mb-3 label, .mb-3 .form-label,
+    label.form-label, label.small, .form-label.small {
+        color: white !important;
+        font-weight: 500;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    }
+    
+    /* Forçar cor branca em todos os elementos de texto dos labels */
+    .card-body * {
+        color: inherit;
+    }
+    
+    .card-body label *, .card-body .form-label * {
+        color: white !important;
+    }
+    
+    .text-danger, .text-danger small {
+        color: #ff6b6b !important;
+        background: rgba(0,0,0,0.2);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 0.85em;
+    }
+    
+    /* Seletor super específico para garantir texto branco nos labels */
+    div.tab-pane div.mb-3 label.form-label.small,
+    div.card-body div.tab-content div.tab-pane div div.mb-3 label,
+    .tab-pane .mb-3 label,
+    #conteudo-pj label,
+    #conteudo-pf label,
+    .tab-pane label.form-label.small {
+        color: #ffffff !important;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.5) !important;
+    }
+    
+    /* Botões verdes com texto branco */
+    #btn-buscar-cnpj,
+    button[name="next_action"][value="nova_linha"] {
+        background-color: #28a745 !important;
+        border-color: #28a745 !important;
+        color: white !important;
+    }
+    
+    #btn-buscar-cnpj:hover,
+    button[name="next_action"][value="nova_linha"]:hover {
+        background-color: #218838 !important;
+        border-color: #1e7e34 !important;
+        color: white !important;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+    }
+    
+    /* Estilo das abas - texto branco para abas não ativas com seletores específicos */
+    ul.nav.nav-tabs button.nav-link,
+    #tipoClienteTabs .nav-link,
+    #tab-pessoa-juridica,
+    #tab-pessoa-fisica {
+        color: white !important;
+        background-color: rgba(255,255,255,0.1) !important;
+        border: 1px solid rgba(255,255,255,0.3) !important;
+        border-radius: 8px 8px 0 0;
+    }
+    
+    ul.nav.nav-tabs button.nav-link:hover,
+    #tipoClienteTabs .nav-link:hover,
+    #tab-pessoa-juridica:hover,
+    #tab-pessoa-fisica:hover {
+        color: white !important;
+        background-color: rgba(255,255,255,0.2) !important;
+        border-color: rgba(255,255,255,0.5) !important;
+    }
+    
+    ul.nav.nav-tabs button.nav-link.active,
+    #tipoClienteTabs .nav-link.active,
+    #tab-pessoa-juridica.active,
+    #tab-pessoa-fisica.active {
+        color: #333 !important;
+        background-color: white !important;
+        border-color: white !important;
+    }
+</style>
+
+<div class="dashboard-header">
+    <h1><i class="fas fa-user-plus me-2"></i>Novo Cliente</h1>
+    <a href="{% url 'linhas:novalinha' %}" class="btn btn-secondary"><i class="fas fa-arrow-left me-2"></i>Voltar</a>
 </div>
 
 <!-- Formulário com Abas -->
@@ -220,13 +479,25 @@ console.log('Funções CPF e Contato carregadas');
                     </div>
                     {% endif %}
 
+                    <!-- Campo empresa oculto (sincronizado com razão social) -->
+                    <input type="hidden" name="empresa" id="id_empresa_pj">
+                    
                     <!-- Campos Pessoa Jurídica -->
                     <div id="campos-pj">
                         <div class="mb-3 position-relative">
-                            <label class="form-label small">CNPJ *</label>
+                            <label class="form-label small">CNPJ (somente números) *</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="fas fa-id-card"></i></span>
-                                {{ form.cnpj }}
+                                <input type="text" name="cnpj" id="id_cnpj" class="form-control" placeholder="12345678000199" required
+                                       maxlength="14"
+                                       pattern="[0-9]{14}"
+                                       inputmode="numeric"
+                                       autocomplete="off"
+                                       onkeypress="return somenteNumerosCNPJ(event)"
+                                       onkeydown="return somenteNumerosCNPJ(event)"
+                                       oninput="this.value = this.value.replace(/[^0-9]/g, '').substring(0, 14);"
+                                       onpaste="setTimeout(function(){ var el = document.getElementById('id_cnpj'); el.value = el.value.replace(/[^0-9]/g, '').substring(0, 14); }, 10)"
+                                       value="{{ form.cnpj.value|default:'' }}">
                                 <button type="button" class="btn btn-outline-secondary" id="btn-buscar-cnpj" 
                                         title="Buscar dados por CNPJ"
                                         onclick="console.log('🖱️ onclick disparado!'); if(window.buscarCnpjManual) window.buscarCnpjManual(); else alert('Função não carregada ainda!');">
@@ -241,16 +512,24 @@ console.log('Funções CPF e Contato carregadas');
                             <label class="form-label small">Razão Social *</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="fas fa-id-badge"></i></span>
-                                {{ form.razao_social }}
+                                <input type="text" name="razao_social" id="id_razao_social" class="form-control" placeholder="RAZÃO SOCIAL" required
+                                       style="text-transform: uppercase;" 
+                                       oninput="this.value = this.value.toUpperCase()"
+                                       onpaste="setTimeout(function(){ var el = document.getElementById('id_razao_social'); el.value = el.value.toUpperCase(); }, 10)"
+                                       value="{{ form.razao_social.value|default:'' }}">
                             </div>
                             {% if form.razao_social.errors %}<div class="text-danger small">{{ form.razao_social.errors.0 }}</div>{% endif %}
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label small">Nome Fantasia</label>
+                            <label class="form-label small">Nome Fantasia *</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="fas fa-tag"></i></span>
-                                {{ form.fantasia }}
+                                <input type="text" name="fantasia" id="id_fantasia" class="form-control" placeholder="NOME FANTASIA" required
+                                       style="text-transform: uppercase;" 
+                                       oninput="this.value = this.value.toUpperCase()"
+                                       onpaste="setTimeout(function(){ var el = document.getElementById('id_fantasia'); el.value = el.value.toUpperCase(); }, 10)"
+                                       value="{{ form.fantasia.value|default:'' }}">
                             </div>
                             {% if form.fantasia.errors %}<div class="text-danger small">{{ form.fantasia.errors.0 }}</div>{% endif %}
                         </div>
@@ -259,16 +538,28 @@ console.log('Funções CPF e Contato carregadas');
                             <label class="form-label small">Nome do Proprietário *</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="fas fa-user-tie"></i></span>
-                                {{ form.nome_dono }}
+                                <input type="text" name="nome_dono" id="id_nome_dono" class="form-control" placeholder="NOME DO PROPRIETÁRIO" required
+                                       style="text-transform: uppercase;" 
+                                       oninput="this.value = this.value.toUpperCase()"
+                                       onpaste="setTimeout(function(){ var el = document.getElementById('id_nome_dono'); el.value = el.value.toUpperCase(); }, 10)"
+                                       value="{{ form.nome_dono.value|default:'' }}">
                             </div>
                             {% if form.nome_dono.errors %}<div class="text-danger small">{{ form.nome_dono.errors.0 }}</div>{% endif %}
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label small">CPF do Proprietário *</label>
+                            <label class="form-label small">CPF do Proprietário (somente números) *</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="fas fa-id-card"></i></span>
-                                {{ form.cpf_dono }}
+                                <input type="text" name="cpf_dono" id="id_cpf_pj" class="form-control" placeholder="12345678901" required
+                                       maxlength="11"
+                                       pattern="[0-9]{11}"
+                                       inputmode="numeric"
+                                       autocomplete="off"
+                                       onkeypress="return /[0-9]/.test(String.fromCharCode(event.keyCode || event.which)) && this.value.replace(/[^0-9]/g, '').length < 11;"
+                                       onkeydown="if (!/[0-9]/.test(String.fromCharCode(event.keyCode || event.which)) && ![8,9,13,27,35,36,37,38,39,40,46].includes(event.keyCode) && !event.ctrlKey) { event.preventDefault(); }"
+                                       oninput="this.value = this.value.replace(/[^0-9]/g, '').substring(0, 11);"
+                                       onpaste="setTimeout(function(){ var el = document.getElementById('id_cpf_pj'); el.value = el.value.replace(/[^0-9]/g, '').substring(0, 11); }, 10)">
                             </div>
                             {% if form.cpf_dono.errors %}<div class="text-danger small">{{ form.cpf_dono.errors.0 }}</div>{% endif %}
                         </div>
@@ -277,9 +568,19 @@ console.log('Funções CPF e Contato carregadas');
                             <label class="form-label small">Data de Nascimento do Proprietário *</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
-                                {{ form.data_nascimento_dono }}
+                                <input type="date" name="data_nascimento_dono" id="id_data_nascimento_pj" class="form-control" required>
                             </div>
                             {% if form.data_nascimento_dono.errors %}<div class="text-danger small">{{ form.data_nascimento_dono.errors.0 }}</div>{% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small">Valor da Taxa de Manutenção R$ *</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-dollar-sign"></i></span>
+                                <input type="number" name="valor_taxa_manutencao" id="id_valor_taxa_pj" class="form-control" step="0.01" min="0" placeholder="0,00" required
+                                       value="{{ form.valor_taxa_manutencao.value|default:'' }}">
+                            </div>
+                            {% if form.valor_taxa_manutencao.errors %}<div class="text-danger small">{{ form.valor_taxa_manutencao.errors.0 }}</div>{% endif %}
                         </div>
                     </div>
                     
@@ -289,42 +590,50 @@ console.log('Funções CPF e Contato carregadas');
                     <div id="campos-comuns">
                         <div class="mb-3">
                             <label class="form-label small">Endereço Completo *</label>
-                            <textarea name="endereco_completo" id="id_endereco_completo" class="form-control" rows="3" placeholder="Rua, número, complemento, bairro, cidade, estado, CEP" required>{{ form.endereco_completo.value|default:'' }}</textarea>
+                            <textarea name="endereco_completo" id="id_endereco_completo" class="form-control" rows="3" placeholder="RUA, NÚMERO, COMPLEMENTO, BAIRRO, CIDADE, ESTADO, CEP" required
+                                      style="text-transform: uppercase;" 
+                                      oninput="this.value = this.value.toUpperCase()"
+                                      onpaste="setTimeout(function(){ var el = document.getElementById('id_endereco_completo'); el.value = el.value.toUpperCase(); }, 10)">{{ form.endereco_completo.value|default:'' }}</textarea>
                             {% if form.endereco_completo.errors %}<div class="text-danger small">{{ form.endereco_completo.errors.0 }}</div>{% endif %}
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label small">Contato Principal *</label>
+                            <label class="form-label small">Contato Principal (somente números) *</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="fas fa-phone"></i></span>
-                                <input type="text" name="contato" id="id_contato" class="form-control" placeholder="(11) 99999-9999" required value="{{ form.contato.value|default:'' }}">
+                                <input type="text" name="contato" id="id_contato" class="form-control" placeholder="11999999999" required
+                                       maxlength="11"
+                                       autocomplete="off"
+                                       pattern="[0-9]{11}"
+                                       inputmode="numeric"
+                                       onkeypress="return bloqueiarLetrasContato(event)"
+                                       onkeydown="return bloqueiarLetrasContato(event)" 
+                                       oninput="this.value = this.value.replace(/[^0-9]/g, '').substring(0, 11)"
+                                       onpaste="setTimeout(function(){ var el = document.getElementById('id_contato'); el.value = el.value.replace(/[^0-9]/g, '').substring(0, 11); }, 10)"
+                                       value="{{ form.contato.value|default:'' }}">
                             </div>
                             {% if form.contato.errors %}<div class="text-danger small">{{ form.contato.errors.0 }}</div>{% endif %}
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label small">E-mail</label>
+                            <label class="form-label small">E-mail *</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-                                <input type="email" name="email" id="id_email" class="form-control" placeholder="email@exemplo.com" value="{{ form.email.value|default:'' }}">
+                                <input type="email" name="email" id="id_email" class="form-control" placeholder="email@exemplo.com" required
+                                       style="text-transform: lowercase;" 
+                                       oninput="this.value = this.value.toLowerCase()"
+                                       onpaste="setTimeout(function(){ var el = document.getElementById('id_email'); el.value = el.value.toLowerCase(); }, 10)"
+                                       value="{{ form.email.value|default:'' }}">
                             </div>
                             {% if form.email.errors %}<div class="text-danger small">{{ form.email.errors.0 }}</div>{% endif %}
                         </div>
+
                     </div>
                     
-                    <div class="d-flex justify-content-between align-items-center">
-                        <button type="button" class="btn btn-secondary" onclick="history.back()">
-                            <i class="fas fa-arrow-left"></i> Voltar
+                    <div class="d-flex justify-content-end align-items-center">
+                        <button type="submit" name="next_action" value="nova_linha" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Salvar e Criar Linha
                         </button>
-                        
-                        <div>
-                            <button type="submit" name="next_action" value="stay" class="btn btn-success me-2">
-                                <i class="fas fa-save"></i> Salvar e Continuar
-                            </button>
-                            <button type="submit" name="next_action" value="nova_linha" class="btn btn-primary">
-                                <i class="fas fa-plus"></i> Salvar e Criar Linha
-                            </button>
-                        </div>
                     </div>
                 </form>
             </div>
@@ -348,7 +657,7 @@ console.log('Funções CPF e Contato carregadas');
                                 <!-- Para PF usamos 'empresa' como identificação e também refletimos em nome_dono -->
                                 <input type="text" name="empresa" id="id_nome_completo" class="form-control" placeholder="NOME COMPLETO" required
                                    style="text-transform: uppercase;" 
-                                   oninput="this.value = this.value.toUpperCase()">
+                                   oninput="this.value = this.value.toUpperCase(); document.getElementById('id_nome_dono_hidden').value = this.value;">
                         </div>
                     </div>
 
@@ -364,10 +673,10 @@ console.log('Funções CPF e Contato carregadas');
                                    pattern="[0-9]{11}"
                                    inputmode="numeric"
                                    autocomplete="off"
-                                   onkeypress="return somenteNumerosCPF(event)"
-                                   onkeydown="return somenteNumerosCPF(event)"
-                                   oninput="formatarCPFLimitado(this); this.value = this.value.replace(/[^0-9]/g, '').substring(0, 11);"
-                                   onpaste="setTimeout(function(){ var el = document.getElementById('id_cpf_pf'); el.value = el.value.replace(/[^0-9]/g, '').substring(0, 11); }, 10)"
+                                   onkeypress="return /[0-9]/.test(String.fromCharCode(event.keyCode || event.which)) && this.value.replace(/[^0-9]/g, '').length < 11;"
+                                   onkeydown="if (!/[0-9]/.test(String.fromCharCode(event.keyCode || event.which)) && ![8,9,13,27,35,36,37,38,39,40,46].includes(event.keyCode) && !event.ctrlKey) { event.preventDefault(); }"
+                                   oninput="this.value = this.value.replace(/[^0-9]/g, '').substring(0, 11);"
+                                   onpaste="setTimeout(function(){ var el = document.getElementById('id_cpf_pf'); el.value = el.value.replace(/[^0-9]/g, '').substring(0, 11); }, 10)">
                         </div>
                     </div>                    <div class="mb-3">
                         <label class="form-label small">Data de Nascimento *</label>
@@ -375,6 +684,16 @@ console.log('Funções CPF e Contato carregadas');
                             <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
                             <input type="date" name="data_nascimento_dono" id="id_data_nascimento_pf" class="form-control" required>
                         </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small">Valor da Taxa de Manutenção R$ *</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-dollar-sign"></i></span>
+                            <input type="number" name="valor_taxa_manutencao" id="id_valor_taxa_pf" class="form-control" step="0.01" min="0" placeholder="0,00" required
+                                   value="{{ form.valor_taxa_manutencao.value|default:'' }}">
+                        </div>
+                        {% if form.valor_taxa_manutencao.errors %}<div class="text-danger small">{{ form.valor_taxa_manutencao.errors.0 }}</div>{% endif %}
                     </div>
 
                     <div class="mb-3">
@@ -401,18 +720,23 @@ console.log('Funções CPF e Contato carregadas');
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label small">E-mail</label>
+                        <label class="form-label small">E-mail *</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-                            <input type="email" name="email" id="id_email_pf" class="form-control" placeholder="email@exemplo.com"
+                            <input type="email" name="email" id="id_email_pf" class="form-control" placeholder="email@exemplo.com" required
                                    style="text-transform: lowercase;" 
                                    oninput="this.value = this.value.toLowerCase()"
-                                   onpaste="setTimeout(function(){ var el = document.getElementById('id_email_pf'); el.value = el.value.toLowerCase(); }, 10)">
+                                   onpaste="setTimeout(function(){ var el = document.getElementById('id_email_pf'); el.value = el.value.toLowerCase(); }, 10)"
+                                   value="{{ form.email.value|default:'' }}">
                         </div>
+                        {% if form.email.errors %}<div class="text-danger small">{{ form.email.errors.0 }}</div>{% endif %}
                     </div>
 
+
+
                     <div class="d-flex justify-content-end align-items-center">
-                        <button type="submit" name="next_action" value="nova_linha" class="btn btn-primary">
+                        <button type="submit" name="next_action" value="nova_linha" class="btn btn-primary"
+                                onclick="var nomeCompleto = document.getElementById('id_nome_completo'); var nomeDono = document.getElementById('id_nome_dono_hidden'); if(nomeCompleto && nomeDono) { nomeDono.value = nomeCompleto.value; console.log('PF - Nome dono definido:', nomeDono.value); }">
                             <i class="fas fa-plus"></i> Salvar e Criar Linha
                         </button>
                     </div>
@@ -733,6 +1057,10 @@ document.addEventListener('DOMContentLoaded', function() {
             console.warn('❌ Campo telefone PF não encontrado para aplicar máscara');
         }
 
+
+
+
+
     } catch (e) {
         console.warn('Cleave init failed', e);
     }
@@ -854,7 +1182,52 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.warn('Erro na segunda tentativa telefone:', e);
             }
         }
+
+
+
+
     }, 2000);
+});
+</script>
+
+<script>
+// 💰 Função para formatar taxa de manutenção
+function formatarTaxaManutencao(input) {
+    if (!input) return;
+    
+    let valor = input.value.replace(/[^\d,\.]/g, '');
+    valor = valor.replace(',', '.');
+    
+    // Validar se é um número válido
+    if (valor && !isNaN(parseFloat(valor))) {
+        input.value = parseFloat(valor).toFixed(2);
+    } else if (valor === '' || valor === '0' || valor === '0.00') {
+        input.value = '0.00';
+    }
+}
+
+// Aplicar formatação aos campos de taxa de manutenção
+document.addEventListener('DOMContentLoaded', function() {
+    const taxaFields = document.querySelectorAll('#id_valor_taxa_pj, #id_valor_taxa_pf');
+    
+    taxaFields.forEach(function(field) {
+        if (field) {
+            // Formatar ao sair do campo
+            field.addEventListener('blur', function() {
+                formatarTaxaManutencao(this);
+            });
+            
+            // Permitir apenas números, vírgulas e pontos
+            field.addEventListener('input', function() {
+                this.value = this.value.replace(/[^\d,\.]/g, '');
+            });
+            
+            // Formatar valor inicial se existir
+            if (field.value) {
+                formatarTaxaManutencao(field);
+            }
+        }
+    });
 });
 </script>
 
@@ -1237,6 +1610,80 @@ document.addEventListener('DOMContentLoaded', function(){
         nomeCompleto.addEventListener('blur', sync);
         sync();
     }
+    
+    // Espelhar Razão Social PJ no campo empresa oculto
+    var razaoSocial = document.getElementById('id_razao_social');
+    var empresaPJ = document.getElementById('id_empresa_pj');
+    if (razaoSocial && empresaPJ) {
+        var syncPJ = function(){ 
+            empresaPJ.value = razaoSocial.value;
+            console.log('Sincronizado empresa PJ:', empresaPJ.value);
+        };
+        razaoSocial.addEventListener('input', syncPJ);
+        razaoSocial.addEventListener('blur', syncPJ);
+        // Sincronizar também quando a busca CNPJ preencher automaticamente
+        var observer = new MutationObserver(syncPJ);
+        observer.observe(razaoSocial, { attributes: true, attributeOldValue: true, attributeFilter: ['value'] });
+        syncPJ(); // Sincronizar valor inicial
+    }
+    
+    // Garantir sincronização no submit do formulário PJ
+    var formPJ = document.getElementById('form-cliente');
+    if (formPJ) {
+        formPJ.addEventListener('submit', function(e) {
+            var razaoSocial = document.getElementById('id_razao_social');
+            var empresaPJ = document.getElementById('id_empresa_pj');
+            if (razaoSocial && empresaPJ && razaoSocial.value) {
+                empresaPJ.value = razaoSocial.value;
+                console.log('Submit - Empresa PJ definida como:', empresaPJ.value);
+            }
+
+            // Validar campos obrigatórios PJ
+            var camposObrigatoriosPJ = [
+                { id: 'id_razao_social', nome: 'Razão Social' },
+                { id: 'id_fantasia', nome: 'Nome Fantasia' },
+                { id: 'id_cnpj', nome: 'CNPJ' },
+                { id: 'id_email', nome: 'E-mail' },
+                { id: 'id_telefone', nome: 'Telefone' },
+                { id: 'id_valor_taxa_pj', nome: 'Valor da Taxa de Manutenção' }
+            ];
+
+            var campoVazio = camposObrigatoriosPJ.find(function(campo) {
+                var elemento = document.getElementById(campo.id);
+                return elemento && !elemento.value.trim();
+            });
+
+            if (campoVazio) {
+                e.preventDefault();
+                alert('O campo "' + campoVazio.nome + '" é obrigatório para Pessoa Jurídica.');
+                document.getElementById(campoVazio.id).focus();
+                return false;
+            }
+        });
+    }
+    
+    // Garantir sincronização no submit do formulário PF
+    var formPF = document.getElementById('form-cliente-pf');
+    if (formPF) {
+        formPF.addEventListener('submit', function(e) {
+            // No PF, o nome completo está no campo empresa (id_nome_completo)
+            // Precisamos criar/atualizar o campo nome_dono com o mesmo valor
+            var nomeCompleto = document.getElementById('id_nome_completo');
+            
+            if (nomeCompleto && nomeCompleto.value) {
+                // Verificar se já existe um campo nome_dono no formulário PF, se não, criar
+                var nomeDonoField = formPF.querySelector('input[name="nome_dono"]');
+                if (!nomeDonoField) {
+                    nomeDonoField = document.createElement('input');
+                    nomeDonoField.type = 'hidden';
+                    nomeDonoField.name = 'nome_dono';
+                    formPF.appendChild(nomeDonoField);
+                }
+                nomeDonoField.value = nomeCompleto.value;
+                console.log('Submit PF - Nome dono criado/atualizado como:', nomeDonoField.value);
+            }
+        });
+    }
 });
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Configurando proteção rigorosa do CPF');
@@ -1421,11 +1868,17 @@ document.addEventListener('DOMContentLoaded', function() {
     protegerCampoCPF();
     protegerCampoContato();
     
+    // Aplicar validação de CPF nos campos
+    aplicarValidacaoCPF('id_cpf_pj', 'cpf-pj-validation-msg');  // CPF Pessoa Jurídica
+    aplicarValidacaoCPF('id_cpf_pf', 'cpf-pf-validation-msg');  // CPF Pessoa Física
+    
     // Tentar novamente após 2 segundos
     setTimeout(function() {
         protegerCampoCPF();
         protegerCampoContato();
-        console.log('✅ Proteção CPF e Contato aplicada (segunda tentativa)');
+        aplicarValidacaoCPF('id_cpf_pj', 'cpf-pj-validation-msg');
+        aplicarValidacaoCPF('id_cpf_pf', 'cpf-pf-validation-msg');
+        console.log('✅ Proteção CPF, Contato e Validação aplicada (segunda tentativa)');
     }, 2000);
 });
 </script>

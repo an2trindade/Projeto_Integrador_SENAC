@@ -44,6 +44,7 @@ class Cliente(models.Model):
     nome_dono = models.CharField(max_length=150, verbose_name='Nome do Titular / Dono', blank=True, default='')
     cpf_dono = models.CharField(max_length=20, verbose_name='CPF do Dono', blank=True, default='')
     data_nascimento_dono = models.DateField(verbose_name='Data de Nascimento do Dono', null=True, blank=True)
+    valor_taxa_manutencao = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Valor da Taxa de Manutenção (R$)', blank=True, null=True, default=0)
     criado_em = models.DateTimeField(auto_now_add=True)
 
     class Meta:

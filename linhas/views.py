@@ -392,7 +392,17 @@ def cliente_novo(request):
                     'cliente_salvo': cliente
                 })
         else:
-            messages.error(request, 'Erro ao cadastrar cliente. Verifique os dados informados.')
+            # Criar mensagem de erro mais específica
+            error_messages = []
+            for field_name, field_errors in form.errors.items():
+                field_label = form.fields[field_name].label or field_name
+                for error in field_errors:
+                    error_messages.append(f"{field_label}: {error}")
+            
+            if error_messages:
+                messages.error(request, f'Erro ao cadastrar cliente: {"; ".join(error_messages[:3])}')
+            else:
+                messages.error(request, 'Erro ao cadastrar cliente. Verifique os dados informados.')
     else:
         form = ClienteForm()
     return render(request, 'linhas/novo_cliente.html', {'form': form})
