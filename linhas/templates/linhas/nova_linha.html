@@ -47,6 +47,8 @@
         font-weight: 600;
         font-size: 0.9rem;
     }
+    /* posição relativa para conteúdo interno do card */
+    .linha-grupo { position: relative; }
 </style>
 
 <div class="tech-header">
@@ -270,6 +272,8 @@
                                     var tipo = tipoPlano.value;
                                     valorPlano.value = valoresPlano[tipo] || '';
                                 });
+
+                                // Remoção do botão de remover linha dentro do card (não utilizado)
 
                                 // Mostrar/ocultar campo Linha a ser portada conforme ação principal
                                 var linhaPortRow = grupo.querySelector('.linha-portabilidade-row');

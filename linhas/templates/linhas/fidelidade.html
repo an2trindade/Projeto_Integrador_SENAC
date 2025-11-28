@@ -167,23 +167,25 @@
         margin: 0;
     }
     
+    /* Botão remover linha (canto superior direito do card) */
     .btn-remove-linha {
+        position: absolute;
+        top: 8px;
+        right: 8px;
         background: linear-gradient(45deg, #dc3545, #c82333);
         border: none;
         color: white;
-        width: 35px;
-        height: 35px;
+        width: 32px;
+        height: 32px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: all 0.3s ease;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.35);
+        z-index: 2;
     }
-    
-    .btn-remove-linha:hover {
-        transform: scale(1.1);
-        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
-    }
+    .btn-remove-linha:hover { transform: scale(1.05); }
 </style>
 
 <div class="tech-header d-flex justify-content-between align-items-center">
@@ -456,7 +458,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <h5 class="linha-form-title">
                     <i class="fas fa-mobile-alt"></i> Linha #${linhaCounter}
                 </h5>
-                <button type="button" class="btn btn-remove-linha" onclick="removerFormularioLinha(${linhaCounter})" title="Remover linha">
+                <button type="button" class="btn btn-remove-linha" onclick="removerFormularioLinha(${linhaCounter})" title="Remover a Linha">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -559,7 +561,8 @@ document.addEventListener('DOMContentLoaded', function() {
         atualizarContadorLinhas();
     }
     
-    function removerFormularioLinha(id) {
+    // Tornar a função acessível para o inline onclick do botão
+    window.removerFormularioLinha = function(id) {
         const formElement = document.getElementById(`linha-form-${id}`);
         if (formElement) {
             // Animação de saída
@@ -572,7 +575,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 atualizarContadorLinhas();
             }, 300);
         }
-    }
+    };
     
 
     
