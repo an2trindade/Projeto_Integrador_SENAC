@@ -339,15 +339,7 @@
             plugins: {
                 legend: { display: false },
                 tooltip: {
-                    titleColor: '#000000',
-                    bodyColor: '#000000',
-                    callbacks: {
-                        title: function(items) {
-                            // show full label in tooltip
-                            const idx = items[0].dataIndex;
-                            return tipoLabels[idx] || items[0].label;
-                        }
-                    }
+                    enabled: false
                 }
             },
             scales: {
