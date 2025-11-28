@@ -1,0 +1,304 @@
+{% extends 'base.html' %}
+
+{% block title %}Nova Linha - Gestor de Linhas de Telefonia{% endblock %}
+
+{% block content %}
+<style>
+    /* Header Tecnológico */
+    .tech-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 25px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .tech-header h1 {
+        color: #ffffff;
+        font-weight: 700;
+        font-size: 2rem;
+        margin: 0;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    /* Card Formulário */
+    .form-card {
+        background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 20px;
+        padding: 25px;
+        margin-bottom: 20px;
+    }
+    
+    .form-card h5 {
+        color: rgba(255,255,255,0.9);
+        font-weight: 600;
+        border-bottom: 2px solid rgba(102, 126, 234, 0.3);
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+    }
+    
+    .form-label {
+        color: rgba(255,255,255,0.9);
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+</style>
+
+<div class="tech-header">
+    <h1><i class="fas fa-plus"></i> Nova Linha</h1>
+    <a href="{% url 'linhas:listalinhas' %}" class="btn btn-light">
+        <i class="fas fa-arrow-left"></i> Voltar
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="form-card">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <!-- AÇÃO -->
+                <h5 class="mt-4 mb-2"><i class="fas fa-map-marker-alt"></i> Ação</h5>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.acao.id_for_label }}" class="form-label">{{ form.acao.label }}</label>
+                        {{ form.acao }}
+                        {% if form.acao.errors %}
+                            <div class="text-danger small">{{ form.acao.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.observacoes.id_for_label }}" class="form-label">
+                        <i class="fas fa-sticky-note"></i> {{ form.observacoes.label }}
+                    </label>
+                    {{ form.observacoes }}
+                    {% if form.observacoes.errors %}
+                        <div class="text-danger small">{{ form.observacoes.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- FATURA -->
+                <h5 class="mt-4 mb-2"><i class="fas fa-building"></i> FATURA</h5>
+                
+                <!-- Campos do Cliente -->
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.empresa.id_for_label }}" class="form-label">
+                            <i class="fas fa-building"></i> {{ form.empresa.label }} *
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-building"></i></span>
+                            {{ form.empresa }}
+                        </div>
+                        {% if form.empresa.errors %}
+                            <div class="text-danger small">{{ form.empresa.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.cnpj.id_for_label }}" class="form-label">
+                            <i class="fas fa-id-card"></i> {{ form.cnpj.label }} *
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-id-card"></i></span>
+                            {{ form.cnpj }}
+                        </div>
+                        {% if form.cnpj.errors %}
+                            <div class="text-danger small">{{ form.cnpj.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.taxa_manutencao.id_for_label }}" class="form-label">
+                            <i class="fas fa-coins"></i> {{ form.taxa_manutencao.label }} *
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text">R$</span>
+                            {{ form.taxa_manutencao }}
+                        </div>
+                        {% if form.taxa_manutencao.errors %}
+                            <div class="text-danger small">{{ form.taxa_manutencao.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.rp.id_for_label }}" class="form-label">
+                            <i class="fas fa-user-tie"></i> {{ form.rp.label }} *
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-user-tie"></i></span>
+                            {{ form.rp }}
+                        </div>
+                        {% if form.rp.errors %}
+                            <div class="text-danger small">{{ form.rp.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- LINHA -->
+                <h5 class="mt-4 mb-2"><i class="fas fa-mobile-alt"></i> Linha</h5>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.numero.id_for_label }}" class="form-label">
+                            <i class="fas fa-phone"></i> {{ form.numero.label }} *
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                            {{ form.numero }}
+                        </div>
+                        {% if form.numero.errors %}
+                            <div class="text-danger small">{{ form.numero.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.iccid.id_for_label }}" class="form-label">
+                            <i class="fas fa-sim-card"></i> {{ form.iccid.label }}
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-sim-card"></i></span>
+                            {{ form.iccid }}
+                        </div>
+                        {% if form.iccid.errors %}
+                            <div class="text-danger small">{{ form.iccid.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.tipo_plano.id_for_label }}" class="form-label">
+                            <i class="fas fa-list"></i> {{ form.tipo_plano.label }} *
+                        </label>
+                        {{ form.tipo_plano }}
+                        {% if form.tipo_plano.errors %}
+                            <div class="text-danger small">{{ form.tipo_plano.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.valor_plano.id_for_label }}" class="form-label">
+                            <i class="fas fa-dollar-sign"></i> {{ form.valor_plano.label }} *
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text">R$</span>
+                            {{ form.valor_plano }}
+                        </div>
+                        {% if form.valor_plano.errors %}
+                            <div class="text-danger small">{{ form.valor_plano.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="form-check">
+                        {{ form.ativa }}
+                        <label class="form-check-label text-white" for="{{ form.ativa.id_for_label }}">
+                            {{ form.ativa.label }}
+                        </label>
+                    </div>
+                    {% if form.ativa.errors %}
+                        <div class="text-danger small">{{ form.ativa.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 align-items-center">
+                    <a href="{% url 'linhas:listalinhas' %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Salvar
+                    </button>
+                    <button type="button" id="btn-enviar-pedido" class="btn btn-success">Enviar Pedido</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="form-card">
+            <h5><i class="fas fa-info-circle"></i> Informações</h5>
+            <p class="text-white-50">
+                Preencha todos os campos obrigatórios (*) para cadastrar uma nova linha no sistema.
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+// Handler para o botão "Enviar Pedido"
+document.addEventListener('DOMContentLoaded', function() {
+    const btnEnviarPedido = document.getElementById('btn-enviar-pedido');
+    const form = document.querySelector('form[method="post"]');
+
+    if (btnEnviarPedido && form) {
+        btnEnviarPedido.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Verificar se os campos obrigatórios estão preenchidos
+            const requiredFields = form.querySelectorAll('[required]');
+            let isValid = true;
+            let missingFields = [];
+
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    isValid = false;
+                    const label = field.previousElementSibling?.textContent || field.placeholder || field.name;
+                    missingFields.push(label);
+                    field.classList.add('is-invalid');
+                } else {
+                    field.classList.remove('is-invalid');
+                }
+            });
+
+            if (!isValid) {
+                alert('Preencha todos os campos obrigatórios:\n• ' + missingFields.join('\n• '));
+                return;
+            }
+
+            // Desabilitar botão durante o envio
+            btnEnviarPedido.disabled = true;
+            btnEnviarPedido.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+
+            // Criar FormData com todos os dados do formulário
+            const formData = new FormData(form);
+
+            // Enviar via AJAX
+            fetch("{% url 'linhas:enviar_pedido' %}", {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert(data.message);
+                    if (data.redirect_url) {
+                        window.location.href = data.redirect_url;
+                    }
+                } else {
+                    alert('Erro: ' + data.message + (data.errors ? '\n\nDetalhes:\n• ' + data.errors.join('\n• ') : ''));
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                alert('Erro de conexão. Tente novamente.');
+            })
+            .finally(() => {
+                // Reabilitar botão
+                btnEnviarPedido.disabled = false;
+                btnEnviarPedido.innerHTML = 'Enviar Pedido';
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

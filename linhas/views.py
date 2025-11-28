@@ -544,6 +544,13 @@ def nova_linha(request):
         if form.is_valid():
             linha = form.save(commit=False)
             linha.criado_por = request.user
+            
+            # Se RP for "NOVO_RP_AUTO", gerar um RP automático
+            if linha.rp == 'NOVO_RP_AUTO':
+                import datetime
+                timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+                linha.rp = f'7.{timestamp}.AUTO'
+            
             # Adiciona observações da lateral se ação for TT ou PORTABILIDADE
             if linha.acao in ['TT', 'PORTABILIDADE'] and observacoes_lateral:
                 if linha.observacoes:
@@ -2368,6 +2375,12 @@ def enviar_pedido(request):
             linha = form.save(commit=False)
             linha.criado_por = request.user
             linha.status_protocolo = 'pendente'  # Define automaticamente como pendente
+            
+            # Se RP for "NOVO_RP_AUTO", gerar um RP automático
+            if linha.rp == 'NOVO_RP_AUTO':
+                import datetime
+                timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+                linha.rp = f'7.{timestamp}.AUTO'
             
             # Adiciona observações da lateral se ação for TT ou PORTABILIDADE
             if linha.acao in ['TT', 'PORTABILIDADE'] and observacoes_lateral:

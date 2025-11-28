@@ -69,11 +69,8 @@
                     <h5 class="mt-4 mb-2"><i class="fas fa-map-marker-alt"></i> Ação</h5>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="{{ form.acao.id_for_label }}" class="form-label"></label>
-                            <div class="d-flex align-items-center gap-2">
-                                {{ form.acao }}
-                                <!-- Botão removido, será exibido apenas na linha dos botões de ação -->
-                            </div>
+                            <label for="{{ form.acao.id_for_label }}" class="form-label">{{ form.acao.label }}</label>
+                            {{ form.acao }}
                             {% if form.acao.errors %}
                                 <div class="text-danger small">{{ form.acao.errors.0 }}</div>
                             {% endif %}
@@ -183,9 +180,8 @@
                             <select class="form-select" id="rp-select" name="rp">
                                 <option value="">Selecione um RP</option>
                                 <option value="7.1255217.10.11">7.1255217.10.11 (ESTOQUE)</option>
-                                <option value="novo">Novo RP</option>
+                                <option value="NOVO_RP_AUTO">Novo RP (Automático)</option>
                             </select>
-                            <input type="text" class="form-control mt-2" id="rp-novo" name="rp_novo" placeholder="Digite novo RP" style="display:none;">
                             <small class="text-info" id="rp-auto-info" style="display:none;">
                                 <i class="fas fa-info-circle"></i> RP selecionado automaticamente para movimentação de estoque/portabilidade
                             </small>
@@ -522,13 +518,7 @@
                             empresaInput.addEventListener('change', atualizarRPs);
                             cnpjInput.addEventListener('change', atualizarRPs);
 
-                            rpSelect.addEventListener('change', function() {
-                                if (rpSelect.value === 'novo') {
-                                    rpNovo.style.display = '';
-                                } else {
-                                    rpNovo.style.display = 'none';
-                                }
-                            });
+                            // RP automático - não precisa de campo adicional
                             var cnpjSuggestions = document.getElementById('cnpj-suggestions');
 
                             // Autocomplete CNPJ
@@ -1028,20 +1018,43 @@ document.addEventListener('DOMContentLoaded', function() {
         const btnEnviarPedido = document.getElementById('btn-enviar-pedido');
         const form = document.querySelector('form[method="post"]');
 
+        console.log('Botão Enviar Pedido:', btnEnviarPedido);
+        console.log('Formulário:', form);
+
         if (btnEnviarPedido && form) {
             btnEnviarPedido.addEventListener('click', function(e) {
                 e.preventDefault();
+                console.log('Botão Enviar Pedido clicado!');
                 
                 // Verificar se os campos obrigatórios estão preenchidos
-                const requiredFields = form.querySelectorAll('[required]');
                 let isValid = true;
                 let missingFields = [];
 
-                requiredFields.forEach(field => {
+                // Lista de campos obrigatórios principais
+                const requiredFieldNames = ['empresa', 'cnpj', 'taxa_manutencao', 'rp', 'numero', 'tipo_plano', 'valor_plano'];
+                
+                // Verificar campos obrigatórios por nome
+                requiredFieldNames.forEach(fieldName => {
+                    const field = form.querySelector(`[name="${fieldName}"]`);
+                    if (field && !field.value.trim()) {
+                        isValid = false;
+                        const label = field.closest('.mb-3')?.querySelector('.form-label')?.textContent || fieldName;
+                        missingFields.push(label.replace('*', '').trim());
+                        field.classList.add('is-invalid');
+                    } else if (field) {
+                        field.classList.remove('is-invalid');
+                    }
+                });
+
+                // Também verificar campos com atributo required
+                const explicitRequiredFields = form.querySelectorAll('[required]');
+                explicitRequiredFields.forEach(field => {
                     if (!field.value.trim()) {
                         isValid = false;
-                        const label = field.previousElementSibling?.textContent || field.placeholder || field.name;
-                        missingFields.push(label);
+                        const label = field.closest('.mb-3')?.querySelector('.form-label')?.textContent || field.placeholder || field.name;
+                        if (!missingFields.includes(label)) {
+                            missingFields.push(label);
+                        }
                         field.classList.add('is-invalid');
                     } else {
                         field.classList.remove('is-invalid');
@@ -1049,10 +1062,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
 
                 if (!isValid) {
+                    console.log('Campos obrigatórios em falta:', missingFields);
                     alert('Preencha todos os campos obrigatórios:\n• ' + missingFields.join('\n• '));
                     return;
                 }
 
+                console.log('Validação passou, enviando formulário...');
+                
                 // Desabilitar botão durante o envio
                 btnEnviarPedido.disabled = true;
                 btnEnviarPedido.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
