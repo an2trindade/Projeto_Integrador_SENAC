@@ -304,6 +304,11 @@
                         var taxaInput = document.getElementById('{{ form.taxa_manutencao.id_for_label }}');
                         var rpSelect = document.getElementById('rp-select');
                         
+                        // Verificar se elementos essenciais existem
+                        if (!empresaInput || !cnpjInput || !rpSelect) {
+                            console.warn('Alguns elementos do formulário não foram encontrados');
+                        }
+                        
                         var clienteAtualId = null;
                         var timeoutBusca = null;
 
@@ -448,22 +453,24 @@
                             var btnGerarTermo = document.getElementById('btn-gerar-termo');
                             var btnGerarTabela = document.getElementById('btn-gerar-tabela');
                             function toggleBotoes() {
-                                if (acaoSelect.value === 'TT') {
-                                    btnGerarTT.style.display = '';
-                                    btnGerarTermo.style.display = 'none';
-                                    btnGerarTabela.style.display = 'none';
-                                } else if (acaoSelect.value === 'PORTABILIDADE') {
-                                    btnGerarTT.style.display = 'none';
-                                    btnGerarTermo.style.display = '';
-                                    btnGerarTabela.style.display = '';
+                                if (acaoSelect && acaoSelect.value === 'TT') {
+                                    if (btnGerarTT) btnGerarTT.style.display = '';
+                                    if (btnGerarTermo) btnGerarTermo.style.display = 'none';
+                                    if (btnGerarTabela) btnGerarTabela.style.display = 'none';
+                                } else if (acaoSelect && acaoSelect.value === 'PORTABILIDADE') {
+                                    if (btnGerarTT) btnGerarTT.style.display = 'none';
+                                    if (btnGerarTermo) btnGerarTermo.style.display = '';
+                                    if (btnGerarTabela) btnGerarTabela.style.display = '';
                                 } else {
-                                    btnGerarTT.style.display = 'none';
-                                    btnGerarTermo.style.display = 'none';
-                                    btnGerarTabela.style.display = 'none';
+                                    if (btnGerarTT) btnGerarTT.style.display = 'none';
+                                    if (btnGerarTermo) btnGerarTermo.style.display = 'none';
+                                    if (btnGerarTabela) btnGerarTabela.style.display = 'none';
                                 }
                             }
-                            acaoSelect.addEventListener('change', toggleBotoes);
-                            toggleBotoes();
+                            if (acaoSelect) {
+                                acaoSelect.addEventListener('change', toggleBotoes);
+                                toggleBotoes();
+                            }
                         });
                     </script>
                     </div>
@@ -521,40 +528,43 @@
                             // RP automático - não precisa de campo adicional
                             var cnpjSuggestions = document.getElementById('cnpj-suggestions');
 
-                            // Autocomplete CNPJ
-                            cnpjInput.addEventListener('input', function() {
-                                var query = cnpjInput.value.replace(/\D/g, '');
-                                if (query.length >= 5) {
-                                    fetch('/linhas/autocomplete-cnpj/?q=' + encodeURIComponent(query))
-                                        .then(response => response.json())
-                                        .then(data => {
-                                            cnpjSuggestions.innerHTML = '';
-                                            if (data.length > 0) {
-                                                data.forEach(function(item) {
-                                                    var el = document.createElement('a');
-                                                    el.className = 'list-group-item list-group-item-action';
-                                                    el.textContent = item.cnpj + ' - ' + item.empresa;
-                                                    el.onclick = function() {
-                                                        cnpjInput.value = item.cnpj;
-                                                        empresaInput.value = item.empresa;
-                                                        cnpjSuggestions.style.display = 'none';
-                                                    };
-                                                    cnpjSuggestions.appendChild(el);
-                                                });
-                                                cnpjSuggestions.style.display = '';
-                                            } else {
-                                                cnpjSuggestions.style.display = 'none';
-                                            }
-                                        });
-                                } else {
-                                    cnpjSuggestions.style.display = 'none';
-                                }
-                            });
-                            document.addEventListener('click', function(e) {
-                                if (!cnpjInput.contains(e.target)) {
-                                    cnpjSuggestions.style.display = 'none';
-                                }
-                            });
+                            // Autocomplete CNPJ (apenas se o elemento existir)
+                            if (cnpjInput && cnpjSuggestions) {
+                                cnpjInput.addEventListener('input', function() {
+                                    var query = cnpjInput.value.replace(/\D/g, '');
+                                    if (query.length >= 5) {
+                                        fetch('/linhas/autocomplete-cnpj/?q=' + encodeURIComponent(query))
+                                            .then(response => response.json())
+                                            .then(data => {
+                                                cnpjSuggestions.innerHTML = '';
+                                                if (data.length > 0) {
+                                                    data.forEach(function(item) {
+                                                        var el = document.createElement('a');
+                                                        el.className = 'list-group-item list-group-item-action';
+                                                        el.textContent = item.cnpj + ' - ' + item.empresa;
+                                                        el.onclick = function() {
+                                                            cnpjInput.value = item.cnpj;
+                                                            empresaInput.value = item.empresa;
+                                                            cnpjSuggestions.style.display = 'none';
+                                                        };
+                                                        cnpjSuggestions.appendChild(el);
+                                                    });
+                                                    cnpjSuggestions.style.display = '';
+                                                } else {
+                                                    cnpjSuggestions.style.display = 'none';
+                                                }
+                                            });
+                                    } else {
+                                        cnpjSuggestions.style.display = 'none';
+                                    }
+                                });
+                                
+                                document.addEventListener('click', function(e) {
+                                    if (!cnpjInput.contains(e.target)) {
+                                        cnpjSuggestions.style.display = 'none';
+                                    }
+                                });
+                            }
 
                             // Mapeamento dos valores por tipo de plano
                             var valoresPlano = {
@@ -1013,61 +1023,152 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (e) { /* ignore */ }
     });
 
-    // Handler para o botão "Enviar Pedido"
-    document.addEventListener('DOMContentLoaded', function() {
+    // Script do botão "Enviar Pedido" foi movido para o final da página
+    </script>
+
+<!-- Script do botão Enviar Pedido - deve ser o último -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🔄 [FINAL] DOMContentLoaded - Inicializando handler do botão Enviar Pedido...');
+    
+    // Aguardar um pouco para garantir que tudo foi carregado
+    setTimeout(function() {
         const btnEnviarPedido = document.getElementById('btn-enviar-pedido');
         const form = document.querySelector('form[method="post"]');
 
-        console.log('Botão Enviar Pedido:', btnEnviarPedido);
-        console.log('Formulário:', form);
-
-        if (btnEnviarPedido && form) {
-            btnEnviarPedido.addEventListener('click', function(e) {
+        console.log('🎯 [FINAL] Botão Enviar Pedido encontrado:', btnEnviarPedido);
+        console.log('📝 [FINAL] Formulário encontrado:', form);
+        
+        // Verificar se o botão existe no DOM
+        if (btnEnviarPedido) {
+            console.log('✅ [FINAL] Botão existe - ID:', btnEnviarPedido.id, 'Texto:', btnEnviarPedido.textContent);
+            
+            // Remover listeners anteriores se existirem
+            btnEnviarPedido.removeEventListener('click', btnEnviarPedido._clickHandler);
+            
+            // Definir o handler
+            btnEnviarPedido._clickHandler = function(e) {
                 e.preventDefault();
-                console.log('Botão Enviar Pedido clicado!');
+                console.log('🚀 [FINAL] Botão Enviar Pedido clicado!');
                 
                 // Verificar se os campos obrigatórios estão preenchidos
                 let isValid = true;
                 let missingFields = [];
 
-                // Lista de campos obrigatórios principais
-                const requiredFieldNames = ['empresa', 'cnpj', 'taxa_manutencao', 'rp', 'numero', 'tipo_plano', 'valor_plano'];
+                // Verificar campos básicos obrigatórios
+                const acao = form.querySelector('[name="acao"]');
+                const empresa = form.querySelector('[name="empresa"]');
+                const cnpj = form.querySelector('[name="cnpj"]');
+                const taxa = form.querySelector('[name="taxa_manutencao"]');
+                const rp = form.querySelector('[name="rp"]');
                 
-                // Verificar campos obrigatórios por nome
-                requiredFieldNames.forEach(fieldName => {
-                    const field = form.querySelector(`[name="${fieldName}"]`);
-                    if (field && !field.value.trim()) {
-                        isValid = false;
-                        const label = field.closest('.mb-3')?.querySelector('.form-label')?.textContent || fieldName;
-                        missingFields.push(label.replace('*', '').trim());
-                        field.classList.add('is-invalid');
-                    } else if (field) {
-                        field.classList.remove('is-invalid');
-                    }
-                });
+                if (!acao || !acao.value.trim()) {
+                    isValid = false;
+                    missingFields.push('Ação');
+                }
+                
+                if (!empresa || !empresa.value.trim()) {
+                    isValid = false;
+                    missingFields.push('Empresa');
+                }
+                
+                if (!cnpj || !cnpj.value.trim()) {
+                    isValid = false;
+                    missingFields.push('CNPJ');
+                }
+                
+                if (!taxa || !taxa.value.trim()) {
+                    isValid = false;
+                    missingFields.push('Taxa de Manutenção');
+                }
+                
+                if (!rp || !rp.value.trim()) {
+                    isValid = false;
+                    missingFields.push('RP');
+                }
 
-                // Também verificar campos com atributo required
-                const explicitRequiredFields = form.querySelectorAll('[required]');
-                explicitRequiredFields.forEach(field => {
-                    if (!field.value.trim()) {
-                        isValid = false;
-                        const label = field.closest('.mb-3')?.querySelector('.form-label')?.textContent || field.placeholder || field.name;
-                        if (!missingFields.includes(label)) {
-                            missingFields.push(label);
+                // Verificar se existem linhas dinâmicas (arrays) ou campos únicos
+                const numerosLinhas = form.querySelectorAll('input[name="numero[]"]');
+                const tiposPlano = form.querySelectorAll('select[name="tipo_plano[]"]');
+                const valoresPlano = form.querySelectorAll('input[name="valor_plano[]"]');
+                
+                // Se há campos de array, validar linhas dinâmicas
+                if (numerosLinhas.length > 0) {
+                    let hasValidLine = false;
+                    
+                    numerosLinhas.forEach((numeroField, index) => {
+                        const tipoField = tiposPlano[index];
+                        const valorField = valoresPlano[index];
+                        
+                        const hasNumero = numeroField && numeroField.value.trim();
+                        const hasTipo = tipoField && tipoField.value.trim();
+                        const hasValor = valorField && valorField.value.trim();
+                        
+                        if (hasNumero || hasTipo || hasValor) {
+                            hasValidLine = true;
+                            
+                            // Se começou a preencher uma linha, todos os campos obrigatórios dela devem estar preenchidos
+                            if (!hasNumero) {
+                                isValid = false;
+                                missingFields.push(`Linha ${index + 1}: Número da linha`);
+                                if (numeroField) numeroField.classList.add('is-invalid');
+                            } else {
+                                if (numeroField) numeroField.classList.remove('is-invalid');
+                            }
+                            
+                            if (!hasTipo) {
+                                isValid = false;
+                                missingFields.push(`Linha ${index + 1}: Tipo de plano`);
+                                if (tipoField) tipoField.classList.add('is-invalid');
+                            } else {
+                                if (tipoField) tipoField.classList.remove('is-invalid');
+                            }
+                            
+                            if (!hasValor) {
+                                isValid = false;
+                                missingFields.push(`Linha ${index + 1}: Valor do plano`);
+                                if (valorField) valorField.classList.add('is-invalid');
+                            } else {
+                                if (valorField) valorField.classList.remove('is-invalid');
+                            }
                         }
-                        field.classList.add('is-invalid');
-                    } else {
-                        field.classList.remove('is-invalid');
+                    });
+                    
+                    if (!hasValidLine) {
+                        isValid = false;
+                        missingFields.push('É necessário preencher pelo menos uma linha');
                     }
-                });
+                } else {
+                    // Se não há campos de array, verificar campos únicos
+                    const numero = form.querySelector('[name="numero"]');
+                    const tipoPlano = form.querySelector('[name="tipo_plano"]');
+                    const valorPlano = form.querySelector('[name="valor_plano"]');
+                    
+                    if (!numero || !numero.value.trim()) {
+                        isValid = false;
+                        missingFields.push('Número da linha');
+                    }
+                    
+                    if (!tipoPlano || !tipoPlano.value.trim()) {
+                        isValid = false;
+                        missingFields.push('Tipo de plano');
+                    }
+                    
+                    if (!valorPlano || !valorPlano.value.trim()) {
+                        isValid = false;
+                        missingFields.push('Valor do plano');
+                    }
+                }
 
+                console.log('🔍 [FINAL] Validação completa. Campos em falta:', missingFields);
+                console.log('📊 [FINAL] Status da validação:', isValid);
+                
                 if (!isValid) {
-                    console.log('Campos obrigatórios em falta:', missingFields);
-                    alert('Preencha todos os campos obrigatórios:\n• ' + missingFields.join('\n• '));
+                    alert('⚠️ Preencha todos os campos obrigatórios:\n• ' + missingFields.join('\n• '));
                     return;
                 }
 
-                console.log('Validação passou, enviando formulário...');
+                console.log('✅ [FINAL] Validação passou! Enviando formulário...');
                 
                 // Desabilitar botão durante o envio
                 btnEnviarPedido.disabled = true;
@@ -1075,9 +1176,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 // Criar FormData com todos os dados do formulário
                 const formData = new FormData(form);
+                
+                console.log('📤 [FINAL] Dados que serão enviados:');
+                for (let [key, value] of formData.entries()) {
+                    console.log(`  ${key}: ${value}`);
+                }
 
                 // Enviar via AJAX
-                fetch("{% url 'linhas:enviar_pedido' %}", {
+                fetch("/linhas/enviar-pedido/", {
                     method: 'POST',
                     body: formData,
                     headers: {
@@ -1085,28 +1191,59 @@ document.addEventListener('DOMContentLoaded', function() {
                         'X-Requested-With': 'XMLHttpRequest'
                     }
                 })
-                .then(response => response.json())
+                .then(response => {
+                    console.log('📡 [FINAL] Resposta HTTP:', response.status, response.statusText);
+                    return response.json();
+                })
                 .then(data => {
+                    console.log('📦 [FINAL] Dados recebidos do servidor:', data);
                     if (data.status === 'success') {
-                        alert(data.message);
-                        if (data.redirect_url) {
-                            window.location.href = data.redirect_url;
-                        }
+                        // Mostrar mensagem de sucesso
+                        alert('✅ ' + data.message + '\n\n🔄 Redirecionando para a página de protocolos...');
+                        
+                        // Pequeno delay antes do redirecionamento
+                        setTimeout(() => {
+                            if (data.redirect_url) {
+                                window.location.href = data.redirect_url;
+                            } else {
+                                window.location.href = "/linhas/protocolo/";
+                            }
+                        }, 1000);
                     } else {
-                        alert('Erro: ' + data.message + (data.errors ? '\n\nDetalhes:\n• ' + data.errors.join('\n• ') : ''));
+                        console.error('❌ [FINAL] Erro no servidor:', data);
+                        alert('❌ Erro: ' + data.message + (data.errors ? '\n\nDetalhes:\n• ' + data.errors.join('\n• ') : ''));
                     }
                 })
                 .catch(error => {
-                    console.error('Erro:', error);
-                    alert('Erro de conexão. Tente novamente.');
+                    console.error('🔌 [FINAL] Erro de conexão:', error);
+                    alert('🔌 Erro de conexão com o servidor.\n\nPossíveis causas:\n• Servidor não está rodando\n• Problemas de rede\n• Erro interno do servidor\n\n⚠️ Detalhes: ' + error.message);
                 })
                 .finally(() => {
-                    // Reabilitar botão
-                    btnEnviarPedido.disabled = false;
-                    btnEnviarPedido.innerHTML = 'Enviar Pedido';
+                    // Reabilitar botão apenas se ainda estamos na mesma página
+                    if (btnEnviarPedido) {
+                        btnEnviarPedido.disabled = false;
+                        btnEnviarPedido.innerHTML = 'Enviar Pedido';
+                    }
+                    console.log('🔄 [FINAL] Processo finalizado - botão reabilitado');
                 });
-            });
+            };
+            
+            // Adicionar o event listener
+            btnEnviarPedido.addEventListener('click', btnEnviarPedido._clickHandler);
+            
+            console.log('🎉 [FINAL] Event listener adicionado com sucesso!');
+            
+        } else {
+            console.error('❌ [FINAL] Botão "btn-enviar-pedido" NÃO ENCONTRADO no DOM');
+            // Listar todos os botões disponíveis para debug
+            const todosOsBotoes = document.querySelectorAll('button');
+            console.log('🔍 [FINAL] Botões disponíveis na página:', Array.from(todosOsBotoes).map(btn => ({
+                id: btn.id, 
+                class: btn.className, 
+                text: btn.textContent.trim()
+            })));
         }
-    });
-    </script>
+    }, 500); // Aguardar 500ms
+});
+</script>
 

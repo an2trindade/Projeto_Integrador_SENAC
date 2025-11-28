@@ -2364,76 +2364,169 @@ def cancelar_linha(request, pk):
 @login_required
 def enviar_pedido(request):
     """
-    Cria uma nova linha e automaticamente define seu status_protocolo como 'pendente'
+    Cria linhas dinâmicas e automaticamente define seus status_protocolo como 'pendente'
     """
     try:
-        form = LinhaForm(request.POST, request.FILES)
+        print(f"[DEBUG] enviar_pedido chamado pelo usuário: {request.user}")
+        print(f"[DEBUG] POST data: {request.POST}")
+        print(f"[DEBUG] FILES data: {request.FILES}")
+        # Dados comuns para todas as linhas
+        acao = request.POST.get('acao', '')
+        empresa = request.POST.get('empresa', '')
+        cnpj = request.POST.get('cnpj', '')
+        taxa_manutencao = request.POST.get('taxa_manutencao', '0')
+        rp = request.POST.get('rp', '')
+        observacoes = request.POST.get('observacoes', '')
         observacoes_lateral = request.POST.get('observacoes_lateral', '')
         anexos = request.FILES.getlist('anexos')
         
-        if form.is_valid():
-            linha = form.save(commit=False)
-            linha.criado_por = request.user
-            linha.status_protocolo = 'pendente'  # Define automaticamente como pendente
-            
-            # Se RP for "NOVO_RP_AUTO", gerar um RP automático
-            if linha.rp == 'NOVO_RP_AUTO':
-                import datetime
-                timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-                linha.rp = f'7.{timestamp}.AUTO'
-            
-            # Adiciona observações da lateral se ação for TT ou PORTABILIDADE
-            if linha.acao in ['TT', 'PORTABILIDADE'] and observacoes_lateral:
-                if linha.observacoes:
-                    linha.observacoes += '\n' + observacoes_lateral
-                else:
-                    linha.observacoes = observacoes_lateral
-            
-            linha.save()
-            
-            # Attempt to attach a Cliente if one exists with the same CNPJ or empresa
-            try:
-                import re
-                cliente = None
-                if linha.cnpj:
-                    cnpj_digits = re.sub(r"\D", "", linha.cnpj)
-                    cliente = Cliente.objects.filter(cnpj__icontains=cnpj_digits).first()
-                if not cliente and linha.empresa:
-                    cliente = Cliente.objects.filter(empresa__iexact=linha.empresa).first()
-                if cliente:
-                    linha.cliente = cliente
-                    linha.save()
-            except Exception:
-                # don't block save on any lookup error
-                pass
-            
-            # Salvar anexos
-            for arquivo in anexos:
-                with open(f'media/anexos/{arquivo.name}', 'wb+') as dest:
-                    for chunk in arquivo.chunks():
-                        dest.write(chunk)
-            
-            return JsonResponse({
-                'status': 'success',
-                'message': f'✅ Pedido enviado com sucesso! Linha {linha.numero} está agora pendente no protocolo.',
-                'linha_id': linha.id,
-                'redirect_url': reverse('linhas:protocolo')
-            })
-        else:
-            # Retorna erros do formulário
-            errors = []
-            for field_name, field_errors in form.errors.items():
-                field_label = field_name
-                if hasattr(form.fields.get(field_name), 'label') and form.fields[field_name].label:
-                    field_label = form.fields[field_name].label
-                for error in field_errors:
-                    errors.append(f"{field_label}: {error}")
-            
+        # Validar campos obrigatórios comuns
+        if not empresa or not cnpj or not acao:
             return JsonResponse({
                 'status': 'error',
-                'message': 'Erro nos dados do formulário',
-                'errors': errors
+                'message': 'Dados da empresa são obrigatórios (Empresa, CNPJ e Ação)',
+                'errors': []
             }, status=400)
+        
+        # Arrays das linhas dinâmicas
+        numeros = request.POST.getlist('numero[]')
+        tipos_plano = request.POST.getlist('tipo_plano[]')
+        valores_plano = request.POST.getlist('valor_plano[]')
+        iccids = request.POST.getlist('iccid[]')
+        linhas_portadas = request.POST.getlist('linha_portada[]')
+        
+        # Validar se há pelo menos uma linha
+        if not numeros or not any(num.strip() for num in numeros):
+            return JsonResponse({
+                'status': 'error',
+                'message': 'É necessário adicionar pelo menos uma linha',
+                'errors': []
+            }, status=400)
+        
+        # Se RP for "NOVO_RP_AUTO", gerar um RP automático
+        if rp == 'NOVO_RP_AUTO':
+            import datetime
+            timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+            rp = f'7.{timestamp}.AUTO'
+        
+        # Para ação ESTOQUE, usar RP padrão se não especificado
+        if acao == 'ESTOQUE' and not rp:
+            rp = '7.1255217.10.11'
+        
+        print(f"[DEBUG] Ação: {acao}, RP final: {rp}")
+        
+        # Buscar cliente existente
+        cliente = None
+        try:
+            import re
+            if cnpj:
+                cnpj_digits = re.sub(r"\D", "", cnpj)
+                cliente = Cliente.objects.filter(cnpj__icontains=cnpj_digits).first()
+            if not cliente and empresa:
+                cliente = Cliente.objects.filter(empresa__iexact=empresa).first()
+        except Exception:
+            pass
+        
+        linhas_criadas = []
+        
+        # Criar uma linha para cada conjunto de dados
+        for i, numero in enumerate(numeros):
+            if not numero.strip():  # Pular linhas vazias
+                continue
+                
+            tipo_plano = tipos_plano[i] if i < len(tipos_plano) else ''
+            valor_plano = valores_plano[i] if i < len(valores_plano) else '0'
+            iccid = iccids[i] if i < len(iccids) else ''
+            linha_portada = linhas_portadas[i] if i < len(linhas_portadas) else ''
+            
+            # Validar campos obrigatórios da linha
+            if not tipo_plano or not valor_plano:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': f'Linha {numero}: Tipo de plano e valor são obrigatórios',
+                    'errors': []
+                }, status=400)
+            
+            # Criar objeto Linha
+            try:
+                linha = Linha(
+                    acao=acao,
+                    empresa=empresa,
+                    cnpj=cnpj,
+                    taxa_manutencao=float(taxa_manutencao.replace(',', '.')) if taxa_manutencao else 0,
+                    rp=rp,
+                    numero=numero.strip(),
+                    tipo_plano=tipo_plano,
+                    valor_plano=float(valor_plano.replace(',', '.')) if valor_plano else 0,
+                    iccid=iccid.strip() if iccid else '',
+                    observacoes=observacoes,
+                    criado_por=request.user,
+                    status_protocolo='pendente',
+                    cliente=cliente,
+                    ativa=True
+                )
+                
+                # Adicionar observações específicas para PORTABILIDADE
+                if acao == 'PORTABILIDADE' and linha_portada:
+                    observacao_port = f"Linha a ser portada: {linha_portada}"
+                    if linha.observacoes:
+                        linha.observacoes += f"\n{observacao_port}"
+                    else:
+                        linha.observacoes = observacao_port
+                
+                # Adicionar observações da lateral se ação for TT ou PORTABILIDADE
+                if acao in ['TT', 'PORTABILIDADE'] and observacoes_lateral:
+                    if linha.observacoes:
+                        linha.observacoes += '\n' + observacoes_lateral
+                    else:
+                        linha.observacoes = observacoes_lateral
+                
+                linha.save()
+                linhas_criadas.append(linha)
+                
+            except ValueError as ve:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': f'Erro nos valores da linha {numero}: {str(ve)}',
+                    'errors': []
+                }, status=400)
+            except Exception as e:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': f'Erro ao salvar linha {numero}: {str(e)}',
+                    'errors': []
+                }, status=500)
+        
+        # Salvar anexos
+        try:
+            import os
+            media_dir = os.path.join(settings.MEDIA_ROOT, 'anexos')
+            os.makedirs(media_dir, exist_ok=True)
+            
+            for arquivo in anexos:
+                file_path = os.path.join(media_dir, arquivo.name)
+                with open(file_path, 'wb+') as dest:
+                    for chunk in arquivo.chunks():
+                        dest.write(chunk)
+        except Exception as e:
+            # Não bloquear o processo se houver erro com anexos
+            pass
+        
+        # Mensagem de sucesso
+        total_linhas = len(linhas_criadas)
+        if total_linhas == 1:
+            message = f'✅ Pedido enviado com sucesso! Linha {linhas_criadas[0].numero} está agora pendente no protocolo.'
+        else:
+            message = f'✅ Pedido enviado com sucesso! {total_linhas} linhas foram criadas e estão pendentes no protocolo.'
+        
+        print(f"[DEBUG] Sucesso! {total_linhas} linhas criadas")
+        
+        return JsonResponse({
+            'status': 'success',
+            'message': message,
+            'linhas_criadas': total_linhas,
+            'redirect_url': reverse('linhas:protocolo')
+        })
             
     except Exception as e:
         return JsonResponse({
