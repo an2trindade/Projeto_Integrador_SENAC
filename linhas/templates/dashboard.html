@@ -297,7 +297,7 @@
     </div>
     <div class="col-md-6">
         <div class="chart-card">
-            <h5><i class="fas fa-chart-area me-2"></i>Protocolos por Status (ciclo {{ ciclo_start }} → {{ ciclo_end }})</h5>
+            <h5><i class="fas fa-chart-pie me-2"></i>Protocolos por Status (ciclo {{ ciclo_start }} → {{ ciclo_end }})</h5>
             <div class="chart-wrapper">
                 <canvas id="protocoloStatusChart"></canvas>
             </div>
@@ -351,8 +351,8 @@
                 }
             },
             scales: {
-                x: { ticks: { autoSkip: false, color: '#000000' }, grid: { display: false } },
-                y: { beginAtZero: true, ticks: { color: '#000000' }, grid: { color: 'rgba(0,0,0,0.15)' } }
+                x: { ticks: { autoSkip: false, color: '#ffffff' }, grid: { display: false } },
+                y: { beginAtZero: true, ticks: { color: '#ffffff' }, grid: { color: 'rgba(255,255,255,0.15)' } }
             }
         }
     });
@@ -362,45 +362,58 @@
     const protocolosConcluido = JSON.parse('{{ protocolos_concluido_series_json|escapejs }}');
     const protocolosCancelado = JSON.parse('{{ protocolos_cancelado_series_json|escapejs }}');
 
-    const ctx2 = document.getElementById('protocolosChart').getContext('2d');
+    // Gráfico de pizza para Protocolos por Status
+    const ctx2 = document.getElementById('protocoloStatusChart').getContext('2d');
+    const protocolosPendenteTotal = {{ protocolos_pendentes_count|default:0 }};
+    const protocolosConcluidoTotal = {{ protocolos_concluidos_count|default:0 }};
+    const protocolosCanceladoTotal = {{ protocolos_cancelados_count|default:0 }};
+
     new Chart(ctx2, {
-        type: 'line',
+        type: 'pie',
         data: {
-            labels: protocolosDias,
-            datasets: [
-                {
-                    label: 'Pendente',
-                    data: protocolosPendente,
-                    fill: false,
-                    borderColor: 'rgba(255, 99, 132, 0.9)'
-                },
-                {
-                    label: 'Concluído',
-                    data: protocolosConcluido,
-                    fill: false,
-                    borderColor: 'rgba(54, 162, 235, 0.9)'
-                },
-                {
-                    label: 'Cancelado',
-                    data: protocolosCancelado,
-                    fill: false,
-                    borderColor: 'rgba(201, 203, 207, 0.9)'
-                }
-            ]
+            labels: ['Pendentes', 'Concluídos', 'Cancelados'],
+            datasets: [{
+                data: [protocolosPendenteTotal, protocolosConcluidoTotal, protocolosCanceladoTotal],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.8)',
+                    'rgba(54, 162, 235, 0.8)',
+                    'rgba(201, 203, 207, 0.8)'
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(201, 203, 207, 1)'
+                ],
+                borderWidth: 2
+            }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: { 
-                legend: { display: true, labels: { color: '#000000' } },
-                tooltip: { titleColor: '#000000', bodyColor: '#000000' }
-            },
-            scales: {
-                x: {
-                    ticks: { maxRotation: 45, minRotation: 0, autoSkip: true, maxTicksLimit: 12, color: '#000000' },
-                    grid: { display: false }
+                legend: { 
+                    display: true, 
+                    position: 'bottom',
+                    labels: { 
+                        color: '#ffffff',
+                        padding: 15,
+                        font: { size: 13 }
+                    } 
                 },
-                y: { beginAtZero: true, ticks: { color: '#000000' }, grid: { color: 'rgba(0,0,0,0.15)' } }
+                tooltip: { 
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleColor: '#ffffff', 
+                    bodyColor: '#ffffff',
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.parsed || 0;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                            return label + ': ' + value + ' (' + percentage + '%)';
+                        }
+                    }
+                }
             }
         }
     });
