@@ -3,9 +3,110 @@
 {% block title %}{{ linha.nome }} - Gestor de Linhas{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1><i class="fas fa-eye"></i> Detalhes da Linha</h1>
-    <div class="btn-group">
+<style>
+    .tech-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 2rem;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+        box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+    }
+
+    .tech-header h1 {
+        color: white;
+        margin: 0;
+        font-weight: 600;
+        font-size: 2rem;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+
+    .info-card {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        padding: 2rem;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1.5rem;
+    }
+
+    .card-header-custom {
+        background: rgba(102, 126, 234, 0.2);
+        border-bottom: 2px solid rgba(102, 126, 234, 0.4);
+        padding: 1rem 1.5rem;
+        border-radius: 10px 10px 0 0;
+        margin: -2rem -2rem 1.5rem -2rem;
+    }
+
+    .card-header-custom h5 {
+        color: rgba(255, 255, 255, 0.95);
+        margin: 0;
+        font-weight: 600;
+        font-size: 1.2rem;
+    }
+
+    .info-label {
+        color: rgba(255, 255, 255, 0.7);
+        font-weight: 500;
+        margin-bottom: 0.3rem;
+        font-size: 0.9rem;
+    }
+
+    .info-value {
+        color: rgba(255, 255, 255, 0.95);
+        font-weight: 500;
+        margin-bottom: 1.5rem;
+        font-size: 1.05rem;
+    }
+
+    .badge {
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-weight: 500;
+    }
+
+    .btn-warning {
+        background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+        border: none;
+        padding: 0.7rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 500;
+        color: white;
+        transition: all 0.3s ease;
+    }
+
+    .btn-warning:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(253, 160, 133, 0.4);
+        color: white;
+    }
+
+    .btn-secondary {
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 0.7rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.3);
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .btn-secondary:disabled {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: rgba(255, 255, 255, 0.5);
+    }
+</style>
+
+<div class="tech-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <h1><i class="fas fa-eye"></i> Detalhes da Linha</h1>
         <a href="{% url 'linhas:listalinhas' %}" class="btn btn-secondary">
             <i class="fas fa-arrow-left"></i> Voltar
         </a>
@@ -14,62 +115,62 @@
 
 <div class="row">
     <div class="col-md-8">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
+        <div class="info-card">
+            <div class="card-header-custom">
+                <h5>
                     <i class="fas fa-info-circle"></i> Informações da Linha
                 </h5>
             </div>
-            <div class="card-body">
+            <div class="card-body-custom">
                     <div class="row">
                         <div class="col-md-6">
-                            <p><strong><i class="fas fa-hashtag"></i> Número da Linha:</strong></p>
-                            <p class="text-dark">{{ linha.numero }}</p>
+                            <p class="info-label"><i class="fas fa-hashtag"></i> Número da Linha:</p>
+                            <p class="info-value">{{ linha.numero }}</p>
                         </div>
                         <div class="col-md-6">
-                            <p><strong><i class="fas fa-building"></i> Cliente:</strong></p>
-                            <p class="text-dark">{{ linha.empresa }}</p>
+                            <p class="info-label"><i class="fas fa-building"></i> Cliente:</p>
+                            <p class="info-value">{{ linha.empresa }}</p>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-md-6">
-                            <p><strong><i class="fas fa-id-card"></i> CNPJ:</strong></p>
-                            <p class="text-dark">{{ linha.cnpj }}</p>
+                            <p class="info-label"><i class="fas fa-id-card"></i> CNPJ:</p>
+                            <p class="info-value">{{ linha.cnpj }}</p>
                         </div>
                         <div class="col-md-6">
-                            <p><strong><i class="fas fa-coins"></i> Taxa de Manutenção (R$):</strong></p>
-                            <p class="text-dark">{{ linha.taxa_manutencao }}</p>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <p><strong><i class="fas fa-user-tie"></i> RP:</strong></p>
-                            <p class="text-dark">{{ linha.rp }}</p>
-                        </div>
-                        <div class="col-md-6">
-                            <p><strong><i class="fas fa-mobile-alt"></i> Tipo de Plano:</strong></p>
-                            <p class="text-dark">{{ linha.tipo_plano }}</p>
+                            <p class="info-label"><i class="fas fa-coins"></i> Taxa de Manutenção (R$):</p>
+                            <p class="info-value">{{ linha.taxa_manutencao }}</p>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-md-6">
-                            <p><strong><i class="fas fa-money-bill-wave"></i> Valor do Plano (R$):</strong></p>
-                            <p class="text-dark">{{ linha.valor_plano }}</p>
+                            <p class="info-label"><i class="fas fa-user-tie"></i> RP:</p>
+                            <p class="info-value">{{ linha.rp }}</p>
                         </div>
                         <div class="col-md-6">
-                            <p><strong><i class="fas fa-sim-card"></i> ICCID:</strong></p>
-                            <p class="text-dark">{{ linha.iccid }}</p>
+                            <p class="info-label"><i class="fas fa-mobile-alt"></i> Tipo de Plano:</p>
+                            <p class="info-value">{{ linha.tipo_plano }}</p>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-md-6">
-                            <p><strong><i class="fas fa-check-circle"></i> Status:</strong></p>
+                            <p class="info-label"><i class="fas fa-money-bill-wave"></i> Valor do Plano (R$):</p>
+                            <p class="info-value">{{ linha.valor_plano }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="info-label"><i class="fas fa-sim-card"></i> ICCID:</p>
+                            <p class="info-value">{{ linha.iccid }}</p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="info-label"><i class="fas fa-check-circle"></i> Status:</p>
                             {% if linha.cancelada %}
                                 <span class="badge bg-dark fs-6">
                                     <i class="fas fa-ban"></i> Cancelada
                                 </span>
                                 {% if linha.data_cancelamento %}
-                                    <small class="text-muted d-block mt-1">
+                                    <small class="info-label d-block mt-1">
                                         Cancelada em: {{ linha.data_cancelamento|date:"d/m/Y H:i" }}
                                     </small>
                                 {% endif %}
@@ -89,44 +190,35 @@
     </div>
 
     <div class="col-md-4">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
+        <div class="info-card">
+            <div class="card-header-custom">
+                <h5>
                     <i class="fas fa-history"></i> Informações do Sistema
                 </h5>
             </div>
-            <div class="card-body">
-                <p><strong><i class="fas fa-user"></i> Criado por:</strong></p>
-                <p class="text-muted">{{ linha.criado_por.username }}</p>
+            <div class="card-body-custom">
+                <p class="info-label"><i class="fas fa-user"></i> Criado por:</p>
+                <p class="info-value">{{ linha.criado_por.username }}</p>
 
-                <p><strong><i class="fas fa-calendar-plus"></i> Criado em:</strong></p>
-                <p class="text-muted">{{ linha.criado_em|date:"d/m/Y H:i" }}</p>
+                <p class="info-label"><i class="fas fa-calendar-plus"></i> Criado em:</p>
+                <p class="info-value">{{ linha.criado_em|date:"d/m/Y H:i" }}</p>
 
-                <p><strong><i class="fas fa-calendar-edit"></i> Última atualização:</strong></p>
-                <p class="text-muted">{{ linha.atualizado_em|date:"d/m/Y H:i" }}</p>
+                <p class="info-label"><i class="fas fa-calendar-edit"></i> Última atualização:</p>
+                <p class="info-value">{{ linha.atualizado_em|date:"d/m/Y H:i" }}</p>
             </div>
         </div>
 
-        <div class="card mt-3">
-            <div class="card-header">
-                <h5 class="mb-0">
+        <div class="info-card">
+            <div class="card-header-custom">
+                <h5>
                     <i class="fas fa-cogs"></i> Ações Rápidas
                 </h5>
             </div>
-            <div class="card-body">
+            <div class="card-body-custom">
                 <div class="d-grid gap-2">
                     <a href="{% url 'linhas:editarlinha' linha.pk %}" class="btn btn-warning">
                         <i class="fas fa-edit"></i> Editar Linha
                     </a>
-                    {% if linha.ativa %}
-                        <button class="btn btn-secondary" disabled>
-                            <i class="fas fa-pause"></i> Desativar Linha
-                        </button>
-                    {% else %}
-                        <button class="btn btn-success" disabled>
-                            <i class="fas fa-play"></i> Ativar Linha
-                        </button>
-                    {% endif %}
                 </div>
             </div>
         </div>
